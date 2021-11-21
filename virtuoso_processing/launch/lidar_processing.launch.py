@@ -1,8 +1,9 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from ament_index_python import get_package_share_directory
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
+
+# Using ray_ground_classifier and voxel_grid_node from Autoware.auto
 
 def generate_launch_description(): 
 
@@ -30,14 +31,14 @@ def generate_launch_description():
             package='ray_ground_classifier_nodes',
             executable='ray_ground_classifier_cloud_node_exe',
             parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
-            remappings=[("points_in", "/horizontal_laser_3d")] 
+            remappings=[("points_in", "/horizontal_laser_3d")] # points_in comes from raw LIDAR data
         ),
         Node(
             package='voxel_grid_nodes',
             executable='voxel_grid_node_exe',
             parameters=[LaunchConfiguration('voxel_grid_node_param_file')],
             remappings=[
-                ("points_in", "points_nonground"), # changed from points_fused
+                ("points_in", "points_nonground"), # points_in come from topic published to by ray_ground_classifier_nodes 
                 ("points_downsampled", "points_fused_downsampled")
             ]
         ) 

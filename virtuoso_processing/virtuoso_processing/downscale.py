@@ -9,7 +9,7 @@ class DownScale(Node):
 
     def __init__(self):
         super().__init__('downscale')
-        self.grayscaled_sub = self.create_subscription(Image, 'grayscaled_image', self.listener_callback, 10)
+        self.grayscaled_sub = self.create_subscription(Image, 'grayscaled_image', self.listener_callback, 10) # subscribes to topic published to by grayscale node
         self.publisher = self.create_publisher(Image, 'downscaled_image', 10)
     
     def listener_callback(self, msg:Image):

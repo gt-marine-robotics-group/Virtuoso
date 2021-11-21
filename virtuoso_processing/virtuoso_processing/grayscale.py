@@ -9,7 +9,7 @@ class GrayScale(Node):
 
     def __init__(self):
         super().__init__('grayscale')
-        self.subscription = self.create_subscription(Image, '/camera/rgb/image_color', self.listener_callback, 10)
+        self.subscription = self.create_subscription(Image, '/camera/rgb/image_color', self.listener_callback, 10) # subscribes to topic for raw camera data
         self.publisher = self.create_publisher(Image, 'grayscaled_image', 10)
     
     def listener_callback(self, msg:Image):
