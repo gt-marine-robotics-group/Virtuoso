@@ -24,8 +24,11 @@ LiDAR processing is done through the [lidar_processing.launch.py](launch/lidar_p
 
 The raw PointCloud data is first processed by the [ray_ground_classifier_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/ray-ground-classifier-nodes-design.html) which publish the non-ground points to the topic `points_nonground`. You can visualize this data with Rviz:
 
+![points_nonground](https://user-images.githubusercontent.com/59785089/142947445-346a92d1-5243-4bd3-ad09-d5725a31c82c.png)
 
 Then, the PointCloud data is processed by the [voxel_grid_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/voxel-grid-nodes-design.html) which publish the downsampled data to the topic `points_fused_downsampled`. Again, you can visualize this with Rviz:
+
+![points_fused_downsample](https://user-images.githubusercontent.com/59785089/142947525-302fa4a5-84fb-4fca-887d-64d174ce0128.png)
 
 The Rosbag with PointCloud data used to test the pipeline can be found [here](https://storage.googleapis.com/cartographer-public-data/bags/backpack_3d/with_intensities/b3-2016-04-05-15-51-36.bag).
 
@@ -34,7 +37,11 @@ Camera processing is done through the [camera_processing.launch.py](launch/camer
 
 The raw Camera data is first processed by the [grayscale](virtuoso_processing/grayscale.py) node which publishes the grayscaled camera data (in a mono8 encoding) to the topic `grayscaled_image`. You can visualize this using rqt_image_view:
 
+![grayscaled_image](https://user-images.githubusercontent.com/59785089/142947578-47bafa01-45ec-4d84-939b-36713a3d3e6f.png)
+
 Then, the Camera data is processed by the [downscale](virtuoso_processing/downscale.py) node which publishes the downscaled data to the topic `downscaled_image`. Again, you can visualize this with rqt_image_view:
+
+![downscaled_image](https://user-images.githubusercontent.com/59785089/142947626-a01bd3bf-7932-4168-a4fa-2f34ef29a5d1.png)
 
 The Rosbag with Camera data used to test the pipeline can be found [here](https://drive.google.com/file/d/0B7x5e7bDeXqpeFhQd3FPdVdkTzQ/view?resourcekey=0-eNpU0y4ISgyqhlsBSOOJ8w).
 
