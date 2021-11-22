@@ -1,0 +1,10 @@
+/**:
+  repositories:
+    autoware_auto:
+      type: git
+      url: https://gitlab.com/autowarefoundation/autoware.auto/AutowareAuto.git
+      version: master
+    spatio_temporal_voxel_layer:
+      type: git
+      url: https://github.com/SteveMacenski/spatio_temporal_voxel_layer.git
+      version: ros2
