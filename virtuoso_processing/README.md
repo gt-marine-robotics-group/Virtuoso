@@ -26,6 +26,10 @@ The raw PointCloud data is first processed by the [ray_ground_classifier_nodes](
 
 ![points_nonground](https://user-images.githubusercontent.com/59785089/142947445-346a92d1-5243-4bd3-ad09-d5725a31c82c.png)
 
+Here, you can see the raw data in black and white and the `points_nonground` in color:
+
+![raw_with_ground_filter](https://user-images.githubusercontent.com/59785089/142963366-fa51465b-6402-43a1-b042-e9335a9c621d.png)
+
 Then, the PointCloud data is processed by the [voxel_grid_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/voxel-grid-nodes-design.html) which publish the downsampled data to the topic `points_fused_downsampled`. Again, you can visualize this with Rviz:
 
 ![points_fused_downsample](https://user-images.githubusercontent.com/59785089/142947525-302fa4a5-84fb-4fca-887d-64d174ce0128.png)
