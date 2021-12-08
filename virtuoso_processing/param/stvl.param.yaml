@@ -32,7 +32,7 @@ local_costmap:
         observation_sources: pointcloud
         pointcloud:
           data_type: PointCloud2
-          topic: /points_nonground
+          topic: /points_nonground # topic published to by ray_ground_classifier_nodes
           marking: true
           clearing: true
           obstacle_range: 7.0
