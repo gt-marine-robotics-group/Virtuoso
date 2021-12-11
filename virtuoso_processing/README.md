@@ -2,7 +2,7 @@
 
 ## Building the package
 
-1. Have the Virtuoso repo cloned and ROS set up
+1. Have the Virtuoso repo cloned and ROS2 set up
 2. Have [Skimage](https://scikit-image.org/docs/dev/install.html), numpy, cv_bridge installed
 3. Install [Autoware.auto](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/installation-no-ade.html) and add to workspace
 4. Insall [STVL](https://navigation.ros.org/tutorials/docs/navigation2_with_stvl.html) and add to workspace
