@@ -3,18 +3,16 @@
 ## Building the package
 
 1. Have the Virtuoso repo cloned and ROS set up
-2. Install [Skimage](https://scikit-image.org/docs/dev/install.html)
-3. Install [Autoware.auto](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/installation-no-ade.html)
-4. From the AutowareAuto directory, run `colcon build --packages-up-to ray_ground_classifier_nodes` and `colcon build --packages-up-to voxel_grid_nodes`
-5. Run `source install/setup.bash`
-6. `cd` to the Virtuoso directory
-7. Run `colcon build`
+2. Have [Skimage](https://scikit-image.org/docs/dev/install.html), numpy, cv_bridge installed
+3. Install [Autoware.auto](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/installation-no-ade.html) and add to workspace
+4. Insall [STVL](https://navigation.ros.org/tutorials/docs/navigation2_with_stvl.html) and add to workspace
+5. From workspace, run `colcon build --packages-up-to virtuoso_processing`
 
 ## Running the package
 There are three launch files:
-1. lidar_processing.launch.py
-2. camera_processing.launch.py
-3. <span>main.launch.py</span>
+1. [lidar_processing.launch.py](launch/lidar_processing.launch.py)
+2. [camera_processing.launch.py](launch/camera_processing.launch.py)
+3. <span>[main.launch.py](launch/main.launch.py)</span>
    - Running this will launch the other two
 
 To run the package, simply run from the Virtuoso directory `ros2 launch virtuoso_processing main.launch.py`.
@@ -22,22 +20,26 @@ To run the package, simply run from the Virtuoso directory `ros2 launch virtuoso
 ## LiDAR Processing
 LiDAR processing is done through the [lidar_processing.launch.py](launch/lidar_processing.launch.py) launch file.
 
+![lidar_pipeline](https://user-images.githubusercontent.com/59785089/145680590-86fdb615-58e0-4c28-abd0-dc7d82acda39.png)
+
 The raw PointCloud data is first processed by the [ray_ground_classifier_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/ray-ground-classifier-nodes-design.html) which publish the non-ground points to the topic `points_nonground`. You can visualize this data with Rviz:
 
-![points_nonground](https://user-images.githubusercontent.com/59785089/142947445-346a92d1-5243-4bd3-ad09-d5725a31c82c.png)
+![points_nonground](https://user-images.githubusercontent.com/59785089/145680125-80deb730-46f1-4c49-807c-bfd4417d8df8.png)
 
 Here, you can see the raw data in black and white and the `points_nonground` in color:
 
-![raw_with_ground_filter](https://user-images.githubusercontent.com/59785089/142963366-fa51465b-6402-43a1-b042-e9335a9c621d.png)
+![points_nonground_with_raw](https://user-images.githubusercontent.com/59785089/145680192-d3175247-5baf-48ad-9e15-f06f3c369dd2.png)
 
-Then, the PointCloud data is processed by the [voxel_grid_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/voxel-grid-nodes-design.html) which publish the downsampled data to the topic `points_fused_downsampled`. Again, you can visualize this with Rviz:
+Then, the PointCloud data is run through STVL which downsamples the data and also generates a costmap. The downsampled data is published to `local_costmap/voxel_grid`, and the costmap is published to `local_costmap/costmap`. On Rviz, you can visualize the downsampled data with the costmap:
 
-![points_fused_downsample](https://user-images.githubusercontent.com/59785089/142947525-302fa4a5-84fb-4fca-887d-64d174ce0128.png)
+![stvl](https://user-images.githubusercontent.com/59785089/145680382-e4059c50-2791-49df-b338-84d2e59608d3.png)
 
-The Rosbag with PointCloud data used to test the pipeline can be found [here](https://storage.googleapis.com/cartographer-public-data/bags/backpack_3d/with_intensities/b3-2016-04-05-15-51-36.bag).
+The Rosbag with PointCloud data used to test the pipeline can be found [here](https://storage.googleapis.com/cartographer-public-data/bags/backpack_3d/with_intensities/b3-2016-02-09-13-17-39.bag).
 
 ## Camera Processing
 Camera processing is done through the [camera_processing.launch.py](launch/camera_processing.launch.py) launch file.
+
+![camera_pipeline](https://user-images.githubusercontent.com/59785089/145681124-95e74a68-2d8a-4194-b5a2-4f8fc6396d0c.png)
 
 The raw Camera data is first processed by the [grayscale](virtuoso_processing/grayscale.py) node which publishes the grayscaled camera data (in a mono8 encoding) to the topic `grayscaled_image`. You can visualize this using rqt_image_view:
 
