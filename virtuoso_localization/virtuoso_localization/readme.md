@@ -1,43 +1,51 @@
 # State Estimation
-Two common filters for state estimation, the extended kalman filter and unscented kalman filter are implemented. The extended kalman filter can also be used as a standard kalman filter. 
+Two common filters for state estimation, the **extended kalman filter** and **unscented kalman filter** are implemented. The **extended kalman filter** can also be used as a standard kalman filter. 
 
 ## Logic
 
 ### Kalman Filters
 The function syntax is: 
 
-```XHatnew, P = kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W, V, z) ```
-
-```XHatnew, P = kalman_extended(motionModelF, observationModel, xHatPrevious, U, dt, P0, W, V, z) ```
-
-```
-xHatPrevious is the previous time state estimate
-U is the control input 
-dt is the timestep 
-P0 is the covariance matrix from the previous timestep
-W is the motion model noise matrix
-V is the sensor noise matrix
-z is the current time sensor data 
+```python
+XHatnew, P = kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W, V, z) 
 ```
 
-### Models
-
-```motionModelF(X, U,dt)``` should return ```X(t+dt)``` from inputs ```X(t), U(t), and dt```. 
-
-```observationModel(X)``` should return ```z from X```. 
-
+```python
+XHatnew, P = kalman_extended(motionModelF, observationModel, xHatPrevious, U, dt, P0, W, V, z)
+```
 
 The following inputs are unique to each timestep: 
-```
-xHatPrevious
-U
-P0
-z
-```
+
+&nbsp;&nbsp;&nbsp;&nbsp; **xHatPrevious** , **U**, **P0**, and **z**
+
 
 The rest of the inputs will be the same at each timestep for the same system.
 
 The functions output the estimated state and covariance matrix. 
+
+### Variables
+&nbsp;&nbsp;&nbsp;&nbsp; **xHatPrevious** = previous time state estimate 
+
+&nbsp;&nbsp;&nbsp;&nbsp; **U** = control input 
+
+&nbsp;&nbsp;&nbsp;&nbsp; **dt** = timestep 
+
+&nbsp;&nbsp;&nbsp;&nbsp; **P0** = covariance matrix from the previous timestep
+
+&nbsp;&nbsp;&nbsp;&nbsp; **W** = motion model noise matrix
+
+&nbsp;&nbsp;&nbsp;&nbsp; **V** = sensor noise matrix
+
+&nbsp;&nbsp;&nbsp;&nbsp; **z** = current time sensor data 
+
+### Models
+
+```motionModelF(X, U, dt)``` should return ```X(t+dt)``` from inputs ```X(t), U(t), and dt```. 
+
+```observationModel(X)``` should return ```z``` from X. 
+
+
+
 
 ## Usage
 
