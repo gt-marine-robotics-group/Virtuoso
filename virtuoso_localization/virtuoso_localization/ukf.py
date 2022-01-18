@@ -42,8 +42,8 @@ def kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W,
 	Chi = np.zeros((n,2*n+1))
 	Chi[0:,0] = xHatPrevious[0:,0]
 	for i in range(0,n):
-		Chi[0:,i+1] = xHatPrevious[0:,0] + gamma1*sqrt_P[0:,i]
-		Chi[0:,n+i+1] = xHatPrevious[0:,0] - gamma1*sqrt_P[0:,i]
+		Chi[0:,i+1] = xHatPrevious[0:,0].copy() + gamma1*sqrt_P[0:,i]
+		Chi[0:,n+i+1] = xHatPrevious[0:,0].copy() - gamma1*sqrt_P[0:,i]
 	
 	#propagate sigma points forward in time using the motion model from t to t + dt
 	Chi[0:,0] = motionModelF(Chi[0:,0],U,dt)[0:,0]
@@ -57,7 +57,7 @@ def kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W,
 		sum_x[0:,0] = sum_x[0:,0] + W_m[i]*Chi[0:,i]
 
 	Pk = np.zeros((n,n))
-	m = observationModel(Chi[0:,1]).size
+	m = observationModel(Chi[0:,1].reshape((n,1))).size
 	sum_y = np.zeros((m,1))
 	Upsilon = np.zeros((m, 2*n+1))
 	
@@ -65,7 +65,7 @@ def kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W,
 		#Calculate the process covariance matrix
 		Pk = Pk + W_c[i]*np.matmul((Chi[0:,i] - sum_x[0:,0]).reshape(n,1),np.transpose((Chi[0:,i] - sum_x[0:,0]).reshape(n,1)))
 		#find the observations corresponding to each propagated sigma point
-		Upsilon[0:,i] = observationModel(Chi[0:,i])[0:,0]
+		Upsilon[0:,i] = observationModel(Chi[0:,i].reshape((n,1)))[0:,0]
 		#Find the weighted average of the observations to get the observation estimate
 		sum_y[0:,0] = sum_y[0:,0] + W_m[i]*Upsilon[0:,i]
 
@@ -73,7 +73,7 @@ def kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W,
 	
 	Pyy = np.zeros((m,m))
 	Pxy = np.zeros((n,m))
-	
+
 
 	for i in range (0,2*n+1):
 		#calculate the covariance of the observation sigma points
@@ -85,6 +85,7 @@ def kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W,
 		else:
 			Pxy = Pxy + W_c[i]*(Upsilon[0:,i] - sum_y[0:,0])*(Chi[0:,i] - sum_x[0:,0])
 	Pyy = Pyy + V #add on the sensor noise
+	#print(Pyy)
 	
 	#calculate the kalman gain
 	if Pyy.size>1:
@@ -104,7 +105,7 @@ def kalman_unscented(motionModelF, observationModel, xHatPrevious, U, dt, P0, W,
 		P = Pk - np.matmul(kappa,np.matmul(Pyy,np.transpose(kappa)))
 	else:
 		P = Pk - np.matmul(kappa,Pyy*np.transpose(kappa))
-	
+
 	
 	return XHatnew, P
 
@@ -138,7 +139,7 @@ def basicSensor2(X):
 	
 if __name__ == "__main__":
 	X_i = np.array([[1.0],[2.0],[0.1]])
-	Xhat_i = np.array([[0.0],[0.0],[0.0]])
+	Xhat_i = np.array([[1.0],[2.0],[0.1]])
 	u = np.array([0.0])
 	P0 = np.array([[50.0,10.0,10.0],[10.0,50.0,10.0],[10.0,10.0,50.0]])
 
@@ -149,18 +150,18 @@ if __name__ == "__main__":
 	while True:
 		
 		X_i = basicMotion(X_i, 0, 0.01)
+		print(X_i)
 		currentTime = currentTime + 0.01
 		W = np.array([[2.0,1.0,2.0],[1.0,2.0,1.0],[1.0,1.0,2.0]])
-		V = np.array([[0.05],[0.06]])
-		V = V.reshape(-1, 1)
+		V = np.array([[0.05, 0.05],[0.06, 0.05]])
 		random1 = gauss(0,0.1) 
 		random2 = gauss(0,0.01) 
-		z = basicSensor(X_i)+ np.array([[random1],[random2]])
-		print(z)
+		z = basicSensor(X_i)#+ np.array([[random1],[random2]])
+		#print(z)
 		#print(z)
 		Xhat_i, P0 = kalman_unscented(basicMotion,basicSensor, Xhat_i, u,0.01,P0,W,V,z)
 		print(Xhat_i)
-		print(P0)
-		print(currentTime)
+		#print(P0)
+		#print(currentTime)
 		time.sleep(0.01)
 

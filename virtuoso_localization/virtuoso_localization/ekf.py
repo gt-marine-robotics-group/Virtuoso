@@ -40,10 +40,10 @@ def linearizedDynamics(f, X, U, dt):
 def linearizedSensor(s, X):
 	#This function finds the matrix C in z = CX, where z is the ideal sensor data output and X is the true state
 	n = X.size
-	
+	m = s(X).size
 	dx = 0.01
 	
-	S_x = np.zeros((n,n))
+	S_x = np.zeros((n,m))
 
 	#Find the C Matrix
 	for i in range(0,n):
@@ -68,12 +68,18 @@ def kalman_extended(motionModelF, observationModel, xHatPrevious, U, dt, P0, W, 
 	
 	n = xHatPrevious.size
 	#Find the linearized motion model, X(t + dt) = AX(t) + BU(t)
+	#print(xHatPrevious)
 	A, B = linearizedDynamics(motionModelF, xHatPrevious, U,dt)
+	#print(xHatPrevious)
 	#Find the linearized sensor model, z(t) = CX(t)
 	C = linearizedSensor(observationModel, xHatPrevious)
 	
 	#Find X(t+dt) from X(t) and U(t). And dt.
+	#print(xHatPrevious)
 	XHatnew = motionModelF(xHatPrevious,U,dt)
+	#print(XHatnew)
+	#print(xHatPrevious)
+	#print(XHatnew)
 	#Predicted covariance matrix
 	P = np.matmul(np.matmul(A,P0),np.transpose(A)) + W
 	#Sensor covariance matrix 
@@ -81,6 +87,8 @@ def kalman_extended(motionModelF, observationModel, xHatPrevious, U, dt, P0, W, 
 	#Kalman gain calculation 
 	K_f = np.matmul(np.matmul(P,np.transpose(C)),np.linalg.inv(S))
 	residual = z - np.matmul(C,XHatnew)
+	#print(z)
+	#print(np.matmul(C,XHatnew))
 	#new state estimate
 	XHatnew = XHatnew + np.matmul(K_f, residual)
 	#new covariance matrix
