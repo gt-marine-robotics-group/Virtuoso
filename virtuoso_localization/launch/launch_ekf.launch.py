@@ -60,7 +60,7 @@ def generate_launch_description():
     name='navsat_transform_node',
     respawn='true',
     remappings=[
-       ("/imu/data", "/navsat/imu"),
+       ("/imu", "/navsat/imu"),
        ("/gps/fix", "/navsat/gps"),
        ("/odometry/filtered", "/odometry/filtered2"),
        ("/odometry/gps", "/odometry/gps2")
