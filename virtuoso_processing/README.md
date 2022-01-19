@@ -4,8 +4,11 @@
 
 1. Have the Virtuoso repo cloned and ROS2 set up
 2. Have [Skimage](https://scikit-image.org/docs/dev/install.html), numpy, cv_bridge installed
+   - Skimage is a package containing different image processing alogrithms. In our pipeline, we use `rgb2gray()` for grayscaling and `downscale_local_mean()` for    downscaling camera data.
 3. Install [Autoware.auto](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/installation-no-ade.html) and add to workspace
-4. Insall [STVL](https://navigation.ros.org/tutorials/docs/navigation2_with_stvl.html) and add to workspace
+   - Autoware.auto is a collection of packages for self-driving vehicles. In our pipeline, we use `ray_ground_classifier_nodes` for downscaling lidar data.
+4. Install [STVL](https://navigation.ros.org/tutorials/docs/navigation2_with_stvl.html) and add to workspace
+   - [Spatio-Temporal Voxel Layer](https://github.com/SteveMacenski/spatio_temporal_voxel_layer) is a [Nav2](https://github.com/ros-planning/navigation2) costmap plugin. It downsamples PointCloud data to generate a voxel grid and a costmap. In our pipeline, we use it for downsampling lidar data, and the costmap         generated will be useful for the navigation pipeline.
 5. From workspace, run `colcon build --packages-up-to virtuoso_processing`
 
 ## Running the package
