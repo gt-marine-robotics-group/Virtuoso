@@ -19,24 +19,24 @@ def generate_launch_description():
         #),
 
  
-        Node(
-    package = "tf2_ros", 
-    executable = "static_transform_publisher",
-    name="gps_wamv_link_broadcaster",
-    arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/gps_wamv_link"]
-     ),
+        #Node(
+    #package = "tf2_ros", 
+    #executable = "static_transform_publisher",
+    #name="gps_wamv_link_broadcaster",
+    #arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/gps_wamv_link"]
+     #),
        # Node(
     #package = "tf2_ros", 
     #executable = "static_transform_publisher",
     #name="gps_wamv_link_broadcaster2",
     #arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/gps_wamv_link"]
     # ),
-     Node(
-    package = "tf2_ros", 
-    executable = "static_transform_publisher",
-    name="imu_wamv_link_broadcaster",
-    arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/imu_wamv_link"]
-     ),
+     #Node(
+   # package = "tf2_ros", 
+    #executable = "static_transform_publisher",
+    #name="imu_wamv_link_broadcaster",
+    #arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/imu_wamv_link"]
+    # ),
      #Node(
     #package = "tf2_ros", 
     #executable = "static_transform_publisher",
@@ -50,7 +50,7 @@ def generate_launch_description():
     #output='screen',
     parameters=[robot_localization_file_path],
     remappings=[
-       ("/odometry/filtered", "/odometry/filtered2"),
+       ("/odometry/filtered", "/localization/odometry"),
        ("/odometry/gps", "/odometry/gps2")
     ]
         ),    
@@ -62,7 +62,7 @@ def generate_launch_description():
     remappings=[
        ("/imu", "/navsat/imu"),
        ("/gps/fix", "/navsat/gps"),
-       ("/odometry/filtered", "/odometry/filtered2"),
+       ("/odometry/filtered", "/localization/odometry"),
        ("/odometry/gps", "/odometry/gps2")
     ],
     output='screen',
@@ -72,6 +72,7 @@ def generate_launch_description():
          {"wait_for_datum": False},
          {"zero_altitude": False},
          {"yaw_offset": 0.0},
+         {"use_odometry_yaw": True},
          {"magnetic_declination_radians": 0.33929201},
          {"delay": 0.0},
          {"frequency": 30.0},
