@@ -18,7 +18,7 @@ def generate_launch_description():
           #  executable='test_pub',
         #),
 
- 
+ 	#be sure something else (rviz) is publishing these transforms
         #Node(
     #package = "tf2_ros", 
     #executable = "static_transform_publisher",

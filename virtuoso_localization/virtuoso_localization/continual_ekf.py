@@ -26,6 +26,7 @@ class continualEKF(Node):
         self.imuPublisher = self.create_publisher(Imu, '/navsat/imu', 10)
         self.gpsPublisher = self.create_publisher(NavSatFix, '/navsat/gps', 10)
         
+        #subscribe to wamv sensor data
         self.imu_subscriber = self.create_subscription(
             Imu,
             '/wamv/sensors/imu/imu/data',
@@ -81,7 +82,8 @@ class continualEKF(Node):
         
     def ekf_callback(self, msg):
          self.get_logger().info(str(msg))
-        
+    
+    #if all the data is ready, publish it to the ekf and navsattransform nodes
     def state_estimation(self):
         if(self.GPS_vel_ready, self.GPS_ready, self.IMU_ready):
              self.imuPublisher.publish(self.measured_IMU)
