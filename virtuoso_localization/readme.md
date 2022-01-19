@@ -1,7 +1,9 @@
 ## How to run localization:
 
 Ensure both rviz and gazebo are running:
+
 roslaunch vrx_gazebo vrx.launch
+
 roslaunch wamv_gazebo rviz_vrx.launch
 
 Start a ros bridge by sourcing both ros1 and ros2, then running:
