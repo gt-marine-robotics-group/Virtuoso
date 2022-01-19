@@ -1,4 +1,4 @@
-##How to run localization:
+## How to run localization:
 
 Ensure both rviz and gazebo are running:
 roslaunch vrx_gazebo vrx.launch
@@ -11,7 +11,7 @@ Run the launch_ekf.launch.py launch file.
 
 Odometry data should now be published to /localization/odometry
 
-##Description
+## Description
 
 Currently, the package uses robot_localization for basic state estimation. It uses a single EKF that filters IMU data (including orientation, linear acceleration, and attitude rates) and GPS data (absolute position only). There is also a navsat transform node that transforms the GPS data into coordinates in the odometry frame utilizable by the EKF. Currently, the continual_ekf node simply transfers the data from the sensors to the robot_localization node. The goal is to expand on this functunality in the future to implement a custom EKF. 
 
