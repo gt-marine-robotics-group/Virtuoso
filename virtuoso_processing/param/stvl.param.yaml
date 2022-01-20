@@ -11,13 +11,8 @@ local_costmap:
       height: 10
       resolution: 0.05
       robot_radius: 0.22
-<<<<<<< HEAD
-      plugins: ["svtl_layer"]
-      svtl_layer:
-=======
       plugins: ["stvl_layer"]
       stvl_layer:
->>>>>>> eee8f4d988eb94aee3ad9e87c6e618d4de65a3c9
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true
         voxel_decay: 15.
