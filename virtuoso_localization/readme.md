@@ -19,4 +19,4 @@ Currently, the package uses robot_localization for basic state estimation. It us
 
 The base link frame is wamv/base_link, while the odom frame serves as the only global frame - there is no separate map frame, as the package is only using IMU and GPS data so there is not enough continous odometry data to warrant a second EKF and separate map frame.
 
-![rosgraph](/resources/localization_rosgraph.png?raw=true "Rosgraph of Localization")
+![rosgraph](resource/localization_rosgraph.png)
