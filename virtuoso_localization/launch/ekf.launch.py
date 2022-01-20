@@ -13,41 +13,10 @@ def generate_launch_description():
             package='virtuoso_localization',
             executable='continual_ekf',
         ),
-        #Node(
-         #   package='virtuoso_localization',
-          #  executable='test_pub',
-        #),
-
- 	#be sure something else (rviz) is publishing these transforms
-        #Node(
-    #package = "tf2_ros", 
-    #executable = "static_transform_publisher",
-    #name="gps_wamv_link_broadcaster",
-    #arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/gps_wamv_link"]
-     #),
-       # Node(
-    #package = "tf2_ros", 
-    #executable = "static_transform_publisher",
-    #name="gps_wamv_link_broadcaster2",
-    #arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/gps_wamv_link"]
-    # ),
-     #Node(
-   # package = "tf2_ros", 
-    #executable = "static_transform_publisher",
-    #name="imu_wamv_link_broadcaster",
-    #arguments=["0", "0", "0", "0", "0", "0", "1", "base_link", "wamv/imu_wamv_link"]
-    # ),
-     #Node(
-    #package = "tf2_ros", 
-    #executable = "static_transform_publisher",
-    #name="map_link_broadcaster",
-    #arguments=["0", "0", "0", "0", "0", "0", "1", "map", "odom"]
-     #),
      Node(
     package='robot_localization',
     executable='ekf_node',
     name='ekf_filter_node',
-    #output='screen',
     parameters=[robot_localization_file_path],
     remappings=[
        ("/odometry/filtered", "/localization/odometry"),
@@ -67,7 +36,6 @@ def generate_launch_description():
     ],
     output='screen',
     parameters=[            
-         #{"background_b": 200},
          {"publish_filtered_gps": True},
          {"wait_for_datum": False},
          {"zero_altitude": False},

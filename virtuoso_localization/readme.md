@@ -9,7 +9,7 @@ roslaunch wamv_gazebo rviz_vrx.launch
 Start a ros bridge by sourcing both ros1 and ros2, then running:
 ros2 run ros1_bridge dynamic_bridge --bridge-all-topics
 
-Run the launch_ekf.launch.py launch file.
+Run the ekf.launch.py launch file.
 
 Odometry data should now be published to /localization/odometry
 
