@@ -3,7 +3,7 @@
     timeout_ms:       10
     cloud_timeout_ms: 110
     pcl_size:         55000
-    frame_id:        "horizontal_vlp16_link" 
+    frame_id:        "wamv/lidar_wamv_link" 
     is_structured:    true
     classifier:
       sensor_height_m:                     0.368
