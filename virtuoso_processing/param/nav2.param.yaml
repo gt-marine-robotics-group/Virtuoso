@@ -93,12 +93,12 @@ global_costmap:
       plugins: ["obstacle_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
-        # enabled: False
         enabled: True 
-        observation_sources: scan
-        scan:
+        observation_sources: pointcloud 
+        pointcloud:
           data_type: PointCloud2
           topic: /points_nonground
+          obstacle_min_range: 1.0
           max_obstacle_height: 2.0
           marking: True
           clearing: True
