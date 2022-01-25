@@ -37,6 +37,11 @@ def generate_launch_description():
             remappings=[("points_in", "wamv/sensors/lidars/lidar_wamv/points")] # points_in comes from raw LIDAR data
         ),
 
+        Node(
+            package='virtuoso_processing',
+            executable='self_filter'
+        ),
+
         # downsampling LIDAR data with STVL (also generates a costmap)
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file}.items()),
         Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file]),

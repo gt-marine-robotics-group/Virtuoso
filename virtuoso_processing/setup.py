@@ -25,7 +25,8 @@ setup(
     entry_points={
         'console_scripts': [
             'grayscale = virtuoso_processing.grayscale:main',
-            'downscale = virtuoso_processing.downscale:main'
+            'downscale = virtuoso_processing.downscale:main',
+            'self_filter = virtuoso_processing.self_filter:main'
         ],
     },
 )
