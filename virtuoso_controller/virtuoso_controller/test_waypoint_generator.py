@@ -20,10 +20,10 @@ class testWaypointGenerator(Node):
 
         self.targetWaypoint = Odometry()
         self.targetPose = Pose()
-        self.targetPose.position.x = 5.0
-        self.targetPose.position.y = 5.0        
-        self.targetPose.orientation.z = numpy.sin(-90*numpy.pi/180/2)
-        self.targetPose.orientation.w = numpy.cos(-90*numpy.pi/180/2)
+        self.targetPose.position.x = 15.0
+        self.targetPose.position.y = 10.0        
+        self.targetPose.orientation.z = numpy.sin(180*numpy.pi/180/2)
+        self.targetPose.orientation.w = numpy.cos(180*numpy.pi/180/2)
         self.targetWaypoint.pose.pose = self.targetPose
 	
         self.waypointPub = self.create_publisher(Odometry, '/waypoint', 10)

@@ -46,7 +46,9 @@ class basicPID(Node):
             self.waypoint_callback,
             10)         
         self.odom_subscriber
-        self.waypoint_subscriber 
+        self.waypoint_subscriber
+        
+
 
     def odometry_callback(self, msg):
         self.stateEstimate = msg
@@ -74,8 +76,10 @@ class basicPID(Node):
              velocityX = velocityX/numpy.sqrt(velocityX**2 + velocityY**2)*4.0
              velocityY = velocityY/numpy.sqrt(velocityX**2 + velocityY**2)*4.0
         targetVel = [velocityX, velocityY, 0.0, 0.0]
-        
+        #self.get_logger().info('targetVel: ' + str(targetVel)) 
         q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
+
+    	
         q_inv = q.copy()
         q_inv[0] = -q_inv[0]
         q_inv[1] = -q_inv[1]
@@ -84,10 +88,18 @@ class basicPID(Node):
         targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
         targetVel = tf_transformations.quaternion_multiply(targetVel, q)
         
-        targetForceY = (targetVel[1]/9.0 - currentVelY/3.0)
-        targetForceX = (targetVel[0]/9.0 - currentVelX/3.0)
-
+        targetForceY = targetVel[1] - currentVelY
+        targetForceX = targetVel[0] - currentVelX
+        targetForceMag = numpy.sqrt(targetForceY**2 + targetForceX**2)
+        #self.get_logger().info('targetVel: ' + str(targetVel))   	
         theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
+
+        #self.get_logger().info('vehicle: ' + str(theta_vehicle))
+        #self.get_logger().info('theta_targetForce: ' + str(theta_targetForce*180/numpy.pi))   	
+        #self.get_logger().info('targetForceMag: ' + str(targetForceY))
+        targetForce = Float32()
+        targetForce.data = targetForceMag/5.0
+        #self.get_logger().info('targetForce: ' + str(targetForce))  
         
         heading = [1.0, 0.0, 0.0, 0.0]
         q_target = [self.targetWaypoint.pose.pose.orientation.x, self.targetWaypoint.pose.pose.orientation.y, self.targetWaypoint.pose.pose.orientation.z, self.targetWaypoint.pose.pose.orientation.w]
@@ -98,20 +110,30 @@ class basicPID(Node):
         q_target_inv[2] = -q_target_inv[2]
         heading = tf_transformations.quaternion_multiply(q_target, heading)
         heading = tf_transformations.quaternion_multiply(heading, q_target_inv)
-              
+        
+        #self.get_logger().info('q_target_inv: ' + str(q_target_inv)) 
+        #self.get_logger().info('q_target: ' + str(q_target)) 
+        #self.get_logger().info('heading: ' + str(heading))          
         heading = tf_transformations.quaternion_multiply(q_inv, heading)
+        #self.get_logger().info('heading: ' + str(heading))  
         heading = tf_transformations.quaternion_multiply(heading, q)
-        theta_targetHeading = numpy.arctan2(heading[1], heading[0])
 
+        theta_targetHeading = numpy.arctan2(heading[1], heading[0])
+        #self.get_logger().info('heading: ' + str(heading))  
         self.get_logger().info('theta_targetHeading: ' + str(theta_targetHeading*180/numpy.pi))  
                         
 
         omega = [self.stateEstimate.twist.twist.angular.x, self.stateEstimate.twist.twist.angular.y, self.stateEstimate.twist.twist.angular.z, 0.0]  
-        omega = tf_transformations.quaternion_multiply(q, omega)
-        omega = tf_transformations.quaternion_multiply(omega, q_inv)        
-        yawRate = omega[2]       
         
-        targetTorque = (theta_targetHeading*0.8 - omega[2]*4.0)
+        omega = tf_transformations.quaternion_multiply(q, omega)
+        #self.get_logger().info('heading: ' + str(heading))  
+        omega = tf_transformations.quaternion_multiply(omega, q_inv)        
+        
+        yawRate = omega[2]
+        
+        #self.get_logger().info('yawRate: ' + str(yawRate))  
+        
+        targetTorque = (theta_targetHeading - omega[2]*4.0)*0.5
         #self.get_logger().info('targetTorque: ' + str(targetTorque))  
                 
         leftFrontAngle = Float32()
@@ -124,16 +146,67 @@ class basicPID(Node):
         leftRearCmd = Float32()
         rightFrontCmd = Float32()
 
-        leftFrontAngle.data = -90*numpy.pi/180
-        rightRearAngle.data = 90*numpy.pi/180
-        rightFrontAngle.data = 90*numpy.pi/180
-        leftRearAngle.data = -90*numpy.pi/180
+        leftFrontAngle.data = -45*numpy.pi/180
+        rightRearAngle.data = -45*numpy.pi/180
+        rightFrontAngle.data = 45*numpy.pi/180
+        leftRearAngle.data = 45*numpy.pi/180
                      
-        leftFrontCmd.data = (-targetForceY - targetForceX - targetTorque)
-        rightFrontCmd.data = (targetForceY - targetForceX + targetTorque)
-        leftRearCmd.data = (-targetForceY + targetForceX + targetTorque)
-        rightRearCmd.data = (targetForceY + targetForceX - targetTorque)
-        
+        if theta_targetForce >=-135*numpy.pi/180 and theta_targetForce <=45*numpy.pi/180:
+             leftFrontAngle.data = (45*numpy.pi/180+theta_targetForce)
+             rightRearAngle.data = (45*numpy.pi/180+theta_targetForce)
+             leftFrontCmd.data = targetForce.data.copy()
+             rightRearCmd.data = targetForce.data.copy()
+             #self.get_logger().info('Mode: Forward Right')  
+        if theta_targetForce >=-45*numpy.pi/180 and theta_targetForce <=135*numpy.pi/180:
+             rightFrontAngle.data = -(45*numpy.pi/180-theta_targetForce)
+             leftRearAngle.data = -(45*numpy.pi/180-theta_targetForce)
+             rightFrontCmd.data = targetForce.data.copy()
+             leftRearCmd.data = targetForce.data.copy()
+             #self.get_logger().info('Mode: Forward Left')  
+        if theta_targetForce >=-180*numpy.pi/180 and theta_targetForce <-135*numpy.pi/180:
+             rightFrontAngle.data = (90*numpy.pi/180)
+             leftRearAngle.data = (90*numpy.pi/180)
+             rightFrontCmd.data = targetForce.data.copy()
+             leftRearCmd.data = targetForce.data.copy()
+             
+             phi = theta_targetForce+180.0 + 45.0 
+             phi = theta_targetForce+180.0 + phi              
+             
+             leftFrontAngle.data = -(180 - 45 - phi)
+             rightRearAngle.data = -(180 - 45 - phi)
+             leftFrontCmd.data = targetForce.data.copy()
+             rightRearCmd.data = targetForce.data.copy()
+             #self.get_logger().info('Mode: Back 1')  
+        if theta_targetForce > 135*numpy.pi/180 and theta_targetForce < 180*numpy.pi/180:
+             phi = -(theta_targetForce-180.0) + 45.0 
+             phi = theta_targetForce-180.0 - phi     
+             rightFrontAngle.data = (180 - 45 - phi)
+             leftRearAngle.data = (180 - 45 - phi)
+
+             rightFrontCmd.data = targetForce.data.copy()
+             leftRearCmd.data = targetForce.data.copy()
+             
+             phi = theta_targetForce+180.0 + 45.0 
+             phi = theta_targetForce+180.0 + phi              
+             
+             leftFrontAngle.data = -(90*numpy.pi/180)#(180 - 45 - phi)
+             rightRearAngle.data = -(90*numpy.pi/180)#(180 - 45 - phi)
+
+             leftFrontCmd.data = targetForce.data.copy()
+             rightRearCmd.data = targetForce.data.copy()  
+             #self.get_logger().info('Mode: Back 2')  
+        if numpy.abs(targetTorque) > 1:
+             targetTorque = targetTorque/numpy.abs(targetTorque)     
+        if targetTorque < 0:
+             leftFrontAngle.data = leftFrontAngle.data - (45*numpy.pi/180 + leftFrontAngle.data)*(-targetTorque)/4
+             leftRearAngle.data = leftRearAngle.data + (45*numpy.pi/180 - leftRearAngle.data)*(-targetTorque)/4
+             leftFrontCmd.data = leftFrontCmd.data - targetTorque/5
+             leftRearCmd.data = leftRearCmd.data - targetTorque/5
+        if targetTorque > 0:
+             rightFrontAngle.data = rightFrontAngle.data + (45*numpy.pi/180 - rightFrontAngle.data)*(targetTorque)/4
+             rightRearAngle.data = rightRearAngle.data - (45*numpy.pi/180 + rightRearAngle.data)*(targetTorque)/4    
+             rightFrontCmd.data = rightFrontCmd.data + targetTorque/5
+             rightRearCmd.data = rightRearCmd.data + targetTorque/5
         self.rightFrontPubAngle.publish(rightFrontAngle)
         self.leftRearPubAngle.publish(leftRearAngle)
         self.leftFrontPubAngle.publish(leftFrontAngle)
