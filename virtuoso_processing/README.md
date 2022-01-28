@@ -23,21 +23,32 @@ To run the package, simply run from the Virtuoso directory `ros2 launch virtuoso
 ## LiDAR Processing
 LiDAR processing is done through the [lidar_processing.launch.py](launch/lidar_processing.launch.py) launch file.
 
-![lidar_pipeline](https://user-images.githubusercontent.com/59785089/145680590-86fdb615-58e0-4c28-abd0-dc7d82acda39.png)
+![processing_diagram](https://user-images.githubusercontent.com/59785089/151290168-cad0bafd-5d35-425c-b0ff-2a8ea4655b64.png)
 
-The raw PointCloud data is first processed by the [ray_ground_classifier_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/ray-ground-classifier-nodes-design.html) which publish the non-ground points to the topic `points_nonground`. You can visualize this data with Rviz:
+Pointcloud data is published by the wamv to the topic `wamv/sensors/lidars/lidar_wamv/points`.
 
-![points_nonground](https://user-images.githubusercontent.com/59785089/145680125-80deb730-46f1-4c49-807c-bfd4417d8df8.png)
+![raw_wamv](https://user-images.githubusercontent.com/59785089/151288813-222ff8cc-246b-4fbe-9512-c0a1371fd271.png)
 
-Here, you can see the raw data in black and white and the `points_nonground` in color:
 
-![points_nonground_with_raw](https://user-images.githubusercontent.com/59785089/145680192-d3175247-5baf-48ad-9e15-f06f3c369dd2.png)
+The raw PointCloud data is first processed by the [ray_ground_classifier_nodes](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/ray-ground-classifier-nodes-design.html) which publish the non-ground points to the topic `points_nonground`.
 
-Then, the PointCloud data is run through STVL which downsamples the data and also generates a costmap. The downsampled data is published to `local_costmap/voxel_grid`, and the costmap is published to `local_costmap/costmap`. On Rviz, you can visualize the downsampled data with the costmap:
+![points_nonground](https://user-images.githubusercontent.com/59785089/151288846-e46892e1-b2e4-430a-8a31-af9cda552565.png)
 
-![stvl](https://user-images.githubusercontent.com/59785089/145680382-e4059c50-2791-49df-b338-84d2e59608d3.png)
+Next, the data passes through a self_filter which removes pointcloud data from the body of the robot. The filtered data is published to `points_self_filtered`.
 
-The Rosbag with PointCloud data used to test the pipeline can be found [here](https://storage.googleapis.com/cartographer-public-data/bags/backpack_3d/with_intensities/b3-2016-02-09-13-17-39.bag).
+![points_self_filtered](https://user-images.githubusercontent.com/59785089/151288988-007b2380-a45f-4274-af76-ee866ce8e579.png)
+
+Then, the PointCloud is passed to nav2 which uses the STVL plugin to create a voxel grid published to `local_costmap/voxel_grid`.
+
+![voxel_grid](https://user-images.githubusercontent.com/59785089/151289127-035ee3fb-c746-4a1b-b702-e35fff195f86.png)
+
+The voxel grid is used to generate a local costmap, published to `local_costmap/costmap`.
+
+![local_costmap](https://user-images.githubusercontent.com/59785089/151289187-5a7f69e8-9790-4889-bada-f9a9331c9e94.png)
+
+A global costmap is also created using the LIDAR processed earlier as well as odom data from the localization server. The global costmap is published to `global_costmap/costmap`.
+
+![global_costmap](https://user-images.githubusercontent.com/59785089/151289292-ea8ddd43-1586-4462-bc2a-6417429f62ec.png)
 
 ## Camera Processing
 Camera processing is done through the [camera_processing.launch.py](launch/camera_processing.launch.py) launch file.

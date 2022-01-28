@@ -4,11 +4,11 @@ local_costmap:
       update_frequency: 5.0
       publish_frequency: 2.0
       global_frame: map 
-      robot_base_frame: base_link 
+      robot_base_frame: wamv/base_link 
       use_sim_time: True
       rolling_window: true
-      width: 10
-      height: 10
+      width: 50 
+      height: 50
       resolution: 0.05
       robot_radius: 0.22
       plugins: ["stvl_layer"]
@@ -32,7 +32,7 @@ local_costmap:
         observation_sources: pointcloud
         pointcloud:
           data_type: PointCloud2
-          topic: /points_nonground # topic published to by ray_ground_classifier_nodes
+          topic: /points_self_filtered # topic published to by ray_ground_classifier_nodes
           marking: true
           clearing: true
           obstacle_range: 7.0
@@ -58,8 +58,13 @@ local_costmap:
   local_costmap_rclcpp_node:
     ros__parameters:
       use_sim_time: True
+
 bt_navigator:
   ros__parameters:
+    use_sim_time: True
+    global_frame: map 
+    robot_base_frame: wamv/base_link
+    odom_topic: /localization/odometry
     bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
     plugin_lib_names:
     - nav2_compute_path_to_pose_action_bt_node
@@ -76,13 +81,15 @@ bt_navigator:
     - nav2_recovery_node_bt_node
     - nav2_pipeline_sequence_bt_node
     - nav2_round_robin_node_bt_node
+
 global_costmap:
   global_costmap:
     ros__parameters:
+      always_send_full_costmap: True
       update_frequency: 1.0
       publish_frequency: 1.0
       global_frame: map
-      robot_base_frame: base_link
+      robot_base_frame: wamv/base_link 
       use_sim_time: True
       robot_radius: 1.0
       resolution: 1.0
@@ -93,7 +100,15 @@ global_costmap:
       plugins: ["obstacle_layer"]
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: False
+        enabled: True 
+        observation_sources: pointcloud 
+        pointcloud:
+          data_type: PointCloud2
+          topic: /points_self_filtered
+          obstacle_min_range: 5.0
+          max_obstacle_height: 2.0
+          marking: True
+          clearing: True
       global_costmap_client:
         ros__parameters:
           use_sim_time: True
