@@ -1,3 +1,3 @@
-uint32 x
-uint32 y
+float32 x
+float32 y
 int8 cost
