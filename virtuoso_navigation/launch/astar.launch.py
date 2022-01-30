@@ -7,5 +7,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_navigation',
             executable='get_points'
+        ),
+        Node(
+            package='virtuoso_navigation',
+            executable='astar'
         )
     ])
