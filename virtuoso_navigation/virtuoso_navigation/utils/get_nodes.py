@@ -10,7 +10,7 @@ def is_valid_node(point, g):
     if point.cost > 99: return False
 
     # if cost is unkown but it is next to the boat, assume its an obstacle
-    if point.cost == -1 and g > 10: return False
+    if point.cost == -1 and g < 3: return False
 
     return True
 
