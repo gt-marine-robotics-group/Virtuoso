@@ -13,5 +13,4 @@ def generate_launch_description():
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing_pkg, 'launch/main.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(localization_pkg, 'launch/ekf.launch.py'))),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(navigation_pkg, 'launch/astar.launch.py')))
     ])
