@@ -1,5 +1,7 @@
 ## Install ROS 2 Foxy:
 
+Note: This tutorial assumes you are using Ubuntu Linux
+
 https://docs.ros.org/en/foxy/Installation.html
 
 Note: Do not add sourcing Foxy to your shell startup script as you will need to source ROS 1 in other terminals to run the VRX simulation
