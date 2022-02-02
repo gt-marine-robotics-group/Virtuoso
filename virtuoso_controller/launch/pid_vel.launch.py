@@ -12,12 +12,12 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='virtuoso_controller',
-            executable='basic_pid',
+            executable='velocity_pid',
         parameters=[            
          {"use_sim_time": True}]
         ),
         Node(
             package='virtuoso_controller',
-            executable='test_waypoint_generator',
+            executable='test_vel_generator',
         ),
     ])

@@ -4,6 +4,8 @@ from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import Vector3Stamped
 from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import TwistStamped
+from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
 import tf_transformations
@@ -20,11 +22,11 @@ class basicPID(Node):
         super().__init__('basic_PID')
         
         self.stateEstimate = Odometry()
-        self.targetWaypoint = Odometry()
+        self.targetTwist = Twist()
         self.yawIntegral = 0.0
         self.xIntegral = 0.0
         self.yIntegral = 0.0
-        self.previousTargetWaypoint = Odometry()
+        self.previousTargetTwist = Twist()
         self.receivedWaypoint = False
 
         self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
@@ -46,8 +48,8 @@ class basicPID(Node):
             
         #subscribe to waypoints
         self.waypoint_subscriber = self.create_subscription(
-            Odometry,
-            '/waypoint',
+            TwistStamped,
+            '/cmd_vel',
             self.waypoint_callback,
             10)         
         self.odom_subscriber
@@ -59,16 +61,14 @@ class basicPID(Node):
         self.stateEstimate = msg
     
     def waypoint_callback(self, msg):
-        self.targetWaypoint = msg        
+        self.targetTwist = msg.twist        
         #if(self.receivedWaypoint == False):
              #self.timer = self.create_timer(0.1, self.run_pid())
         self.receivedWaypoint = True
         #self.run_pid()
         #self.get_logger().info('got waypoint') 
 
-    def run_pid(self):
-        targetX = self.targetWaypoint.pose.pose.position.x
-        targetY = self.targetWaypoint.pose.pose.position.y    
+    def run_pid(self): 
         
         currentVelX = self.stateEstimate.twist.twist.linear.x
         currentVelY = self.stateEstimate.twist.twist.linear.y
@@ -76,12 +76,10 @@ class basicPID(Node):
         currentX = self.stateEstimate.pose.pose.position.x
         currentY = self.stateEstimate.pose.pose.position.y
     	
-        velocityX = targetX - currentX
-        velocityY = targetY - currentY
-        self.get_logger().info('Distance to target: ' + str(numpy.sqrt(velocityX**2 + velocityY**2))) 
 
-        targetVel = [velocityX, velocityY, 0.0, 0.0]
-        
+        targetVel = [self.targetTwist.linear.x, self.targetTwist.linear.y , 0.0, 0.0]
+
+                
         q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
         q_inv = q.copy()
         q_inv[0] = -q_inv[0]
@@ -91,48 +89,34 @@ class basicPID(Node):
         targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
         targetVel = tf_transformations.quaternion_multiply(targetVel, q)
         
-        self.get_logger().info('targetx: ' + str(targetVel[0]))         
-        self.get_logger().info('targety: ' + str(targetVel[1])) 
+        self.get_logger().info('targetx: ' + str((targetVel[0]- currentVelX)))       
+        self.get_logger().info('targety: ' + str((targetVel[1] - currentVelY))) 
                 
-        if(self.previousTargetWaypoint != self.targetWaypoint):
+        if(self.previousTargetTwist != self.targetTwist):
              self.xIntegral = 0.0
              self.yIntegral = 0.0
-        self.xIntegral = self.xIntegral + targetVel[0]*0.01
-        self.yIntegral = self.yIntegral + targetVel[1]*0.01       
-        targetForceY = (targetVel[1]*0.15- currentVelY*0.9) + self.yIntegral*0.0001
-        self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0]*0.11 - currentVelX*0.333) + self.xIntegral*0.0001
+        self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
+        self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
+        targetForceY = (targetVel[1]- currentVelY)*0.7 + self.yIntegral*0.1
+        #self.get_logger().info('targetForceY: ' + str(targetForceY))  
+        targetForceX = (targetVel[0] - currentVelX)*0.7 + self.xIntegral*0.1
 
         theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
-        
-        heading = [1.0, 0.0, 0.0, 0.0]
-        q_target = [self.targetWaypoint.pose.pose.orientation.x, self.targetWaypoint.pose.pose.orientation.y, self.targetWaypoint.pose.pose.orientation.z, self.targetWaypoint.pose.pose.orientation.w]
-        
-        q_target_inv = q_target.copy()
-        q_target_inv[0] = -q_target_inv[0]
-        q_target_inv[1] = -q_target_inv[1]
-        q_target_inv[2] = -q_target_inv[2]
-        heading = tf_transformations.quaternion_multiply(q_target, heading)
-        heading = tf_transformations.quaternion_multiply(heading, q_target_inv)
-              
-        heading = tf_transformations.quaternion_multiply(q_inv, heading)
-        heading = tf_transformations.quaternion_multiply(heading, q)
-        theta_targetHeading = numpy.arctan2(heading[1], heading[0])
-
-        self.get_logger().info('theta_targetHeading: ' + str(theta_targetHeading*180/numpy.pi))  
-                        
+                               
 
         omega = [self.stateEstimate.twist.twist.angular.x, self.stateEstimate.twist.twist.angular.y, self.stateEstimate.twist.twist.angular.z, 0.0]  
         omega = tf_transformations.quaternion_multiply(q, omega)
         omega = tf_transformations.quaternion_multiply(omega, q_inv)        
         yawRate = omega[2]       
         
-        if(self.previousTargetWaypoint != self.targetWaypoint):
-             self.yawIntegral = 0.0
-        self.yawIntegral = self.yawIntegral + theta_targetHeading*0.01
-        #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
+        targetYawRate = self.targetTwist.angular.z
         
-        targetTorque = (theta_targetHeading*0.76 - omega[2]*1.2 + 0.001*self.yawIntegral)
+        if(self.previousTargetTwist != self.targetTwist):
+             self.yawIntegral = 0.0
+        self.yawIntegral = self.yawIntegral + (targetYawRate - yawRate)*0.01
+        #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
+        self.get_logger().info('yawVelDiff: ' + str((yawRate - targetYawRate)))
+        targetTorque = (targetYawRate - yawRate)*5.0 + 0.2*self.yawIntegral
         self.get_logger().info('targetTorque: ' + str(targetTorque))  
                 
         leftFrontAngle = Float32()
@@ -178,7 +162,7 @@ class basicPID(Node):
              self.rightFrontPubCmd.publish(rightFrontCmd)
              self.leftRearPubCmd.publish(leftRearCmd)       
         
-        self.previousTargetWaypoint = self.targetWaypoint
+        self.previousTargetTwist = self.targetTwist
 
         
 def main(args=None):

@@ -24,7 +24,9 @@ setup(
     entry_points={
         'console_scripts': [
             'basic_pid = virtuoso_controller.basic_pid:main',   
-            'test_waypoint_generator = virtuoso_controller.test_waypoint_generator:main',                    
+            'velocity_pid = virtuoso_controller.velocity_pid:main', 
+            'test_waypoint_generator = virtuoso_controller.test_waypoint_generator:main',       
+            'test_vel_generator = virtuoso_controller.test_vel_generator:main',                  
         ],
     },
 )
