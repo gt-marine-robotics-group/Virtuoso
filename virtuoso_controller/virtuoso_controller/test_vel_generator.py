@@ -21,9 +21,9 @@ class testWaypointGenerator(Node):
 
         self.targetTwistStamped = TwistStamped()
         self.targetTwist = Twist()
-        self.targetTwist.linear.x = 5.0
-        self.targetTwist.linear.y = 5.0        
-        self.targetTwist.angular.z = 0.0
+        self.targetTwist.linear.x = 2.0
+        self.targetTwist.linear.y = 2.0        
+        self.targetTwist.angular.z = 0.1
         self.targetTwistStamped.twist = self.targetTwist
 	
         self.waypointPub = self.create_publisher(TwistStamped, '/cmd_vel', 10)

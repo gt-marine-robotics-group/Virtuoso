@@ -97,10 +97,11 @@ class basicPID(Node):
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
         self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
-        targetForceY = (targetVel[1]- currentVelY)*0.7 + self.yIntegral*0.1
-        #self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0] - currentVelX)*0.7 + self.xIntegral*0.1
-
+        targetForceY = (targetVel[1]- currentVelY)*1.0 + self.yIntegral*0.1 
+        targetForceX = (targetVel[0] - currentVelX)*1.0 + self.xIntegral*0.1
+        self.get_logger().info('targetForceX: ' + str(targetForceX))  
+        self.get_logger().info('targetForceY: ' + str(targetForceY))    
+        
         theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
                                
 
