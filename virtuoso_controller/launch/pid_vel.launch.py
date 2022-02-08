@@ -16,8 +16,4 @@ def generate_launch_description():
         parameters=[            
          {"use_sim_time": True}]
         ),
-        Node(
-            package='virtuoso_controller',
-            executable='test_vel_generator',
-        ),
     ])
