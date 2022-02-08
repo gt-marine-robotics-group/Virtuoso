@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 from glob import glob
 
@@ -7,7 +7,7 @@ package_name = 'virtuoso_processing'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -24,8 +24,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'grayscale = virtuoso_processing.grayscale:main',
-            'downscale = virtuoso_processing.downscale:main'
+            'grayscale = virtuoso_processing.camera.grayscale:main',
+            'downscale = virtuoso_processing.camera.downscale:main',
+            'self_filter = virtuoso_processing.lidar.self_filter:main',
+            'test_global_costmap = virtuoso_processing.testing.global_costmap:main'
         ],
     },
 )
