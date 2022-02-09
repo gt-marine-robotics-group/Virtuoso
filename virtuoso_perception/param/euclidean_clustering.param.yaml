@@ -6,7 +6,7 @@
     use_detected_objects: False
     use_cluster: True
     use_box: True
-    max_cloud_size: 500 
+    max_cloud_size: 55000
     downsample: False
     use_lfit: True
     use_z: True
@@ -14,8 +14,8 @@
       frame_id: "wamv/lidar_wamv_link"
       min_cluster_size: 10
       max_num_clusters: 256
-      min_cluster_threshold_m: 0.5
-      max_cluster_threshold_m: 1.5
+      min_cluster_threshold_m: 0.1
+      max_cluster_threshold_m: 0.5 
       threshold_saturation_distance_m: 60.0
     hash:
       min_x: -130.0
