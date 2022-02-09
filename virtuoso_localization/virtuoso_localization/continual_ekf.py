@@ -18,6 +18,7 @@ class continualEKF(Node):
         self.GPS_ready = False
         self.GPS_vel_ready = False
         
+
         self.imuPublisher = self.create_publisher(Imu, '/navsat/imu', 10)
         self.gpsPublisher = self.create_publisher(NavSatFix, '/navsat/gps', 10)
         
@@ -51,6 +52,7 @@ class continualEKF(Node):
         self.measured_IMU = msg
         self.IMU_ready = True
         self.state_estimation()
+
         
     def gps_fix_callback(self, msg):
         #msg2 = Imu()

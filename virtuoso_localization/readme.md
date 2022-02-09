@@ -9,7 +9,9 @@ roslaunch wamv_gazebo rviz_vrx.launch
 Start a ros bridge by sourcing both ros1 and ros2, then running:
 ros2 run ros1_bridge dynamic_bridge --bridge-all-topics
 
+
 Run the ekf.launch.py launch file.
+
 
 Odometry data should now be published to /localization/odometry
 
@@ -19,4 +21,6 @@ Currently, the package uses robot_localization for basic state estimation. It us
 
 The base link frame is wamv/base_link, while the odom frame serves as the only global frame - there is no separate map frame, as the package is only using IMU and GPS data so there is not enough continous odometry data to warrant a second EKF and separate map frame.
 
+
 ![rosgraph](resource/localization_rosgraph.png)
+
