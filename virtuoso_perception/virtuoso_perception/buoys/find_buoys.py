@@ -19,7 +19,7 @@ class FindBuoys(Node):
             if box.centroid.z > .5: continue
             if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
 
-            if box.centroid.z + 1.8 > .2: 
+            if box.centroid.z + 1.55 > 0: 
                 box.value = 1.0
             else:
                 box.value = 0.5
