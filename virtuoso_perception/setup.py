@@ -24,7 +24,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'find_buoys = virtuoso_perception.buoys.find_buoys:main'
+            'find_buoys = virtuoso_perception.buoys.find_buoys:main',
+            'classify_buoys = virtuoso_perception.buoys.classify_buoys:main'
         ],
     },
 )
