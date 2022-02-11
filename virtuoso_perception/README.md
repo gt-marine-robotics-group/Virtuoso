@@ -26,9 +26,25 @@ Finding the buoys is accomplished through the [find_buoys.launch.py](launch/find
 
 PointCloud data already processed by [`virtuoso_processing`](../virtuoso_processing) is used by the euclidean clustering node to identify obstacles.
 
-![euclidean_clustering](https://user-images.githubusercontent.com/59785089/153636767-fb965bd7-4![filtered_euclidean_clustering](https://user-images.githubusercontent.com/59785089/153638647-9f55caf0-3f58-438c-b15e-c432f330cd4a.png)
-93a-4d6e-847a-ecf75f1bcbcd.png)
+![euclidean_clustering](https://user-images.githubusercontent.com/59785089/153638944-90cf0f44-b5af-4365-9b90-bd802b1005f7.png)
 
-Next, the clusters found are filtered to only those which are buoys (by using information we have on each cluster such as position and height). Each buoy is also given a "value" property of 1.0 if tall and 0.5 if round.
+Next, the clusters found are filtered to only those which are buoys by using information we have on each cluster such as position and height). Each buoy is also given a "value" property of 1.0 if tall and 0.5 if round.
 
+![filtered_euclidean_clustering](https://user-images.githubusercontent.com/59785089/153638720-3d757d1b-1fa3-4c41-8967-24b705a45bc6.png)
+
+## Using Camera to Classify Buoys
+
+Identifying the buoys (and then classifying) is done through the [find_and_classify_buoys.launch.py](launch/find_and_classify_buoys.launch.py) launch file.
+
+![classify_buoys drawio](https://user-images.githubusercontent.com/59785089/153639863-7c7aa278-b559-47b0-be8e-b5c0862db60f.svg)
+
+First, the node takes in raw camera data.
+
+![img_raw](https://user-images.githubusercontent.com/59785089/153639997-637d9401-55fe-4ee4-bcc3-7156a1e2dbfd.png)
+
+Then, the node filters the image by black, white, red/orange, and green. Below, you can see an example of what an image filtered for red/orange looks like.
+
+![filter_color](https://user-images.githubusercontent.com/59785089/153640200-860e51c7-fdfd-4670-b48e-c5764e7a5bec.png)
+
+Finally, for each filtered image, we use cv2 to find contours. Any contours which have an area > 1000 are classified as a buoy. The buoy is added to an array of detected buoys. Each classified buoy is matched up the corresponding box found by euclidean clustering. The boxes are given an arbitrary "value" property of 0 to 5 depending on what type of buoy it is (tall black, tall green, round black, etc).
 
