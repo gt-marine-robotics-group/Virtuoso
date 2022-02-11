@@ -24,7 +24,7 @@ class ColorFilter():
 
         return self.filter(lower, upper)
 
-    def red_orange_filter(self):
+    def red_orange_filter(self, white_filtered):
         lower_red = np.array([0, 0, 0])
         upper_red = np.array([20, 255, 255])
 
@@ -34,20 +34,15 @@ class ColorFilter():
         mask1 = cv2.inRange(self.hsv, lower_red, upper_red) 
         mask2 = cv2.inRange(self.hsv, lower_red2, upper_red2)
 
-        return cv2.bitwise_or(cv2.bitwise_and(self.bgr, self.bgr, mask=mask1), cv2.bitwise_and(self.bgr, self.bgr, mask=mask2))
+        filtered = cv2.bitwise_or(cv2.bitwise_and(self.bgr, self.bgr, mask=mask1), cv2.bitwise_and(self.bgr, self.bgr, mask=mask2))
+
+        return cv2.bitwise_xor(filtered, white_filtered)
 
     def green_filter(self):
         lower_green = np.array([50, 100, 50])
         upper_green = np.array([86, 255, 255])
 
         return self.filter(lower_green, upper_green)
-    
-    # def orange_filter(self):
-    #     lower_orange = np.array([0, 0, 0])
-    #     upper_orange = np.array([30, 255, 255])
-
-    #     return self.filter(lower_orange, upper_orange)
-
     
     def filter(self, lower, upper):
 
