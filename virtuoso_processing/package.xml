@@ -10,7 +10,6 @@
   <exec_depend>rclpy</exec_depend>
   <exec_depend>python-skimage</exec_depend>
   <exec_depend>python-numpy</exec_depend>
-  <exec_depend>spatio_temporal_voxel_layer</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>ray_ground_classifier_nodes</exec_depend>
