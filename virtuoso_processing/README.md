@@ -38,18 +38,6 @@ Next, the data passes through a self_filter which removes pointcloud data from t
 
 ![points_self_filtered](https://user-images.githubusercontent.com/59785089/151288988-007b2380-a45f-4274-af76-ee866ce8e579.png)
 
-Then, the PointCloud is passed to nav2 which uses the STVL plugin to create a voxel grid published to `local_costmap/voxel_grid`.
-
-![voxel_grid](https://user-images.githubusercontent.com/59785089/151289127-035ee3fb-c746-4a1b-b702-e35fff195f86.png)
-
-The voxel grid is used to generate a local costmap, published to `local_costmap/costmap`.
-
-![local_costmap](https://user-images.githubusercontent.com/59785089/151289187-5a7f69e8-9790-4889-bada-f9a9331c9e94.png)
-
-A global costmap is also created using the LIDAR processed earlier as well as odom data from the localization server. The global costmap is published to `global_costmap/costmap`.
-
-![global_costmap](https://user-images.githubusercontent.com/59785089/151289292-ea8ddd43-1586-4462-bc2a-6417429f62ec.png)
-
 ## Camera Processing
 Camera processing is done through the [camera_processing.launch.py](launch/camera_processing.launch.py) launch file.
 
