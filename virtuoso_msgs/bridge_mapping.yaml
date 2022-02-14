@@ -1,0 +1,5 @@
+-
+  ros1_package_name: 'vrx_gazebo'
+  ros1_message_name: 'Task'
+  ros2_package_name: 'virtuoso_msgs'
+  ros2_message_name: 'Task'
