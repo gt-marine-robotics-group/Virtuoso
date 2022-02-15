@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from geographic_msgs.msg import GeoPoseStamped
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 from geodesy import utm
 import tf2_ros 
 #import tf2_geometry_msgs
@@ -40,6 +40,8 @@ class getTask1Goal(Node):
         self.goalToSend.header.frame_id = "utm"
         #self.goalToSend.pose.position.x = goalpoint.easting
         #self.goalToSend.pose.position.y = goalpoint.northing    
+
+        self.goalToSend.pose = Pose()
         
         self.goalToSend.pose.position.x = 5.0
         self.goalToSend.pose.position.y = 5.0
