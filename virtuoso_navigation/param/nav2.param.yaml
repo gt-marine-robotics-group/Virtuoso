@@ -191,7 +191,7 @@ controller_server:
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
       required_movement_radius: 0.5
-      movement_time_allowance: 10.0
+      movement_time_allowance: 1000.0
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.25
@@ -201,19 +201,20 @@ controller_server:
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
+      prune_plan: False
       min_vel_x: 0.0
       min_vel_y: 0.0
-      max_vel_x: 0.26
-      max_vel_y: 0.0
-      max_vel_theta: 1.0
+      max_vel_x: 2.0
+      max_vel_y: 2.0
+      max_vel_theta: 0.5
       min_speed_xy: 0.0
-      max_speed_xy: 0.26
+      max_speed_xy: 2.0
       min_speed_theta: 0.0
       acc_lim_x: 2.5
-      acc_lim_y: 0.0
+      acc_lim_y: 2.5
       acc_lim_theta: 3.2
       decel_lim_x: -2.5
-      decel_lim_y: 0.0
+      decel_lim_y: -2.5
       decel_lim_theta: -3.2
       vx_samples: 20
       vy_samples: 5

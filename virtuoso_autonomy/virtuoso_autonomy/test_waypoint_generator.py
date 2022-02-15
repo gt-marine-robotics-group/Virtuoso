@@ -25,7 +25,7 @@ class testWaypointGenerator(Node):
         self.targetWaypoint.pose.position.longitude = 150.67399020302886 + 0.0006
 	
         self.waypointPub = self.create_publisher(GeoPoseStamped, '/vrx/station_keeping/goal', 10)
-        timer_period = 0.05  # seconds
+        timer_period = 10.0  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
 

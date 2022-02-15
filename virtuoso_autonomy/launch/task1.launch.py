@@ -12,10 +12,12 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('virtuoso_localization')
     pkg_share2 = get_package_share_directory('virtuoso_controller')    
     pkg_share3 = get_package_share_directory('virtuoso_navigation') 
-        
+    pkg_share4 = get_package_share_directory('virtuoso_processing') 
+            
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/ekf.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share2, 'launch/pid_vel.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share4, 'launch/main.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share3, 'launch/main.launch.py'))),
         Node(
             package='virtuoso_autonomy',
