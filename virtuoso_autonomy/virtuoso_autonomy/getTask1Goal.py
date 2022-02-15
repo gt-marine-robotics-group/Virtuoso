@@ -26,6 +26,8 @@ class getTask1Goal(Node):
             10)          
         self.goal_subscriber
 
+        self.prev_goal = None
+
         
     def goal_callback(self, msg):
         #msg2 = Imu()
@@ -46,6 +48,8 @@ class getTask1Goal(Node):
         self.goalToSend.pose.position.x = 5.0
         self.goalToSend.pose.position.y = 5.0
         
+        if self.prev_goal is not None and self.prev_goal.pose.position.x == self.goalToSend.pose.position.x and self.prev_goal.pose.position.y == self.goalToSend.pose.position.y:
+            return
         """
         self.goalToSend.pose.orientation = msg.pose.orientation   
         try:
@@ -56,6 +60,8 @@ class getTask1Goal(Node):
                 tf2_ros.ExtrapolationException):
     	        pass
     	        """
+        self.prev_goal = self.goalToSend
+
         self.goalMapPublisher.publish(self.goalToSend)
  
 
