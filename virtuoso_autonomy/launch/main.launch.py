@@ -8,21 +8,18 @@ import os
 def generate_launch_description():
 
     processing = get_package_share_directory('virtuoso_processing')
+    navigation = get_package_share_directory('virtuoso_navigation')
+    localization = get_package_share_directory('virtuoso_localization')
     perception = get_package_share_directory('virtuoso_perception')
 
     return LaunchDescription([
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'lidar_processing.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_and_classify_buoys.launch.py'))),
+
         Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='base_link_to_map',
-            arguments=['0', '0', '0', '0', '0', '0', 'wamv/base_link', 'map']
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='lidar_link_to_map',
-            arguments=['0', '0', '0', '0', '0', '0', 'wamv/lidar_wamv_link', 'map']
+            package='virtuoso_autonomy',
+            executable='mission_interpreter'
         )
     ])
