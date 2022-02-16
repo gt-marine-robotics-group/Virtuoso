@@ -16,8 +16,8 @@ from sensor_msgs.msg import Image
 # ROS Image message -> OpenCV2 image converter
 from cv_bridge import CvBridge, CvBridgeError
 # Pygazebo for changing fog
-import pygazebo
-from pygazebo.msg.v11 import fog_pb2, color_pb2, scene_pb2
+# import pygazebo
+# from pygazebo.msg.v11 import fog_pb2, color_pb2, scene_pb2
 
 # OpenCV2 for saving an image
 import cv2
@@ -147,18 +147,18 @@ class ImageCollection():
 
 if __name__ == "__main__":
     # Number of objects to spawn
-    number = 1
+    number = 50
 
     # Spawning crocodiles
-    #spawner = ImageCollection(number, "models/crocodile_buoy/model.sdf", folder_name = "Gazebo_Images", image_name = "croc", time_delay=1.0) #delay=1 seems to be the lowest
-    #spawner.main()
+    spawner = ImageCollection(number, "models/crocodile_buoy/model.sdf", folder_name = "Gazebo_Images", image_name = "croc", time_delay=1.0) #delay=1 seems to be the lowest
+    spawner.main()
 
-    fog_color = color_pb2.Color()
-    fog_color.r = 1
+    # fog_color = color_pb2.Color()
+    # fog_color.r = 1
 
-    pygazebo.connect(address=('jehan-VirtualBox', 42729))
-    fog_setting = fog_pb2.Fog(type=2, density = 1000, color=fog_color, start=0)
-    scene_pb2.Scene(fog = fog_setting)
+    # pygazebo.connect(address=('jehan-VirtualBox', 42729))
+    # fog_setting = fog_pb2.Fog(type=2, density = 1000, color=fog_color, start=0)
+    # scene_pb2.Scene(fog = fog_setting)
 
     #work on spawning the objects in front of the camera, and then work on filtering the images to try and just get the picture of the crocodile.
     #have images create a directory called images and put all the images in that directory
