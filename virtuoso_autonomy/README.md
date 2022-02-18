@@ -4,7 +4,7 @@ This package is the "brains" of the robot. It will take in mission data and inte
 
 Each [task](./virtuoso_autonomy/tasks) has a main node that is launched by the [main launch file](./launch/main.launch.py). These nodes handle the interpretation of mission data.
 
-**NOTE:** For the mission_interpreter to work, there must be a custom bridge for the Task message. Documentation on building this bridge is still in progress. If you message me (Manuel) I can help walk you through it.
+**NOTE:** For the mission_interpreter to work, there must be a custom bridge for the Task message. Documentation on building this bridge with custom messages can be found [here](https://github.com/gt-marine-robotics-group/Virtuoso-Messages/tree/main).
 
 ## Tasks
 
