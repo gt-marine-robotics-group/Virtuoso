@@ -17,19 +17,20 @@ def transform_buoys(buoys:List[Buoy], tf_buffer:Buffer, gps_pos:NavSatFix):
     except Exception as e:
         return None 
     
+    zone, band = gridZone(gps_pos.latitude, gps_pos.longitude)
+
     for buoy in buoys:
-        buoy.geo_msg = create_geo_msg(buoy, trans, gps_pos)
+        buoy.geo_msg = create_geo_msg(buoy, trans, zone, band)
     
     return buoys
 
-def create_geo_msg(buoy:Buoy, trans:TransformStamped, gps_pos:NavSatFix):
+def create_geo_msg(buoy:Buoy, trans:TransformStamped, zone, band):
 
     easting = buoy.centroid.x + trans.transform.translation.x
     northing = buoy.centroid.y + trans.transform.translation.y
     altitude = buoy.centroid.z + trans.transform.translation.z
 
     utm_point =  UTMPoint(easting=easting, northing=northing, altitude=altitude)
-    zone, band = gridZone(gps_pos.latitude, gps_pos.longitude)
     utm_point.zone = zone
     utm_point.band = band
 
