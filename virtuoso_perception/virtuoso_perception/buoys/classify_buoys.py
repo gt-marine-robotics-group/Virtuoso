@@ -18,7 +18,7 @@ class ClassifyBuoys(Node):
 
         self.classified_buoys_pub = self.create_publisher(BoundingBoxArray, '/buoys/classified', 10)
 
-        self.timer = self.create_timer(3, self.classify_buoys)
+        self.timer = self.create_timer(.1, self.classify_buoys)
 
         self.boxes = None
         self.image = None

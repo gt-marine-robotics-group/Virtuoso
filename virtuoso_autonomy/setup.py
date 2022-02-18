@@ -23,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mission_interpreter = virtuoso_autonomy.mission_interpreter:main'
+            'mission_interpreter = virtuoso_autonomy.mission_interpreter:main',
+            'perception = virtuoso_autonomy.tasks.perception.main:main'
         ],
     },
 )
