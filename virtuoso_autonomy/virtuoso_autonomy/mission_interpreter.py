@@ -39,6 +39,7 @@ class MissionInterpreter(Node):
     
     def perception(self, msg:Task):
         self.get_logger().info('PERCEPTION')
+        self.get_logger().info(str(msg.score))
 
     def wildlife(self, msg:Task):
         self.get_logger().info('WILDLIFE')

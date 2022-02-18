@@ -4,8 +4,12 @@ from virtuoso_msgs.msg import Task
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from typing import List
 from .utils.Buoy import Buoy
+from .utils.transform_buoys import transform_buoys
 from geographic_msgs.msg import GeoPoseStamped, GeoPose, GeoPoint
-from geometry_msgs.msg import Quaternion
+from sensor_msgs.msg import NavSatFix
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+from rclpy.time import Time
 
 class Perception(Node):
 
@@ -14,6 +18,7 @@ class Perception(Node):
 
         self.task_info_sub = self.create_subscription(Task, '/vrx/task/info', self.task_info_callback, 10)
         self.buoys_sub = self.create_subscription(BoundingBoxArray, 'buoys/classified', self.buoys_callback, 10)
+        self.gps_sub = self.create_subscription(NavSatFix, '/gps/filtered', self.gps_callback, 10)
 
         self.response_pub = self.create_publisher(GeoPoseStamped, '/vrx/perception/landmark', 10)
 
@@ -21,7 +26,14 @@ class Perception(Node):
         self.state = 'initial'
         self.prev_buoys:List[BoundingBoxArray] = []
         self.response_sent = False
+        self.gps_pos = None
+
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
     
+    def gps_callback(self, msg:NavSatFix):
+        self.gps_pos = msg
+
     def task_info_callback(self, msg:Task):
 
         if (msg.name == 'perception'): 
@@ -33,6 +45,7 @@ class Perception(Node):
     def buoys_callback(self, msg:BoundingBoxArray):
 
         if (self.state != 'running'): return
+        if (self.gps_pos is None): return
         
         self.add_to_prev_buoys(msg)
 
@@ -43,11 +56,17 @@ class Perception(Node):
             return
         
         if (self.response_sent or len(buoys) == 0): return
+
+        # translate all the buoys to have a lat and lon
+        trans_buoys = transform_buoys(buoys, self.tf_buffer, self.gps_pos) 
+
+        if (trans_buoys is None):
+            self.get_logger().info('Failed to transform between utf and lidar frames')
+            return
         
         for buoy in buoys:
-            # convert the buoy centroid into latitude and longitude
-            # send data to the response_pub
-            self.get_logger().info(str(buoy.name))
+            # Publish the Geo message to get scored!
+            self.response_pub.publish(buoy.geo_msg)
         self.response_sent = True
 
     def add_to_prev_buoys(self, msg:BoundingBoxArray):

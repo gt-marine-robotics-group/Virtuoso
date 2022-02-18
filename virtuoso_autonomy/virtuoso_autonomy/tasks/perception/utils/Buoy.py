@@ -22,3 +22,5 @@ class Buoy():
         self.num = buoy.value
         self.name, self.code = determine_type(buoy.value)
         self.centroid:Point32 = buoy.centroid
+
+        self.geo_msg = None
