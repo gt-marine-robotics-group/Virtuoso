@@ -23,16 +23,17 @@ class testWaypointGenerator(Node):
         self.targetTwist = Twist()
         self.targetTwist.linear.x = 2.0
         self.targetTwist.linear.y = 2.0        
-        self.targetTwist.angular.z = 0.1
+        self.targetTwist.angular.z = 0.0
         self.targetTwistStamped.twist = self.targetTwist
 	
-        self.waypointPub = self.create_publisher(TwistStamped, '/cmd_vel', 10)
+        self.waypointPub = self.create_publisher(Twist, '/cmd_vel', 10)
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
 
     def timer_callback(self):
-        self.waypointPub.publish(self.targetTwistStamped)
+        self.get_logger().info('publishing velocity')
+        self.waypointPub.publish(self.targetTwist)
 
        
      
