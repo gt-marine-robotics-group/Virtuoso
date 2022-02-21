@@ -24,7 +24,7 @@ setup(
     entry_points={
         'console_scripts': [
             'getTask1Goal = virtuoso_autonomy.getTask1Goal:main',       
-            'test_waypoint_generator = virtuoso_autonomy.test_waypoint_generator:main',       
+            'test_waypoint_generator = virtuoso_autonomy.testing.test_waypoint_generator:main',       
             'mission_interpreter = virtuoso_autonomy.mission_interpreter:main',
             'perception = virtuoso_autonomy.tasks.perception.main:main'
         ],
