@@ -32,7 +32,7 @@ local_costmap:
         observation_sources: pointcloud
         pointcloud:
           data_type: PointCloud2
-          topic: /points_self_filtered # topic published to by ray_ground_classifier_nodes
+          topic: /points_self_filtered 
           marking: true
           clearing: true
           obstacle_range: 7.0
@@ -191,23 +191,23 @@ controller_server:
     # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
+      required_movement_radius: 0.1
       movement_time_allowance: 10.0
     # Goal checker parameters
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.5
       yaw_goal_tolerance: 0.25
       stateful: True
     # DWB parameters
     FollowPath:
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: 0.0
-      min_vel_y: 0.0
+      min_vel_x: -0.26
+      min_vel_y: -0.26
       max_vel_x: 0.26
       max_vel_y: 0.26
-      max_vel_theta: 0.1
+      max_vel_theta: 0.5
       min_speed_xy: 0.0
       max_speed_xy: 0.26
       min_speed_theta: 0.0
@@ -215,10 +215,10 @@ controller_server:
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
       acc_lim_x: 2.5
       acc_lim_y: 2.5
-      acc_lim_theta: 3.2
+      acc_lim_theta: 1.0
       decel_lim_x: -2.5
-      decel_lim_y: 0.0
-      decel_lim_theta: -3.2
+      decel_lim_y: -2.5 
+      decel_lim_theta: -1.0
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
