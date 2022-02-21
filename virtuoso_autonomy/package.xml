@@ -17,6 +17,9 @@
   <exec_depend>virtuoso_controller</exec_depend>
   <exec_depend>geodesy</exec_depend>
 
+  <!-- virtuoso_msgs is in a separate workspace -->
+  <exec_depend>virtuoso_msgs</exec_depend>
+
   <export>
     <build_type>ament_python</build_type>
   </export>
