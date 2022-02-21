@@ -24,6 +24,10 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_autonomy',
+            executable='station_keeping'
+        ),
+        Node(
+            package='virtuoso_autonomy',
             executable='perception'
         )
     ])
