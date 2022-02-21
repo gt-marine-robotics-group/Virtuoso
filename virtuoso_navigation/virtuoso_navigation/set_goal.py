@@ -14,14 +14,14 @@ class SetGoal(Node):
 
     def set_goal(self, msg:PoseStamped):
 
-        self.get_logger().info('getting goal')
+        #self.get_logger().info('getting goal')
         
         self.nav_action.wait_for_server()
 
         self.goal = NavigateToPose.Goal()
         self.goal.pose = msg
 
-        self.get_logger().info('setting goal')
+        #self.get_logger().info('setting goal')
 
         self.future_goal = self.nav_action.send_goal_async(self.goal)
 
@@ -33,7 +33,7 @@ class SetGoal(Node):
             self.get_logger().info('Goal rejected')
             return
         
-        self.get_logger().info('Goal accepted')
+        #self.get_logger().info('Goal accepted')
 
         self.get_result_future = goal_handle.get_result_async()
         self.get_result_future.add_done_callback(self.goal_done_callback)
@@ -41,7 +41,7 @@ class SetGoal(Node):
     def goal_done_callback(self, future:Future):
         self.goal_accepted = False
         result = future.result()
-        self.get_logger().info('Receieved result: ' + str(result))
+        #self.get_logger().info('Receieved result: ' + str(result))
 
 
 def main(args=None):

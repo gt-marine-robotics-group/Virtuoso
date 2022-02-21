@@ -14,6 +14,8 @@
 
   <exec_depend>virtuoso_mapping</exec_depend>
   <exec_depend>virtuoso_perception</exec_depend>
+  <exec_depend>virtuoso_controller</exec_depend>
+  <exec_depend>geodesy</exec_depend>
 
   <!-- virtuoso_msgs is in a separate workspace -->
   <exec_depend>virtuoso_msgs</exec_depend>

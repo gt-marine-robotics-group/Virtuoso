@@ -48,7 +48,7 @@ class basicPID(Node):
             
         #subscribe to waypoints
         self.waypoint_subscriber = self.create_subscription(
-            TwistStamped,
+            Twist,
             '/cmd_vel',
             self.waypoint_callback,
             10)         
@@ -61,7 +61,8 @@ class basicPID(Node):
         self.stateEstimate = msg
     
     def waypoint_callback(self, msg):
-        self.targetTwist = msg.twist        
+        self.targetTwist = msg    
+        self.get_logger().info('targetTwist: ' + str((self.targetTwist)))    
         #if(self.receivedWaypoint == False):
              #self.timer = self.create_timer(0.1, self.run_pid())
         self.receivedWaypoint = True
@@ -89,8 +90,8 @@ class basicPID(Node):
         targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
         targetVel = tf_transformations.quaternion_multiply(targetVel, q)
         
-        self.get_logger().info('targetx: ' + str((targetVel[0]- currentVelX)))       
-        self.get_logger().info('targety: ' + str((targetVel[1] - currentVelY))) 
+        #self.get_logger().info('targetx: ' + str((targetVel[0])))       
+        #self.get_logger().info('targety: ' + str((targetVel[1]))) 
                 
         if(self.previousTargetTwist != self.targetTwist):
              self.xIntegral = 0.0
@@ -99,8 +100,8 @@ class basicPID(Node):
         self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
         targetForceY = (targetVel[1]- currentVelY)*1.0 + self.yIntegral*0.1 
         targetForceX = (targetVel[0] - currentVelX)*1.0 + self.xIntegral*0.1
-        self.get_logger().info('targetForceX: ' + str(targetForceX))  
-        self.get_logger().info('targetForceY: ' + str(targetForceY))    
+        #self.get_logger().info('targetForceX: ' + str(targetForceX))  
+        #self.get_logger().info('targetForceY: ' + str(targetForceY))    
         
         theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
                                
@@ -116,9 +117,10 @@ class basicPID(Node):
              self.yawIntegral = 0.0
         self.yawIntegral = self.yawIntegral + (targetYawRate - yawRate)*0.01
         #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
-        self.get_logger().info('yawVelDiff: ' + str((yawRate - targetYawRate)))
+        #self.get_logger().info('yawVelDiff: ' + str((yawRate - targetYawRate)))
+        #self.get_logger().info('targetYawRate: ' + str((targetYawRate)))
         targetTorque = (targetYawRate - yawRate)*5.0 + 0.2*self.yawIntegral
-        self.get_logger().info('targetTorque: ' + str(targetTorque))  
+        #self.get_logger().info('targetTorque: ' + str(targetTorque))  
                 
         leftFrontAngle = Float32()
         rightRearAngle = Float32()
