@@ -3,6 +3,7 @@ from rclpy.node import Node
 from virtuoso_msgs.msg import Task
 from geometry_msgs.msg import PoseStamped, Pose
 from geographic_msgs.msg import GeoPoseStamped
+from sensor_msgs.msg import NavSatFix
 from .utils.calc_pose import calc_pose
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -26,6 +27,12 @@ class StationKeeping(Node):
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        self.gps_sub = self.create_subscription(NavSatFix, '/gps/filtered', self.gps_callback, 10)
+        self.gps = None
+    
+    def gps_callback(self, msg):
+        self.gps = msg
     
     def task_info_callback(self, msg:Task):
 
@@ -60,6 +67,10 @@ class StationKeeping(Node):
         self.goal_to_send = calc_pose(self.received_goal, self.tf_buffer)
 
         # self.get_logger().info(str(self.goal_to_send))
+        # self.get_logger().info(str(self.received_goal))
+        # self.get_logger().info(str(self.gps))
+
+        # return
 
         if (self.goal_to_send is None): return
 

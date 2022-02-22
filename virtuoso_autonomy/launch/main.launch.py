@@ -11,12 +11,14 @@ def generate_launch_description():
     navigation = get_package_share_directory('virtuoso_navigation')
     localization = get_package_share_directory('virtuoso_localization')
     perception = get_package_share_directory('virtuoso_perception')
+    controller = get_package_share_directory('virtuoso_controller')
 
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_and_classify_buoys.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'pid_vel.launch.py'))),
 
         Node(
             package='virtuoso_autonomy',
