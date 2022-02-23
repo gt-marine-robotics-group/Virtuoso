@@ -98,8 +98,8 @@ class basicPID(Node):
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
         self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
-        targetForceY = (targetVel[1]- currentVelY)*1.0 + self.yIntegral*0.1 
-        targetForceX = (targetVel[0] - currentVelX)*1.0 + self.xIntegral*0.1
+        targetForceY = (targetVel[1]- currentVelY)*1.0 + self.yIntegral*0.01 
+        targetForceX = (targetVel[0] - currentVelX)*1.0 + self.xIntegral*0.01
         #self.get_logger().info('targetForceX: ' + str(targetForceX))  
         #self.get_logger().info('targetForceY: ' + str(targetForceY))    
         
@@ -119,7 +119,7 @@ class basicPID(Node):
         #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
         #self.get_logger().info('yawVelDiff: ' + str((yawRate - targetYawRate)))
         #self.get_logger().info('targetYawRate: ' + str((targetYawRate)))
-        targetTorque = (targetYawRate - yawRate)*5.0 + 0.2*self.yawIntegral
+        targetTorque = (targetYawRate - yawRate)*5.0 + 0.02*self.yawIntegral
         #self.get_logger().info('targetTorque: ' + str(targetTorque))  
                 
         leftFrontAngle = Float32()
