@@ -3,10 +3,7 @@ from rclpy.node import Node
 from virtuoso_msgs.msg import Task
 from geometry_msgs.msg import PoseStamped, Pose
 from geographic_msgs.msg import GeoPoseStamped
-from sensor_msgs.msg import NavSatFix
-from .utils.calc_pose import calc_pose
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
+from robot_localization.srv import FromLL
 
 class StationKeeping(Node):
 
@@ -25,14 +22,7 @@ class StationKeeping(Node):
         self.is_task1 = False
         self.state = 'initial'
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
-
-        self.gps_sub = self.create_subscription(NavSatFix, '/gps/filtered', self.gps_callback, 10)
-        self.gps = None
-    
-    def gps_callback(self, msg):
-        self.gps = msg
+        self.fromLL_cli = self.create_client(FromLL, '/fromLL')
     
     def task_info_callback(self, msg:Task):
 
@@ -44,7 +34,6 @@ class StationKeeping(Node):
         if (self.state == 'running'): self.run()
     
     def goal_callback(self, msg:GeoPoseStamped):
-
         self.received_goal = msg
     
     def run(self):
@@ -64,18 +53,19 @@ class StationKeeping(Node):
 
         self.prev_goal = self.received_goal 
 
-        self.goal_to_send = calc_pose(self.received_goal, self.tf_buffer)
+        def ll_callback(future):
+            point = future.result().map_point
+            pose_stamped = PoseStamped()
+            pose = Pose()
+            pose.position = point
+            pose_stamped.pose = pose
+            self.goal_pub.publish(pose_stamped)
 
-        # self.get_logger().info(str(self.goal_to_send))
-        # self.get_logger().info(str(self.received_goal))
-        # self.get_logger().info(str(self.gps))
-
-        # return
-
-        if (self.goal_to_send is None): return
-
-        self.goal_pub.publish(self.goal_to_send)
-
+        self.req = FromLL.Request()
+        self.req.ll_point = self.received_goal.pose.position
+        self.get_logger().info(str(self.req))
+        dest = self.fromLL_cli.call_async(self.req)
+        dest.add_done_callback(ll_callback)
 
 
 
