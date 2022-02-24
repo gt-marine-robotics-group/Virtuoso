@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 from glob import glob
 
@@ -7,7 +7,7 @@ package_name = 'virtuoso_controller'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -25,8 +25,8 @@ setup(
         'console_scripts': [
             'basic_pid = virtuoso_controller.basic_pid:main',   
             'velocity_pid = virtuoso_controller.velocity_pid:main', 
-            'test_waypoint_generator = virtuoso_controller.test_waypoint_generator:main',       
-            'test_vel_generator = virtuoso_controller.test_vel_generator:main',                  
+            'test_waypoint_generator = virtuoso_controller.testing.test_waypoint_generator:main',       
+            'test_vel_generator = virtuoso_controller.testing.test_vel_generator:main',                  
         ],
     },
 )

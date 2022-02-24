@@ -3,11 +3,12 @@ from rclpy.node import Node
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import Vector3Stamped
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Quaternion
-from geometry_msgs.msg import TwistStamped
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
+from geographic_msgs.msg import GeoPoseStamped
+from geometry_msgs.msg import PoseStamped
 
 #import pyproj
 #import math
@@ -19,21 +20,17 @@ class testWaypointGenerator(Node):
         super().__init__('test_waypoint_generator')
         
 
-        self.targetTwistStamped = TwistStamped()
-        self.targetTwist = Twist()
-        self.targetTwist.linear.x = 2.0
-        self.targetTwist.linear.y = 2.0        
-        self.targetTwist.angular.z = 0.0
-        self.targetTwistStamped.twist = self.targetTwist
+        self.targetWaypoint = GeoPoseStamped()
+        self.targetWaypoint.pose.position.latitude = -33.722767309712644 + 0.0006
+        self.targetWaypoint.pose.position.longitude = 150.67399020302886 + 0.0006
 	
-        self.waypointPub = self.create_publisher(Twist, '/cmd_vel', 10)
-        timer_period = 0.05  # seconds
+        self.waypointPub = self.create_publisher(GeoPoseStamped, '/vrx/station_keeping/goal', 10)
+        timer_period = 10.0  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
 
     def timer_callback(self):
-        self.get_logger().info('publishing velocity')
-        self.waypointPub.publish(self.targetTwist)
+        self.waypointPub.publish(self.targetWaypoint)
 
        
      
