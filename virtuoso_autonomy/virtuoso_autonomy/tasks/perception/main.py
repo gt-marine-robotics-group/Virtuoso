@@ -4,12 +4,21 @@ from virtuoso_msgs.msg import Task
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from typing import List
 from .utils.Buoy import Buoy
-from .utils.transform_buoys import transform_buoys
 from geographic_msgs.msg import GeoPoseStamped, GeoPose, GeoPoint
 from sensor_msgs.msg import NavSatFix
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
+from robot_localization.srv import ToLL
+from geometry_msgs.msg import Point, Point32
+from std_msgs.msg import Header
+
+def toPoint(pt:Point32):
+    point = Point()
+    point.x = pt.x
+    point.y = pt.y
+    point.z = pt.z
+    return point
 
 class Perception(Node):
 
@@ -30,6 +39,10 @@ class Perception(Node):
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        self.toLL_cli = self.create_client(ToLL, '/toLL')
+        self.toLL_req = None
+        self.buoys_sent = 0
     
     def gps_callback(self, msg:NavSatFix):
         self.gps_pos = msg
@@ -57,17 +70,36 @@ class Perception(Node):
         
         if (self.response_sent or len(buoys) == 0): return
 
-        # translate all the buoys to have a lat and lon
-        trans_buoys = transform_buoys(buoys, self.tf_buffer, self.gps_pos) 
+        def ll_callback(future):
+            point:GeoPoint = future.result().ll_point
+            buoy = buoys[self.buoys_sent]
+            geopose_stamped = GeoPoseStamped()
+            geopose = GeoPose()
+            geopose.position = point
+            geopose_stamped.pose = geopose
+            header = Header()
+            header.frame_id = buoy.code
+            geopose_stamped.header = header
+            buoy.geo_msg = geopose_stamped
 
-        if (trans_buoys is None):
-            self.get_logger().info('Failed to transform between utf and lidar frames')
-            return
-        
-        for buoy in buoys:
-            # Publish the Geo message to get scored!
+            self.get_logger().info(str(buoy.geo_msg))
             self.response_pub.publish(buoy.geo_msg)
+
+            self.buoys_sent += 1
+            if (self.buoys_sent < len(buoys)):
+                ll = self.createLLFuture(buoys)
+                ll.add_done_callback(ll_callback)
+            else:
+                self.buoys_sent = 0
+
+        ll = self.createLLFuture(buoys)
+        ll.add_done_callback(ll_callback)
         self.response_sent = True
+    
+    def createLLFuture(self, buoys):
+        self.toLL_req = ToLL.Request()
+        self.toLL_req.map_point = toPoint(buoys[self.buoys_sent].centroid)
+        return self.toLL_cli.call_async(self.toLL_req)
 
     def add_to_prev_buoys(self, msg:BoundingBoxArray):
 
