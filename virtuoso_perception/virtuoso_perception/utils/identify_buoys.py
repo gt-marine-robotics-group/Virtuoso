@@ -11,6 +11,9 @@ class DetectedBuoy():
         self.w = w
         self.h = h
         self.area = w * h
+    
+    def __str__(self):
+        return 'x: ' + str(self.x) + ' y: ' + str(self.y) + ' w: ' + str(self.w) + ' h: ' + str(self.h)
 
 
 def find_buoys_for_color(bgr, color):
@@ -56,3 +59,31 @@ def find_buoys(bgr):
     buoys = white_buoys + black_buoys + red_or_orange_buoys + green_buoys
 
     return buoys
+
+
+def find_largest_buoy(bgr, color):
+    canny = cv2.Canny(bgr, 50, 150)
+
+    kernel = np.ones((3))
+
+    dilated = cv2.dilate(canny, kernel, iterations=1)
+
+    contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    max_area = 0
+    buoy = None
+
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+
+        if area < 300: continue
+
+        if area < max_area: continue 
+
+        max_area = area
+
+        x, y, w, h = cv2.boundingRect(cnt)
+
+        buoy = DetectedBuoy(color, x, y, w, h)
+
+    return buoy

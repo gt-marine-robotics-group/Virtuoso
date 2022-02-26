@@ -25,7 +25,9 @@ setup(
     entry_points={
         'console_scripts': [
             'find_buoys = virtuoso_perception.buoys.find_buoys:main',
-            'classify_buoys = virtuoso_perception.buoys.classify_buoys:main'
+            'classify_buoys = virtuoso_perception.buoys.classify_buoys:main',
+            'largest_red = virtuoso_perception.buoys.largest.red:main',
+            'largest_white = virtuoso_perception.buoys.largest.white:main'
         ],
     },
 )
