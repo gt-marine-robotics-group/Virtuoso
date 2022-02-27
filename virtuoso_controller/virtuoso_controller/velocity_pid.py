@@ -87,8 +87,8 @@ class basicPID(Node):
         q_inv[1] = -q_inv[1]
         q_inv[2] = -q_inv[2]
 
-        targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
-        targetVel = tf_transformations.quaternion_multiply(targetVel, q)
+        #targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
+        #targetVel = tf_transformations.quaternion_multiply(targetVel, q)
         
         #self.get_logger().info('targetx: ' + str((targetVel[0])))       
         #self.get_logger().info('targety: ' + str((targetVel[1]))) 
@@ -98,8 +98,8 @@ class basicPID(Node):
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
         self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
-        targetForceY = (targetVel[1]- currentVelY)*1.0 + self.yIntegral*0.01 
-        targetForceX = (targetVel[0] - currentVelX)*1.0 + self.xIntegral*0.01
+        targetForceY = (targetVel[1]- currentVelY)*0.5 + self.yIntegral*0.01 
+        targetForceX = (targetVel[0] - currentVelX)*0.5 + self.xIntegral*0.01
         #self.get_logger().info('targetForceX: ' + str(targetForceX))  
         #self.get_logger().info('targetForceY: ' + str(targetForceY))    
         
@@ -119,7 +119,7 @@ class basicPID(Node):
         #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
         #self.get_logger().info('yawVelDiff: ' + str((yawRate - targetYawRate)))
         #self.get_logger().info('targetYawRate: ' + str((targetYawRate)))
-        targetTorque = (targetYawRate - yawRate)*5.0 + 0.02*self.yawIntegral
+        targetTorque = (targetYawRate - yawRate)*3.0 + 0.01*self.yawIntegral
         #self.get_logger().info('targetTorque: ' + str(targetTorque))  
                 
         leftFrontAngle = Float32()

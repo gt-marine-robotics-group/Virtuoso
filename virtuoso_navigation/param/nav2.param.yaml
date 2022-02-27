@@ -1,6 +1,7 @@
 local_costmap:
   local_costmap:
     ros__parameters:
+      server_timeout: 500
       update_frequency: 5.0
       publish_frequency: 2.0
       global_frame: map 
@@ -63,6 +64,9 @@ bt_navigator:
   ros__parameters:
     use_sim_time: True
     global_frame: map 
+    default_server_timeout: 10000
+    bt_loop_duration: 100
+    action_server_timeout: 100
     robot_base_frame: wamv/base_link
     odom_topic: /localization/odometry
     default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
@@ -97,6 +101,7 @@ bt_navigator:
 global_costmap:
   global_costmap:
     ros__parameters:
+      server_timeout: 500
       always_send_full_costmap: False 
       update_frequency: 1.0
       publish_frequency: 1.0
@@ -132,7 +137,7 @@ planner_server:
   ros__parameters:
     planner_plugins: ["GridBased"]
     use_sim_time: True
-
+    server_timeout: 500
     GridBased:
       plugin: "smac_planner/SmacPlanner"
       downsample_costmap: false           # whether or not to downsample the map
@@ -145,7 +150,7 @@ planner_server:
       analytic_expansion_ratio: 3.5       # The ratio to attempt analytic expansions during search for final approach.
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
       minimum_turning_radius: 0.40        # minimum turning radius in m of path / vehicle
-      reverse_penalty: 2.0                # Penalty to apply if motion is reversing, must be => 1
+      reverse_penalty: 5.0                # Penalty to apply if motion is reversing, must be => 1
       change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
       non_straight_penalty: 1.2           # Penalty to apply if motion is non-straight, must be => 1
       cost_penalty: 2.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
@@ -165,6 +170,7 @@ waypoint_follower:
   ros__parameters:
     loop_rate: 20
     stop_on_failure: false
+    server_timeout: 500
     waypoint_task_executor_plugin: "wait_at_waypoint"
     wait_at_waypoint:
       plugin: "nav2_waypoint_follower::WaitAtWaypoint"
@@ -175,50 +181,53 @@ lifecycle_manager:
   ros__parameters:
     autostart: true
     node_names: ['controller_server', 'planner_server', 'recoveries_server', 'bt_navigator', 'waypoint_follower']
-    bond_timeout: 4.0
+    bond_timeout: 1000.0
+    server_timeout: 1000
 
 controller_server:
   ros__parameters:
     use_sim_time: True
-    controller_frequency: 1.0
+    controller_frequency: 10.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.5
     min_theta_velocity_threshold: 0.001
     progress_checker_plugin: "progress_checker"
     goal_checker_plugin: "goal_checker"
     controller_plugins: ["FollowPath"]
-
+    server_timeout: 500
     # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.1
+      required_movement_radius: 0.0
       movement_time_allowance: 10.0
     # Goal checker parameters
     goal_checker:
+      server_timeout: 500
       plugin: "nav2_controller::SimpleGoalChecker"
       xy_goal_tolerance: 0.5
       yaw_goal_tolerance: 0.25
       stateful: True
     # DWB parameters
     FollowPath:
+      server_timeout: 500
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: -0.26
-      min_vel_y: -0.26
-      max_vel_x: 0.26
-      max_vel_y: 0.26
-      max_vel_theta: 0.5
-      min_speed_xy: 0.0
-      max_speed_xy: 0.26
+      min_vel_x: -0.5
+      min_vel_y: -0.5
+      max_vel_x: 0.8
+      max_vel_y: 0.5
+      max_vel_theta: 0.25
+      min_speed_xy: 0.1
+      max_speed_xy: 0.9
       min_speed_theta: 0.0
       # Add high threshold velocity for turtlebot 3 issue.
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
       acc_lim_x: 2.5
       acc_lim_y: 2.5
-      acc_lim_theta: 1.0
+      acc_lim_theta: 0.15
       decel_lim_x: -2.5
       decel_lim_y: -2.5 
-      decel_lim_theta: -1.0
+      decel_lim_theta: -0.15
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
@@ -256,7 +265,8 @@ recoveries_server:
       plugin: "nav2_recoveries/Wait"
     global_frame: odom
     robot_base_frame: wamv/base_link
-    transform_timeout: 0.1
+    transform_timeout: 1.0
+    server_timeout: 500
     simulate_ahead_time: 2.0
     max_rotational_vel: 1.0
     min_rotational_vel: 0.4
@@ -264,7 +274,8 @@ recoveries_server:
 
 planner_server:
   ros__parameters:
-    expected_planner_frequency: 20.0
+    expected_planner_frequency: 2.0
+    server_timeout: 500
     use_sim_time: True
     planner_plugins: ["GridBased"]
     GridBased:
@@ -275,4 +286,5 @@ planner_server:
 
 planner_server_rclcpp_node:
   ros__parameters:
+    server_timeout: 500
     use_sim_time: True
