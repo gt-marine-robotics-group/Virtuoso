@@ -64,6 +64,8 @@ class FindGate(Node):
                 added = False
                 for gate_buoy in gate_buoys:
                     if (same_location(buoy, gate_buoy['box'])):
+                        gate_buoy['box'].centroid.x = ((gate_buoy['box'].centroid.x * gate_buoy['count']) + buoy.centroid.x) / (gate_buoy['count'] + 1)
+                        gate_buoy['box'].centroid.y = ((gate_buoy['box'].centroid.y * gate_buoy['count']) + buoy.centroid.y) / (gate_buoy['count'] + 1)
                         gate_buoy['count'] += 1
                         added = True
                         break
@@ -77,9 +79,23 @@ class FindGate(Node):
 
         gate_buoys.sort(key=lambda b: b['count'], reverse=True)
 
-        if (gate_buoys[0]['count'] > 7):
-            self.get_logger().info(str('greater than 7'))
-            # either publish a gate_identified or validate the old gate
+        if (gate_buoys[0]['count'] < 8): return
+
+        # either publish a new gate_identified if none previously
+        if (len(self.gate_identified.boxes) == 0):
+            # self.get_logger().info(str('MAKING NEW GATE'))
+            self.gate_identified.boxes = [gate_buoys[0]['box'], gate_buoys[1]['box']]
+            self.gate_pub.publish(self.gate_identified)
+            return
+
+        # validate the old gate_identified and modify if necessary
+        # self.get_logger().info(str('VALIDATING OLD GATE'))
+        for buoy in gate_buoys:
+            if (same_location(buoy['box'], self.gate_identified.boxes[0]) or same_location(buoy['box'], self.gate_identified.boxes[1])): continue
+            # self.get_logger().info(str('MAKING NEW GATE'))
+            self.gate_identified.boxes = [gate_buoys[0]['box'], gate_buoys[1]['box']]
+            self.gate_pub.publish(self.gate_identified)
+            return
     
     def find_2_closest_new_buoys(self, buoys:BoundingBoxArray, trans:TransformStamped):
         closest_buoys = [None, None]
