@@ -47,7 +47,7 @@ class getTask1Goal(Node):
         self.goalToSend.pose = Pose()
         
         self.goalToSend.pose.position.x = -5.0
-        self.goalToSend.pose.position.y = 0.0
+        self.goalToSend.pose.position.y = 5.0
         
         if self.prev_goal is not None and self.prev_goal.pose.position.x == self.goalToSend.pose.position.x and self.prev_goal.pose.position.y == self.goalToSend.pose.position.y:
             return
