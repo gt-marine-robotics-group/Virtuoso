@@ -25,7 +25,8 @@ setup(
         'console_scripts': [
             'mission_interpreter = virtuoso_autonomy.mission_interpreter:main',
             'perception = virtuoso_autonomy.tasks.perception.main:main',
-            'station_keeping = virtuoso_autonomy.tasks.station_keeping.main:main'
+            'station_keeping = virtuoso_autonomy.tasks.station_keeping.main:main',
+            'wayfinding = virtuoso_autonomy.tasks.wayfinding.main:main'
         ],
     },
 )

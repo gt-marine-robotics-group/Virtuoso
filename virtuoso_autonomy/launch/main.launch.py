@@ -31,5 +31,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_autonomy',
             executable='perception'
+        ),
+        Node(
+            package='virtuoso_autonomy',
+            executable='wayfinding'
         )
     ])
