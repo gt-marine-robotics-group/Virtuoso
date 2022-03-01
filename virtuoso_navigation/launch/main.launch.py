@@ -19,6 +19,10 @@ def generate_launch_description():
             package='virtuoso_navigation',
             executable='set_goal'
         ),
+        Node(
+            package='virtuoso_navigation',
+            executable='waypoints'
+        ),
 
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file}.items()),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(rviz_launch_file)),
