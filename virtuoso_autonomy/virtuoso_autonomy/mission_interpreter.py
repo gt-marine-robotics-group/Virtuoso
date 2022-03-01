@@ -33,6 +33,7 @@ class MissionInterpreter(Node):
     
     def station_keeping(self, msg:Task):
         self.get_logger().info('STATION KEEPING')
+        self.get_logger().info(msg.state)
 
     def wayfinding(self, msg:Task):
         self.get_logger().info('WAYFINDING')
