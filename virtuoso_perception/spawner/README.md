@@ -33,6 +33,8 @@ cd ~/vrx_ws
 catkin_make
 ```
 
+**Note**: Every time you change the environment variables, you need to catkin_make the workspace again. This is very important, otherwise you're not actually simulating varied lighting conditions.
+
 ### Step 2: Run
 This is to run one of the example worlds provided by the VRX Simulation platform. 
 
@@ -44,12 +46,31 @@ Launch the VRX simulation:
 ```bash
 roslaunch vrx_gazebo vrx.launch
 ```
+**Note**: I would recommend making a .bashrc for this operation just to simplify the process of re-running (just press up arrow and enter).
+
 Gazebo should launch a basic world with the WAM-V and various other objects. For more examples, look [here](https://github.com/osrf/vrx/wiki/environments_tutorials#vrx).
 
 ## Usage
+### Editing environment variables
+We want to take a variety of images at various values of ambient light and fog intensity. We need to edit the proper environment variables in the sydneyregatta.xacro file of your vrx_ws installation.
+
+[Tutorial for changing environment variables](https://github.com/osrf/vrx/wiki/changing_visual_params_tutorial)
+
+The possible values of the environment variables are outlined in the [technical specifications of vrx](https://robonation.org/app/uploads/sites/2/2021/11/VRX2022_Technical-Guide_v1.1.pdf), page 11.
+
+I decided that a reasonable way to break it down would be:\
+0, 0.5 and 1 fog density \
+0.7, 0.8, and 0.9 fog color \
+0.3, 0.5, 0.7, 0.9, and 1 ambient light.
+
+This gives us a total of 45 combinations of lighting and fog condition to take pictures in. At a recommended 1000/2000 images per class, I believe the optimal number of pictures to take is 45 per configuration. It takes 1 second per image, and given the relatively long startup time of the simulation, it's really not worth it to take smaller batches of images, so we might as well take larger batches each time. If we choose not to label them all later, that's fine.
+
+### Running the script
 Drop a gazebo model folder of the object you are interested in into the models folder. After this, you can open the [```image_taker.py```](image_taker.py) file. 
 
 At the bottom, the class ```ImageCollection``` is called with the main input parameters being: number of objects to spawn, the file location of the .sdf model of the object you desire to spawn, the folder name where you would like to store the image results, the start of each image name, and the time delay between the taking of each image (so that Gazebo has enough time to update). Calling the main function after this will spawn your objects.
+
+There are configuration variables in the main method that allow you to input the environmental variables and name of the model, like croc, turtle, or platypus. These need to be set each time you change them and re-run the script.
 
 The script randomly places your desired object in front of the WAM-V up to a certain distance away (which can be changed inside the ```generate_random_position``` function. An image of the object from the WAM-V's in-built ```"/wamv/sensors/cameras/front_left_camera/image_raw"``` ROS topic. The object is then deleted, and the next object is spawned, and so on. 
 

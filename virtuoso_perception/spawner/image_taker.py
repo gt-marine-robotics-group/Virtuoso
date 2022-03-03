@@ -95,7 +95,7 @@ class ImageCollection():
         # Randomly deciding the position of the object to spawn
         # Pick a random distance away from the wam-v, and then find x and y
         min_distance = 5 # so that its not right under the wam-v
-        max_distance = 30 # tested to be the best
+        max_distance = 20 # tested to be the best
         distance = (max_distance-min_distance) * np.random.random() + min_distance
 
         #Adding a conic random angle
@@ -147,10 +147,16 @@ class ImageCollection():
 
 if __name__ == "__main__":
     # Number of objects to spawn
-    number = 50
+    number = 45
+
+    home_folder = '/home/tpeng/Documents/'
+    class_name = 'croc'
+    fog_density = 0
+    fog_color = 0.7
+    ambient_light = 0.3
 
     # Spawning crocodiles
-    spawner = ImageCollection(number, "models/crocodile_buoy/model.sdf", folder_name = "Gazebo_Images", image_name = "croc", time_delay=1.0) #delay=1 seems to be the lowest
+    spawner = ImageCollection(number, "models/crocodile_buoy/model.sdf", folder_name = home_folder + "Gazebo_Images", image_name = "{3}_d{0}_c{1}_a{2}".format(fog_density, fog_color, ambient_light, class_name), time_delay=1.0) #delay=1 seems to be the lowest
     spawner.main()
 
     # fog_color = color_pb2.Color()
