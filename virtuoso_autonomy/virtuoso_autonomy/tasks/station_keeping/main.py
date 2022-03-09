@@ -5,6 +5,12 @@ from geometry_msgs.msg import PoseStamped, Pose
 from geographic_msgs.msg import GeoPoseStamped
 from robot_localization.srv import FromLL
 
+
+import tf_transformations
+from tf2_ros import TransformException
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+
 class StationKeeping(Node):
 
     def __init__(self):
@@ -23,6 +29,11 @@ class StationKeeping(Node):
         self.state = 'initial'
 
         self.fromLL_cli = self.create_client(FromLL, '/fromLL')
+        
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+        
+        
     
     def task_info_callback(self, msg:Task):
 
@@ -52,12 +63,36 @@ class StationKeeping(Node):
             return
 
         self.prev_goal = self.received_goal 
+        
+        from_frame_rel = 'utm'
+        to_frame_rel = 'odom'
+        
+        try:
+             now = rclpy.time.Time()
+             trans = self.tf_buffer.lookup_transform(
+                        to_frame_rel,
+                        from_frame_rel,
+                        now)
+        except TransformException as ex:
+             self.get_logger().info(
+                        f'Could not transform {to_frame_rel} to {from_frame_rel}: {ex}')
+             return
+        self.quatUTMtoODOM = trans.transform.rotation
 
         def ll_callback(future):
             point = future.result().map_point
             pose_stamped = PoseStamped()
             pose = Pose()
             pose.position = point
+            q_goal = [self.received_goal.pose.orientation.x, self.received_goal.pose.orientation.y, self.received_goal.pose.orientation.z, self.received_goal.pose.orientation.w]
+            
+            q_utm_to_odom = [self.quatUTMtoODOM.x, self.quatUTMtoODOM.y, self.quatUTMtoODOM.z, self.quatUTMtoODOM.w]
+            
+            q_final = tf_transformations.quaternion_multiply(q_goal, q_utm_to_odom)
+            pose.orientation.x = q_final[0]
+            pose.orientation.y = q_final[1]
+            pose.orientation.z = q_final[2]
+            pose.orientation.w = q_final[3]
             pose_stamped.pose = pose
             self.goal_pub.publish(pose_stamped)
 
