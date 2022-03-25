@@ -87,8 +87,8 @@ class StationKeeping(Node):
             q_goal = [self.received_goal.pose.orientation.x, self.received_goal.pose.orientation.y, self.received_goal.pose.orientation.z, self.received_goal.pose.orientation.w]
             
             q_utm_to_odom = [self.quatUTMtoODOM.x, self.quatUTMtoODOM.y, self.quatUTMtoODOM.z, self.quatUTMtoODOM.w]
-            
-            q_final = tf_transformations.quaternion_multiply(q_goal, q_utm_to_odom)
+            q_utm_to_odom = [0, 0, 0, 1]            
+            q_final = tf_transformations.quaternion_multiply(q_utm_to_odom, q_goal)
             pose.orientation.x = q_final[0]
             pose.orientation.y = q_final[1]
             pose.orientation.z = q_final[2]

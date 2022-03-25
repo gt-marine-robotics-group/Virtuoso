@@ -8,6 +8,7 @@ from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
+from std_msgs.msg import Bool
 import tf_transformations
 
 
@@ -16,10 +17,10 @@ import tf_transformations
 import numpy
 
 
-class basicPID(Node):
+class velocityPID(Node):
 
     def __init__(self):
-        super().__init__('basic_PID')
+        super().__init__('velocity_PID')
         
         self.stateEstimate = Odometry()
         self.targetTwist = Twist()
@@ -28,7 +29,8 @@ class basicPID(Node):
         self.yIntegral = 0.0
         self.previousTargetTwist = Twist()
         self.receivedWaypoint = False
-
+        self.navigateToPoint = False
+        
         self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
         self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
         self.leftRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_angle', 10)
@@ -51,18 +53,25 @@ class basicPID(Node):
             Twist,
             '/cmd_vel',
             self.waypoint_callback,
-            10)         
+            10)    
+        self.navigateToPoint_subscriber = self.create_subscription(
+            Bool,
+            '/navigation/navigateToPoint',
+            self.navigateToPoint_callback,
+            10)       
         self.odom_subscriber
         self.waypoint_subscriber 
         self.timer2 = self.create_timer(0.01, self.run_pid)
 
-	
+    def navigateToPoint_callback(self, msg):
+        self.navigateToPoint = msg.data
+        	
     def odometry_callback(self, msg):
         self.stateEstimate = msg
     
     def waypoint_callback(self, msg):
         self.targetTwist = msg    
-        self.get_logger().info('targetTwist: ' + str((self.targetTwist)))    
+        #self.get_logger().info('targetTwist: ' + str((self.targetTwist)))    
         #if(self.receivedWaypoint == False):
              #self.timer = self.create_timer(0.1, self.run_pid())
         self.receivedWaypoint = True
@@ -154,7 +163,8 @@ class basicPID(Node):
         if(rightRearCmd.data <0):
              rightRearCmd.data = rightRearCmd.data*2.5
                                                             
-        if(self.receivedWaypoint):
+        if(self.receivedWaypoint and not(self.navigateToPoint)):
+             self.get_logger().info('targetTwist: ' + str((self.targetTwist)))   
              self.rightFrontPubAngle.publish(rightFrontAngle)
              self.leftRearPubAngle.publish(leftRearAngle)
              self.leftFrontPubAngle.publish(leftFrontAngle)
@@ -171,14 +181,14 @@ class basicPID(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    basic_PID = basicPID()
+    velocity_PID = velocityPID()
 
-    rclpy.spin(basic_PID)
+    rclpy.spin(velocity_PID)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    basic_PID.destroy_node()
+    velocity_PID.destroy_node()
     rclpy.shutdown()
 
 

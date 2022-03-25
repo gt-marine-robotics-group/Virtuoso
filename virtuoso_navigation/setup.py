@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'set_goal = virtuoso_navigation.set_goal:main',
+            'choose_PID = virtuoso_navigation.choose_PID:main',
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',
             'test_change_goal = virtuoso_navigation.testing.change_goal:main'
         ],
