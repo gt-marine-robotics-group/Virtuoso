@@ -144,9 +144,9 @@ planner_server:
       angle_quantization_bins: 72         # Number of angle bins for search
       analytic_expansion_ratio: 3.5       # The ratio to attempt analytic expansions during search for final approach.
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
-      minimum_turning_radius: 0.40        # minimum turning radius in m of path / vehicle
-      reverse_penalty: 0.0                # Penalty to apply if motion is reversing, must be => 1
-      change_penalty: 16.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
+      minimum_turning_radius: 0.0        # minimum turning radius in m of path / vehicle
+      reverse_penalty: 1.0                # Penalty to apply if motion is reversing, must be => 1
+      change_penalty: 0.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
       non_straight_penalty: 16.0           # Penalty to apply if motion is non-straight, must be => 1
       cost_penalty: 2.0                   # Penalty to apply to higher cost areas when adding into the obstacle map dynamic programming distance expansion heuristic. This drives the robot more towards the center of passages. A value between 1.3 - 3.5 is reasonable.
       retrospective_penalty: 0.015
@@ -177,48 +177,49 @@ lifecycle_manager:
     node_names: ['controller_server', 'planner_server', 'recoveries_server', 'bt_navigator', 'waypoint_follower']
     bond_timeout: 4.0
 
+
 controller_server:
   ros__parameters:
     use_sim_time: True
-    controller_frequency: 2.0
+    controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.001
     min_theta_velocity_threshold: 0.001
     progress_checker_plugin: "progress_checker"
     goal_checker_plugin: "goal_checker"
     controller_plugins: ["FollowPath"]
-
+    odom_topic: /localization/odometry
     # Progress checker parameters
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
-      required_movement_radius: 0.5
+      required_movement_radius: 0.0
       movement_time_allowance: 10.0
     # Goal checker parameters
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
-      xy_goal_tolerance: 0.5
-      yaw_goal_tolerance: 0.25
+      xy_goal_tolerance: 0.0
+      yaw_goal_tolerance: 0.0
       stateful: True
     # DWB parameters
-    FollowPath:
+    FollowPath:       
       plugin: "dwb_core::DWBLocalPlanner"
       debug_trajectory_details: True
-      min_vel_x: -1.0
+      min_vel_x: -2.0
       min_vel_y: -1.0
-      max_vel_x: 1.0
+      max_vel_x: 2.0
       max_vel_y: 1.0
-      max_vel_theta: 0.8
-      min_speed_xy: 0.0
+      max_vel_theta: 0.4
+      min_speed_xy: -1.26
       max_speed_xy: 1.26
-      min_speed_theta: 0.0
+      min_speed_theta: -0.4
       # Add high threshold velocity for turtlebot 3 issue.
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
-      acc_lim_x: 1.0
-      acc_lim_y: 1.0
-      acc_lim_theta: 1.0
-      decel_lim_x: -2.5
-      decel_lim_y: -2.5
-      decel_lim_theta: -3.2
+      acc_lim_x: 0.3
+      acc_lim_y: 0.3
+      acc_lim_theta: 0.1
+      decel_lim_x: -0.3
+      decel_lim_y: -0.3
+      decel_lim_theta: -0.05
       vx_samples: 20
       vy_samples: 5
       vtheta_samples: 20
@@ -241,6 +242,9 @@ controller_server:
       RotateToGoal.scale: 32.0
       RotateToGoal.slowing_factor: 10.0
       RotateToGoal.lookahead_time: -1.0
+      shorten_transformed_plan: false
+
+      
 
 controller_server_rclcpp_node:
   ros__parameters:
@@ -262,7 +266,7 @@ recoveries_server:
     robot_base_frame: wamv/base_link
     transform_timeout: 0.1
     simulate_ahead_time: 2.0
-    max_rotational_vel: 1.0
+    max_rotational_vel: 0.4
     min_rotational_vel: 0.4
     rotational_acc_lim: 3.2
 
