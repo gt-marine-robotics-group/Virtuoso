@@ -58,11 +58,13 @@ class velocityPID(Node):
             Bool,
             '/navigation/navigateToPoint',
             self.navigateToPoint_callback,
-            10)       
+            10)      
+
         self.odom_subscriber
         self.waypoint_subscriber 
         self.timer2 = self.create_timer(0.01, self.run_pid)
-
+        
+        
     def navigateToPoint_callback(self, msg):
         self.navigateToPoint = msg.data
         	
@@ -107,8 +109,8 @@ class velocityPID(Node):
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
         self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
-        targetForceY = (targetVel[1]- currentVelY)*0.5 + self.yIntegral*0.01 
-        targetForceX = (targetVel[0] - currentVelX)*0.5 + self.xIntegral*0.01
+        targetForceY = (targetVel[1]*1.5 - currentVelY)*0.5 + self.yIntegral*0.01 
+        targetForceX = (targetVel[0]*1.5 - currentVelX)*0.5 + self.xIntegral*0.01
         #self.get_logger().info('targetForceX: ' + str(targetForceX))  
         #self.get_logger().info('targetForceY: ' + str(targetForceY))    
         
