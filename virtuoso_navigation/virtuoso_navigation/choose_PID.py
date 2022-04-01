@@ -55,15 +55,11 @@ class choosePID(Node):
         
              targetWaypoint = Odometry()
              targetWaypoint.pose.pose = self.destination
+             #targetWaypoint.pose.pose.orientation = 
              self.waypointPub.publish(targetWaypoint)
   
     def odometry_callback(self, msg):
         self.stateEstimate = msg       
-        
-
-       
-     
-    
 
         
 def main(args=None):

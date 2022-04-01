@@ -30,7 +30,7 @@ class velocityPID(Node):
         self.previousTargetTwist = Twist()
         self.receivedWaypoint = False
         self.navigateToPoint = False
-        
+        '''
         self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
         self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
         self.leftRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_angle', 10)
@@ -40,6 +40,10 @@ class velocityPID(Node):
         self.rightFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_cmd', 10)             
         self.leftRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_cmd', 10)
         self.rightRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_cmd', 10)    
+        '''
+        self.targetForceXPub = self.create_publisher(Float32, '/controller/velocity_pid/targetForceX', 10)
+        self.targetForceYPub = self.create_publisher(Float32, '/controller/velocity_pid/targetForceY', 10)
+        self.targetTorquePub = self.create_publisher(Float32, '/controller/velocity_pid/targetTorque', 10)
         
         #subscribe to odometry from localization
         self.odom_subscriber = self.create_subscription(
@@ -132,6 +136,20 @@ class velocityPID(Node):
         #self.get_logger().info('targetYawRate: ' + str((targetYawRate)))
         targetTorque = (targetYawRate - yawRate)*3.0 + 0.01*self.yawIntegral
         #self.get_logger().info('targetTorque: ' + str(targetTorque))  
+        
+        targetXToSend = Float32()
+        targetYToSend = Float32()
+        targetTorqueToSend = Float32()
+        
+        targetXToSend.data = targetForceX
+        targetYToSend.data = targetForceY
+        targetTorqueToSend.data = targetTorque
+        if(self.receivedWaypoint):
+             self.targetForceXPub.publish(targetXToSend)
+             self.targetForceYPub.publish(targetYToSend)
+             self.targetTorquePub.publish(targetTorqueToSend)
+        
+        '''
                 
         leftFrontAngle = Float32()
         rightRearAngle = Float32()
@@ -176,7 +194,7 @@ class velocityPID(Node):
              self.rightRearPubCmd.publish(rightRearCmd)      
              self.rightFrontPubCmd.publish(rightFrontCmd)
              self.leftRearPubCmd.publish(leftRearCmd)       
-        
+        '''
         self.previousTargetTwist = self.targetTwist
 
         
