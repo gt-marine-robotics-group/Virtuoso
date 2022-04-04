@@ -113,17 +113,17 @@ class basicPID(Node):
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + targetVel[0]*0.01
         self.yIntegral = self.yIntegral + targetVel[1]*0.01       
-        targetForceY = (targetVel[1]*0.15 - currentVelY*0.9) + self.yIntegral*0.0000
+        targetForceY = (targetVel[1]*0.15 - currentVelY*0.9) + self.yIntegral*0.000
         #self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0]*0.11 - currentVelX*0.333) + self.xIntegral*0.0000
+        targetForceX = (targetVel[0]*0.11 - currentVelX*0.333) + self.xIntegral*0.000
 	
         if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
-             targetForceX = targetForceX*2.0
-             targetForceY = targetForceY*2.0
-        if(abs(targetForceY) < 0.25):
-             targetForceY = targetForceY/abs(targetForceY)*0.25
-        if(abs(targetForceX)<0.25):
-             targetForceX = targetForceX/abs(targetForceX)*0.25
+             targetForceY = (targetVel[1]*0.15 - currentVelY*0.15) + self.yIntegral*0.000
+             targetForceX = (targetVel[0]*0.11 - currentVelX*0.11) + self.xIntegral*0.000
+        if(abs(targetForceY) < 0.2):
+             targetForceY = targetForceY/abs(targetForceY)*0.2
+        if(abs(targetForceX)<0.2):
+             targetForceX = targetForceX/abs(targetForceX)*0.2
         theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
         
         heading = [1.0, 0.0, 0.0, 0.0]

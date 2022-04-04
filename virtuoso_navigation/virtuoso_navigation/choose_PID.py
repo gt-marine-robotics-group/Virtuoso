@@ -16,6 +16,7 @@ class choosePID(Node):
         self.navigateToPoint = Bool()
         self.navigateToPoint.data = False
         self.receivedPath = False
+        self.nextWaypoint = Pose()
         
         self.path_subscriber = self.create_subscription(
             Path,
@@ -35,6 +36,7 @@ class choosePID(Node):
 
     def path_callback(self, msg):
         self.destination = msg.poses[-1].pose
+        self.nextWaypoint = msg.poses[0].pose
         self.receivedPath = True
         
     def timer_callback(self):
@@ -54,7 +56,11 @@ class choosePID(Node):
              self.navigateToPointPub.publish(self.navigateToPoint)
         
              targetWaypoint = Odometry()
-             targetWaypoint.pose.pose = self.destination
+             if(distance < 2.0):
+                  targetWaypoint.pose.pose = self.destination
+             else:
+     	          targetWaypoint.pose.pose.position = self.destination.position
+     	          targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
              #targetWaypoint.pose.pose.orientation = 
              self.waypointPub.publish(targetWaypoint)
   
