@@ -19,7 +19,14 @@ def generate_launch_description():
             package='virtuoso_navigation',
             executable='set_goal'
         ),
-
+        Node(
+            package='virtuoso_navigation',
+            executable='waypoints'
+        ),
+        Node(
+            package='virtuoso_navigation',
+            executable='choose_PID'
+        ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file}.items()),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(rviz_launch_file)),
         Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file]),

@@ -6,6 +6,7 @@ from geometry_msgs.msg import Vector3Stamped
 from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
+from std_msgs.msg import Bool
 import tf_transformations
 
 
@@ -26,7 +27,8 @@ class basicPID(Node):
         self.yIntegral = 0.0
         self.previousTargetWaypoint = Odometry()
         self.receivedWaypoint = False
-
+        self.navigateToPoint = False
+        '''
         self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
         self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
         self.leftRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_angle', 10)
@@ -36,6 +38,11 @@ class basicPID(Node):
         self.rightFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_cmd', 10)             
         self.leftRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_cmd', 10)
         self.rightRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_cmd', 10)    
+        '''
+        
+        self.targetForceXPub = self.create_publisher(Float32, '/controller/basic_pid/targetForceX', 10)
+        self.targetForceYPub = self.create_publisher(Float32, '/controller/basic_pid/targetForceY', 10)
+        self.targetTorquePub = self.create_publisher(Float32, '/controller/basic_pid/targetTorque', 10)
         
         #subscribe to odometry from localization
         self.odom_subscriber = self.create_subscription(
@@ -49,12 +56,19 @@ class basicPID(Node):
             Odometry,
             '/waypoint',
             self.waypoint_callback,
-            10)         
+            10)     
+        self.navigateToPoint_subscriber = self.create_subscription(
+            Bool,
+            '/navigation/navigateToPoint',
+            self.navigateToPoint_callback,
+            10)       
         self.odom_subscriber
         self.waypoint_subscriber 
         self.timer2 = self.create_timer(0.01, self.run_pid)
 
-	
+    def navigateToPoint_callback(self, msg):
+        self.navigateToPoint = msg.data
+        	
     def odometry_callback(self, msg):
         self.stateEstimate = msg
     
@@ -78,7 +92,7 @@ class basicPID(Node):
     	
         velocityX = targetX - currentX
         velocityY = targetY - currentY
-        self.get_logger().info('Distance to target: ' + str(numpy.sqrt(velocityX**2 + velocityY**2))) 
+        #self.get_logger().info('Distance to target: ' + str(numpy.sqrt(velocityX**2 + velocityY**2))) 
 
         targetVel = [velocityX, velocityY, 0.0, 0.0]
         
@@ -91,18 +105,25 @@ class basicPID(Node):
         targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
         targetVel = tf_transformations.quaternion_multiply(targetVel, q)
         
-        self.get_logger().info('targetx: ' + str(targetVel[0]))         
-        self.get_logger().info('targety: ' + str(targetVel[1])) 
+        #self.get_logger().info('targetx: ' + str(targetVel[0]))         
+        #self.get_logger().info('targety: ' + str(targetVel[1])) 
                 
         if(self.previousTargetWaypoint != self.targetWaypoint):
              self.xIntegral = 0.0
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + targetVel[0]*0.01
         self.yIntegral = self.yIntegral + targetVel[1]*0.01       
-        targetForceY = (targetVel[1]*0.15- currentVelY*0.9) + self.yIntegral*0.0001
-        self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0]*0.11 - currentVelX*0.333) + self.xIntegral*0.0001
-
+        targetForceY = (targetVel[1]*0.15 - currentVelY*0.9) + self.yIntegral*0.000
+        #self.get_logger().info('targetForceY: ' + str(targetForceY))  
+        targetForceX = (targetVel[0]*0.11 - currentVelX*0.333) + self.xIntegral*0.000
+	
+        if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
+             targetForceY = (targetVel[1]*0.15 - currentVelY*0.15) + self.yIntegral*0.000
+             targetForceX = (targetVel[0]*0.11 - currentVelX*0.11) + self.xIntegral*0.000
+        if(abs(targetForceY) < 0.2):
+             targetForceY = targetForceY/abs(targetForceY)*0.2
+        if(abs(targetForceX)<0.2):
+             targetForceX = targetForceX/abs(targetForceX)*0.2
         theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
         
         heading = [1.0, 0.0, 0.0, 0.0]
@@ -119,7 +140,7 @@ class basicPID(Node):
         heading = tf_transformations.quaternion_multiply(heading, q)
         theta_targetHeading = numpy.arctan2(heading[1], heading[0])
 
-        self.get_logger().info('theta_targetHeading: ' + str(theta_targetHeading*180/numpy.pi))  
+        #self.get_logger().info('theta_targetHeading: ' + str(theta_targetHeading*180/numpy.pi))  
                         
 
         omega = [self.stateEstimate.twist.twist.angular.x, self.stateEstimate.twist.twist.angular.y, self.stateEstimate.twist.twist.angular.z, 0.0]  
@@ -133,8 +154,22 @@ class basicPID(Node):
         #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
         
         targetTorque = (theta_targetHeading*0.76 - omega[2]*1.2 + 0.001*self.yawIntegral)
-        self.get_logger().info('targetTorque: ' + str(targetTorque))  
-                
+        #self.get_logger().info('targetTorque: ' + str(targetTorque))  
+        
+        targetXToSend = Float32()
+        targetYToSend = Float32()
+        targetTorqueToSend = Float32()
+        
+        targetXToSend.data = targetForceX
+        targetYToSend.data = targetForceY
+        targetTorqueToSend.data = targetTorque
+        
+        if(self.receivedWaypoint):
+             self.targetForceXPub.publish(targetXToSend)
+             self.targetForceYPub.publish(targetYToSend)
+        self.targetTorquePub.publish(targetTorqueToSend)
+        
+        '''
         leftFrontAngle = Float32()
         rightRearAngle = Float32()
         rightFrontAngle = Float32()      
@@ -167,7 +202,9 @@ class basicPID(Node):
         if(rightRearCmd.data <0):
              rightRearCmd.data = rightRearCmd.data*2.5
                                                             
-        if(self.receivedWaypoint):
+        if(self.receivedWaypoint and self.navigateToPoint):
+             self.get_logger().info('targetTorque: ' + str(targetTorque))   
+             self.get_logger().info('Distance to target: ' + str(numpy.sqrt(velocityX**2 + velocityY**2))) 
              self.rightFrontPubAngle.publish(rightFrontAngle)
              self.leftRearPubAngle.publish(leftRearAngle)
              self.leftFrontPubAngle.publish(leftFrontAngle)
@@ -177,6 +214,7 @@ class basicPID(Node):
              self.rightRearPubCmd.publish(rightRearCmd)      
              self.rightFrontPubCmd.publish(rightFrontCmd)
              self.leftRearPubCmd.publish(leftRearCmd)       
+     	'''
         
         self.previousTargetWaypoint = self.targetWaypoint
 

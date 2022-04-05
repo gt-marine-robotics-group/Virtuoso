@@ -37,6 +37,7 @@ class MissionInterpreter(Node):
 
     def wayfinding(self, msg:Task):
         self.get_logger().info('WAYFINDING')
+        self.get_logger().info(msg.state)
     
     def perception(self, msg:Task):
         self.get_logger().info('PERCEPTION')

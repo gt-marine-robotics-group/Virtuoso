@@ -18,8 +18,7 @@ def generate_launch_description():
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_and_classify_buoys.launch.py'))),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'pid_vel.launch.py'))),
-
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py'))),
         Node(
             package='virtuoso_autonomy',
             executable='mission_interpreter'
@@ -31,5 +30,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_autonomy',
             executable='perception'
+        ),
+        Node(
+            package='virtuoso_autonomy',
+            executable='wayfinding'
         )
     ])

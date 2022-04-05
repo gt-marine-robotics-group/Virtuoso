@@ -8,6 +8,7 @@ from geometry_msgs.msg import TwistStamped
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
+from std_msgs.msg import Bool
 import tf_transformations
 
 
@@ -16,10 +17,10 @@ import tf_transformations
 import numpy
 
 
-class basicPID(Node):
+class velocityPID(Node):
 
     def __init__(self):
-        super().__init__('basic_PID')
+        super().__init__('velocity_PID')
         
         self.stateEstimate = Odometry()
         self.targetTwist = Twist()
@@ -28,7 +29,8 @@ class basicPID(Node):
         self.yIntegral = 0.0
         self.previousTargetTwist = Twist()
         self.receivedWaypoint = False
-
+        self.navigateToPoint = False
+        '''
         self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
         self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
         self.leftRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_angle', 10)
@@ -38,6 +40,10 @@ class basicPID(Node):
         self.rightFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_cmd', 10)             
         self.leftRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_cmd', 10)
         self.rightRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_cmd', 10)    
+        '''
+        self.targetForceXPub = self.create_publisher(Float32, '/controller/velocity_pid/targetForceX', 10)
+        self.targetForceYPub = self.create_publisher(Float32, '/controller/velocity_pid/targetForceY', 10)
+        self.targetTorquePub = self.create_publisher(Float32, '/controller/velocity_pid/targetTorque', 10)
         
         #subscribe to odometry from localization
         self.odom_subscriber = self.create_subscription(
@@ -51,18 +57,27 @@ class basicPID(Node):
             Twist,
             '/cmd_vel',
             self.waypoint_callback,
-            10)         
+            10)    
+        self.navigateToPoint_subscriber = self.create_subscription(
+            Bool,
+            '/navigation/navigateToPoint',
+            self.navigateToPoint_callback,
+            10)      
+
         self.odom_subscriber
         self.waypoint_subscriber 
         self.timer2 = self.create_timer(0.01, self.run_pid)
-
-	
+        
+        
+    def navigateToPoint_callback(self, msg):
+        self.navigateToPoint = msg.data
+        	
     def odometry_callback(self, msg):
         self.stateEstimate = msg
     
     def waypoint_callback(self, msg):
         self.targetTwist = msg    
-        self.get_logger().info('targetTwist: ' + str((self.targetTwist)))    
+        #self.get_logger().info('targetTwist: ' + str((self.targetTwist)))    
         #if(self.receivedWaypoint == False):
              #self.timer = self.create_timer(0.1, self.run_pid())
         self.receivedWaypoint = True
@@ -98,8 +113,8 @@ class basicPID(Node):
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
         self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
-        targetForceY = (targetVel[1]- currentVelY)*0.5 + self.yIntegral*0.01 
-        targetForceX = (targetVel[0] - currentVelX)*0.5 + self.xIntegral*0.01
+        targetForceY = (targetVel[1]*1.5 - currentVelY)*0.5 + self.yIntegral*0.01 
+        targetForceX = (targetVel[0]*1.5 - currentVelX)*0.5 + self.xIntegral*0.01
         #self.get_logger().info('targetForceX: ' + str(targetForceX))  
         #self.get_logger().info('targetForceY: ' + str(targetForceY))    
         
@@ -121,6 +136,20 @@ class basicPID(Node):
         #self.get_logger().info('targetYawRate: ' + str((targetYawRate)))
         targetTorque = (targetYawRate - yawRate)*3.0 + 0.01*self.yawIntegral
         #self.get_logger().info('targetTorque: ' + str(targetTorque))  
+        
+        targetXToSend = Float32()
+        targetYToSend = Float32()
+        targetTorqueToSend = Float32()
+        
+        targetXToSend.data = targetForceX
+        targetYToSend.data = targetForceY
+        targetTorqueToSend.data = targetTorque
+        if(self.receivedWaypoint):
+             self.targetForceXPub.publish(targetXToSend)
+             self.targetForceYPub.publish(targetYToSend)
+             self.targetTorquePub.publish(targetTorqueToSend)
+        
+        '''
                 
         leftFrontAngle = Float32()
         rightRearAngle = Float32()
@@ -154,7 +183,8 @@ class basicPID(Node):
         if(rightRearCmd.data <0):
              rightRearCmd.data = rightRearCmd.data*2.5
                                                             
-        if(self.receivedWaypoint):
+        if(self.receivedWaypoint and not(self.navigateToPoint)):
+             self.get_logger().info('targetTwist: ' + str((self.targetTwist)))   
              self.rightFrontPubAngle.publish(rightFrontAngle)
              self.leftRearPubAngle.publish(leftRearAngle)
              self.leftFrontPubAngle.publish(leftFrontAngle)
@@ -164,21 +194,21 @@ class basicPID(Node):
              self.rightRearPubCmd.publish(rightRearCmd)      
              self.rightFrontPubCmd.publish(rightFrontCmd)
              self.leftRearPubCmd.publish(leftRearCmd)       
-        
+        '''
         self.previousTargetTwist = self.targetTwist
 
         
 def main(args=None):
     rclpy.init(args=args)
 
-    basic_PID = basicPID()
+    velocity_PID = velocityPID()
 
-    rclpy.spin(basic_PID)
+    rclpy.spin(velocity_PID)
 
     # Destroy the node explicitly
     # (optional - otherwise it will be done automatically
     # when the garbage collector destroys the node object)
-    basic_PID.destroy_node()
+    velocity_PID.destroy_node()
     rclpy.shutdown()
 
 
