@@ -31,14 +31,26 @@ https://github.com/gt-marine-robotics-group/Virtuoso/tree/controller/utils/wamv_
 Ex:
 ```
 colcon build --packages-select virtuoso_localization
-colcon build --packages-select virtuoso_controller
+colcon build --packages-up-to virtuoso_autonomy
 ```
 ### Install robot localization:
 You can also install any other missing ROS dependencies using similar syntax
 ```
 sudo apt install ros-foxy-robot-localization
 ```
+### Install other dependencies
+Install processing dependencies (https://github.com/gt-marine-robotics-group/Virtuoso/tree/main/virtuoso_processing)
+
+Install perception dependencies (https://github.com/gt-marine-robotics-group/Virtuoso/tree/main/virtuoso_perception)
+
+### Clone the messages workspace into a separate workspace from the vrx workspace and the workspace with virtuoso
+https://github.com/gt-marine-robotics-group/Virtuoso-Messages
+
+### Clone and build the ros1 to ros2 bridge
+https://github.com/gt-marine-robotics-group/Virtuoso-Messages/tree/main
+
 ## You should now be able to launch the gazebo simulation:
+You must also source the messages workspace that you built earlier as well.
 ```
 source /opt/ros/noetic/setup.bash
 source  ~/vrx_ws/devel/setup.bash
@@ -51,6 +63,8 @@ source  ~/vrx_ws/devel/setup.bash
 roslaunch wamv_gazebo rviz_vrx.launch
 ```
 In order to get the ROS 2 virtuoso code to communicate with gazebo, you will need to create a bridge between ROS1 and ROS2, as follows:
+You must also source the vrx workspace, the virtuoso msgs workspace, and the bridge workspace.
+
 ```
 source /opt/ros/foxy/setup.bash
 source /opt/ros/noetic/setup.bash
@@ -58,9 +72,6 @@ ros2 run ros1_bridge dynamic_bridge --bridge-all-topics
 ```
 You can now launch the Virtuoso packages as you desire. Be sure to source the Virtuoso workspace in your terminal by running `. install/setup.bash` or similar while in the root of the workspace.
 ```
-ros2 launch virtuoso_localization ekf.launch.py
-```
-```
-ros2 launch virtuoso_controller pid.launch.py
+ros2 launch virtuoso_autonomy main.launch.py
 ```
 
