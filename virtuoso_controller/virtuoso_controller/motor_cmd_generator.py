@@ -10,6 +10,8 @@ import numpy
 
 class motorCMDGenerator(Node):
 
+#Generates the motor commands from the information from basic_PID, velocity_PID, and choose_PID
+
     def __init__(self):
         super().__init__('motor_cmd_generator')
         

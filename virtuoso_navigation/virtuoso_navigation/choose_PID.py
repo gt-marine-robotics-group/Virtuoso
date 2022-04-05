@@ -5,6 +5,8 @@ from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import PoseStamped
+#This node sends the appropriate waypoints to the basic PID, and also decides whether to use the 
+#velocity PID for translational movement or the basic PID
 
 class choosePID(Node):
 
@@ -35,7 +37,7 @@ class choosePID(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
     def path_callback(self, msg):
-        self.destination = msg.poses[-1].pose
+        self.destination = msg.poses[-1].pose 
         self.nextWaypoint = msg.poses[0].pose
         self.receivedPath = True
         
@@ -56,6 +58,8 @@ class choosePID(Node):
              self.navigateToPointPub.publish(self.navigateToPoint)
         
              targetWaypoint = Odometry()
+             #If we're within 2 m, point at the final heading. If greater than 2 m,
+             #point at the orientation corresponding to the next pose on the path
              if(distance < 2.0):
                   targetWaypoint.pose.pose = self.destination
              else:
