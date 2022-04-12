@@ -66,7 +66,7 @@ bt_navigator:
     global_frame: map 
     robot_base_frame: wamv/base_link
     odom_topic: /localization/odometry
-    default_bt_xml_filename: "navigate_w_replanning_and_recovery.xml"
+    default_bt_xml_filename: "navigate_w_replanning_time.xml"
     plugin_lib_names:
     - nav2_compute_path_to_pose_action_bt_node
     - nav2_follow_path_action_bt_node
@@ -202,6 +202,7 @@ controller_server:
     # Goal checker parameters
     goal_checker:
       plugin: "nav2_controller::SimpleGoalChecker"
+
       xy_goal_tolerance: 0.25
       yaw_goal_tolerance: 0.15
       stateful: True
