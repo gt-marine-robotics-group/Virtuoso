@@ -20,6 +20,7 @@ class SetGoal(Node):
 
         self.goal = NavigateToPose.Goal()
         self.goal.pose = msg
+        self.goal.behavior_tree = "/opt/ros/foxy/share/nav2_bt_navigator/behavior_trees/navigate_w_replanning_time.xml"
 
         self.get_logger().info('setting goal')
 
@@ -39,7 +40,6 @@ class SetGoal(Node):
         self.get_result_future.add_done_callback(self.goal_done_callback)
 
     def goal_done_callback(self, future:Future):
-        self.goal_accepted = False
         result = future.result()
         self.get_logger().info('Receieved result: ' + str(result))
 
