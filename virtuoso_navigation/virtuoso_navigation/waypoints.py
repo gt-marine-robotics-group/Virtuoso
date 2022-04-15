@@ -33,6 +33,7 @@ class Waypoints(Node):
 
         self.goal = NavigateToPose.Goal()
         self.goal.pose = self.path.poses[self.waypoints_completed]
+        self.goal.behavior_tree = "/opt/ros/foxy/share/nav2_bt_navigator/behavior_trees/navigate_w_replanning_time.xml"
         
         goal_future = self.nav_action.send_goal_async(self.goal)
 
@@ -51,7 +52,10 @@ class Waypoints(Node):
     def goal_done_callback(self, future:Future):
         result = future.result()
         self.get_logger().info('successfully navigated to pose ' + str(self.waypoints_completed))
-        self.waypoints_completed += 1
+
+        if (result.status == 4):
+            self.waypoints_completed += 1
+            
         self.nav_to_next_waypoint()
 
 
