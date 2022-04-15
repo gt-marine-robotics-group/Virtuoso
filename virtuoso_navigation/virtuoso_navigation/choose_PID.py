@@ -4,9 +4,14 @@ from nav_msgs.msg import Path
 from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import PoseStamped
 #This node sends the appropriate waypoints to the basic PID, and also decides whether to use the 
 #velocity PID for translational movement or the basic PID
+import tf_transformations
+
+import numpy
 
 class choosePID(Node):
 
@@ -19,6 +24,7 @@ class choosePID(Node):
         self.navigateToPoint.data = False
         self.receivedPath = False
         self.nextWaypoint = Pose()
+        self.cmd_vel = Twist()
         
         self.path_subscriber = self.create_subscription(
             Path,
@@ -30,6 +36,11 @@ class choosePID(Node):
             '/localization/odometry',
             self.odometry_callback,
             10)   
+        self.cmd_vel_subscriber = self.create_subscription(
+            Twist,
+            '/cmd_vel',
+            self.cmd_vel_callback,
+            10)  
 
         self.navigateToPointPub = self.create_publisher(Bool, '/navigation/navigateToPoint', 10)
         self.waypointPub = self.create_publisher(Odometry, '/waypoint', 10)        
@@ -41,6 +52,9 @@ class choosePID(Node):
         self.nextWaypoint = msg.poses[0].pose
         self.receivedPath = True
         
+    def cmd_vel_callback(self, msg):
+        self.cmd_vel = msg
+       
     def timer_callback(self):
         if(self.receivedPath):
              destX = self.destination.position.x
@@ -64,7 +78,20 @@ class choosePID(Node):
                   targetWaypoint.pose.pose = self.destination
              else:
      	          targetWaypoint.pose.pose.position = self.destination.position
-     	          targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
+     	          theta_cmd_vel = numpy.arctan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
+     	          target_orient_body = [0, 0, numpy.sin(theta_cmd_vel/2), numpy.cos(theta_cmd_vel/2)]
+     	          
+     	          q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
+     	          
+     	          target_orient = tf_transformations.quaternion_multiply(q, target_orient_body)
+     	          
+     	          target_quat = Quaternion()
+     	          target_quat.x = target_orient[0]
+     	          target_quat.y = target_orient[1]
+     	          target_quat.z = target_orient[2]
+     	          target_quat.w = target_orient[3]
+     	           
+     	          targetWaypoint.pose.pose.orientation = target_quat
              #targetWaypoint.pose.pose.orientation = 
              self.waypointPub.publish(targetWaypoint)
   
