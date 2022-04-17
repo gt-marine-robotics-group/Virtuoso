@@ -17,7 +17,8 @@ class SelfFilter(Node):
 
         for i, point in enumerate(read_points(msg)):
             points.append([0, 0, 0])
-            if(math.sqrt((point[0]**2) + (point[1]**2) + (point[2]**2)) < .9):
+            if(math.sqrt((point[0]**2) + (point[1]**2) + (point[2]**2)) < .9 or 
+            point[0] < -5 or point[1] < -5 or point[1] > 20):
                 points[i][0] = float("NaN")
                 points[i][1] = float("NaN")
                 points[i][2] = float("NaN")

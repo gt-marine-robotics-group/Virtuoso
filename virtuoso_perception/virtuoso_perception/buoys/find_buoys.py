@@ -1,3 +1,4 @@
+import enum
 import rclpy
 from rclpy.node import Node
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
@@ -10,22 +11,82 @@ class FindBuoys(Node):
         self.boxes_sub = self.create_subscription(BoundingBoxArray, 'lidar_bounding_boxes', self.find_buoys, 10)
         self.boxes_pub = self.create_publisher(BoundingBoxArray, '/buoys/bounding_boxes', 10)
 
+        self.buoy_counts = []
+
     def find_buoys(self, msg:BoundingBoxArray):
 
         filtered_boxes = BoundingBoxArray()
 
+        filteredBoxesPrevFound = {}
+
+        self.get_logger().info('msg ' + str(len(msg.boxes)))
+
+        counter = 0
         for box in msg.boxes:
-            if box.corners[1].x < -5 or box.corners[1].y < -5 or box.corners[1].y > 20: continue
-            if box.centroid.z > .5: continue
+            # if box.centroid.z > .5: continue
             if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
+            if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 20: continue
 
             if box.centroid.z + 1.55 > 0: 
                 box.value = 1.0
             else:
                 box.value = 0.5
+
             filtered_boxes.boxes.append(box)
+
+            if not filteredBoxesPrevFound.get(counter):
+                filteredBoxesPrevFound.update({counter: False})
+
+            counter += 1
+
+        self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
+        self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
+
+
+        if len(self.buoy_counts) == 0:
+            for i, _ in enumerate(filtered_boxes.boxes):
+                filteredBoxesPrevFound.update({i: False})
+
+        for count in self.buoy_counts:
+            prevBox = count.get('box')
+            prevCount = count.get('count')
+
+            for i, box in enumerate(filtered_boxes.boxes):
+                if (filteredBoxesPrevFound.get(i)):
+                    continue
+                if math.sqrt((prevBox.centroid.x - box.centroid.x)**2 + (prevBox.centroid.y - box.centroid.y)**2) < 3:
+                    self.get_logger().info('found a repeat')
+                    filteredBoxesPrevFound.update({i: True})
+                    count.get('box').centroid.x = self.find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
+                    count.get('box').centroid.y = self.find_avg(prevBox.centroid.y, prevCount, box.centroid.y)
+                    count.update({'count': prevCount + 10})
+                    break
+
+            if prevCount == count.get('count'):
+                count.update({'count': prevCount - 1})
         
-        self.boxes_pub.publish(filtered_boxes)
+        self.get_logger().info('filteredBoxesPrevFound ' + str(filteredBoxesPrevFound))
+            
+        for key, prevFound in filteredBoxesPrevFound.items():
+            if not prevFound:
+                self.buoy_counts.append({
+                    'box': filtered_boxes.boxes[key],
+                    'count': 1
+                })
+        
+
+        confirmedBuoys = BoundingBoxArray()
+
+        confirmedBuoys.boxes = list(map(lambda b: b['box'], filter(lambda b: b['count'] > 90, self.buoy_counts)))
+
+        self.get_logger().info('confirmedBuoys ' + str(len(confirmedBuoys.boxes)))
+        
+        self.boxes_pub.publish(confirmedBuoys)
+
+    
+    def find_avg(self, curr:float, count:int, next:float):
+        sum = (curr * count) + next
+        return sum / (count + 1)
 
 
 def main(args=None):
