@@ -45,6 +45,8 @@ class FindBuoys(Node):
         for box in msg.boxes:
             # if box.centroid.z > .5: continue
             if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
+
+            # need to update this check as now in map instead of lidar frame
             if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 20: continue
 
             if box.centroid.z + 1.55 > 0: 
