@@ -14,6 +14,8 @@ class Waypoints(Node):
         self.goal_sub = self.create_subscription(Path, '/virtuoso_navigation/set_path', self.set_path, 10)
         self.nav_action = ActionClient(self, NavigateToPose, '/navigate_to_pose')
 
+        self.success_pub = self.create_publisher(PoseStamped, '/virtuoso_navigation/success', 10)
+
         self.waypoints_completed = 0
         self.path = None
         self.goal = None
@@ -29,7 +31,9 @@ class Waypoints(Node):
 
     def nav_to_next_waypoint(self):
 
-        if (self.waypoints_completed >= len(self.path.poses)): return
+        if (self.waypoints_completed >= len(self.path.poses)):
+            self.success_pub.publish(self.path.poses[-1])
+            return
 
         self.goal = NavigateToPose.Goal()
         self.goal.pose = self.path.poses[self.waypoints_completed]
