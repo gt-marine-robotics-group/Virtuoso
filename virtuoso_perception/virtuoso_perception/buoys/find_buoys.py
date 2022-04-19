@@ -3,6 +3,9 @@ import rclpy
 from rclpy.node import Node
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 import math
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+from rclpy.time import Time
 
 class FindBuoys(Node):
 
@@ -13,6 +16,9 @@ class FindBuoys(Node):
 
         self.buoy_counts = []
 
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
     def find_buoys(self, msg:BoundingBoxArray):
 
         filtered_boxes = BoundingBoxArray()
@@ -20,6 +26,20 @@ class FindBuoys(Node):
         filteredBoxesPrevFound = {}
 
         self.get_logger().info('msg ' + str(len(msg.boxes)))
+
+        trans = None
+        try:
+            trans = self.tf_buffer.lookup_transform('map', 'wamv/lidar_wamv_link', Time()) 
+        except:
+            self.get_logger().info('TF BUFFER NOT WORKING')
+            return
+        
+        for box in msg.boxes:
+            for corner in box.corners:
+                corner.x += trans.transform.translation.x
+                corner.y += trans.transform.translation.y
+            box.centroid.x += trans.transform.translation.x
+            box.centroid.y += trans.transform.translation.y
 
         counter = 0
         for box in msg.boxes:
