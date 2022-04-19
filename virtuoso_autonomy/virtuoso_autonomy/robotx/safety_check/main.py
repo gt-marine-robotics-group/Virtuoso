@@ -41,6 +41,7 @@ class SafetyCheck(Node):
     
     def midpoint(p1:PoseStamped, p2:PoseStamped):
         ps = PoseStamped()
+        ps.header.frame_id = "map"
         ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
         ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
         return ps

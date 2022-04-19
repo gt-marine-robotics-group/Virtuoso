@@ -6,6 +6,8 @@ import math
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
+from geometry_msgs.msg import Point32, PoseStamped
+from ..utils.geometry_msgs import do_transform_pose_stamped
 
 class FindBuoys(Node):
 
@@ -18,6 +20,14 @@ class FindBuoys(Node):
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+    
+    def to_pose_stamped(p:Point32):
+        ps = PoseStamped()
+        ps.header.frame_id = "wamv/lidar_wamv_link"
+        ps.pose.position.x = p.x
+        ps.pose.position.y = p.y
+        ps.pose.position.z = p.z
+        return ps
 
     def find_buoys(self, msg:BoundingBoxArray):
 
@@ -33,13 +43,23 @@ class FindBuoys(Node):
         except:
             self.get_logger().info('TF BUFFER NOT WORKING')
             return
+
+        self.get_logger().info('trans ' + str(trans.transform.translation))
         
         for box in msg.boxes:
-            for corner in box.corners:
-                corner.x += trans.transform.translation.x
-                corner.y += trans.transform.translation.y
-            box.centroid.x += trans.transform.translation.x
-            box.centroid.y += trans.transform.translation.y
+
+            transBox = None
+            try:
+                transBox = do_transform_pose_stamped(FindBuoys.to_pose_stamped(box.centroid), trans)
+                self.get_logger().info(f'transBox {transBox}')
+            except:
+                self.get_logger().info('FAILED TO DO TRANSFORM')
+
+            box.centroid.x = transBox.pose.position.x
+            box.centroid.y = transBox.pose.position.y
+
+        for box in msg.boxes:
+            self.get_logger().info(str(box.centroid))
 
         counter = 0
         for box in msg.boxes:
@@ -64,6 +84,8 @@ class FindBuoys(Node):
         self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
         self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
 
+        for box in filtered_boxes.boxes:
+            self.get_logger().info(str(box.centroid))
 
         if len(self.buoy_counts) == 0:
             for i, _ in enumerate(filtered_boxes.boxes):
@@ -84,7 +106,7 @@ class FindBuoys(Node):
                     count.update({'count': prevCount + 10})
                     break
 
-            if prevCount == count.get('count'):
+            if prevCount == count.get('count') and prevCount > 0:
                 count.update({'count': prevCount - 1})
         
         self.get_logger().info('filteredBoxesPrevFound ' + str(filteredBoxesPrevFound))
