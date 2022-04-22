@@ -36,4 +36,8 @@ def generate_launch_description():
             package='virtuoso_processing',
             executable='self_filter'
         ),
+        Node(
+            package='virtuoso_processing',
+            executable='shore_filter'
+        ),
     ])
