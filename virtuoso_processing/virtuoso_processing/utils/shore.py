@@ -93,16 +93,8 @@ class ShoreFilter():
             pStamped.header.frame_id = 'map'
             transPoint = do_transform_point(pStamped, trans)
             vrx_shore_list.append((transPoint.point.x, transPoint.point.y))
-            # vrx_shore_list.append((p.x, p.y))
 
-        # ShoreFilter.vrx_shore = scale(Polygon(vrx_shore_list), xfact=1.5, yfact=1.5, zfact=1.5, origin='center')
         ShoreFilter.vrx_shore = Polygon(vrx_shore_list)
-        # ShoreFilter.vrx_shore = [
-        #     Polygon([vrx_shore_list[0], vrx_shore_list[9], vrx_shore_list[5]]),
-        #     Polygon([vrx_shore_list[7], vrx_shore_list[8], vrx_shore_list[9], vrx_shore_list[6]]),
-        #     Polygon([vrx_shore_list[0], vrx_shore_list[1], vrx_shore_list[5]]),
-        #     Polygon([vrx_shore_list[2], vrx_shore_list[3], vrx_shore_list[4], vrx_shore_list[1]])
-        # ]
 
     def filter_points(points:PointCloud2):
 
@@ -112,13 +104,6 @@ class ShoreFilter():
         filtered_points = []
 
         for i, point in enumerate(read_points(points, field_names=('x', 'y', 'z'))):
-            # if (ShoreFilter.vrx_shore.contains(ShapelyPoint(point[0], point[1]))):
-            # for poly in ShoreFilter.vrx_shore:
-            #     if (poly.contains(ShapelyPoint(point[0], point[1]))):
-            #         filtered_points.append([float("NaN") for _ in range(3)])
-            #         break
-            # else:
-                # filtered_points.append([point[j] for j in range(3)])
             if (ShapelyPoint(point[0], point[1]).within(ShoreFilter.vrx_shore)):
                 filtered_points.append([float("NaN") for _ in range(3)])
             else:
