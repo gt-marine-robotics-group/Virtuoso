@@ -35,7 +35,7 @@ class FindBuoys(Node):
 
         filteredBoxesPrevFound = {}
 
-        self.get_logger().info('msg ' + str(len(msg.boxes)))
+        # self.get_logger().info('msg ' + str(len(msg.boxes)))
 
         trans = None
         try:
@@ -44,22 +44,22 @@ class FindBuoys(Node):
             self.get_logger().info('TF BUFFER NOT WORKING')
             return
 
-        self.get_logger().info('trans ' + str(trans.transform.translation))
+        # self.get_logger().info('trans ' + str(trans.transform.translation))
         
         for box in msg.boxes:
 
             transBox = None
             try:
                 transBox = do_transform_pose_stamped(FindBuoys.to_pose_stamped(box.centroid), trans)
-                self.get_logger().info(f'transBox {transBox}')
+                # self.get_logger().info(f'transBox {transBox}')
             except:
                 self.get_logger().info('FAILED TO DO TRANSFORM')
 
             box.centroid.x = transBox.pose.position.x
             box.centroid.y = transBox.pose.position.y
 
-        for box in msg.boxes:
-            self.get_logger().info(str(box.centroid))
+        # for box in msg.boxes:
+            # self.get_logger().info(str(box.centroid))
 
         counter = 0
         for box in msg.boxes:
@@ -81,11 +81,11 @@ class FindBuoys(Node):
 
             counter += 1
 
-        self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
-        self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
+        # self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
+        # self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
 
-        for box in filtered_boxes.boxes:
-            self.get_logger().info(str(box.centroid))
+        # for box in filtered_boxes.boxes:
+        #     self.get_logger().info(str(box.centroid))
 
         if len(self.buoy_counts) == 0:
             for i, _ in enumerate(filtered_boxes.boxes):
@@ -99,7 +99,7 @@ class FindBuoys(Node):
                 if (filteredBoxesPrevFound.get(i)):
                     continue
                 if math.sqrt((prevBox.centroid.x - box.centroid.x)**2 + (prevBox.centroid.y - box.centroid.y)**2) < 3:
-                    self.get_logger().info('found a repeat')
+                    # self.get_logger().info('found a repeat')
                     filteredBoxesPrevFound.update({i: True})
                     count.get('box').centroid.x = self.find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
                     count.get('box').centroid.y = self.find_avg(prevBox.centroid.y, prevCount, box.centroid.y)
@@ -109,7 +109,7 @@ class FindBuoys(Node):
             if prevCount == count.get('count') and prevCount > 0:
                 count.update({'count': prevCount - 1})
         
-        self.get_logger().info('filteredBoxesPrevFound ' + str(filteredBoxesPrevFound))
+        # self.get_logger().info('filteredBoxesPrevFound ' + str(filteredBoxesPrevFound))
             
         for key, prevFound in filteredBoxesPrevFound.items():
             if not prevFound:
@@ -123,7 +123,7 @@ class FindBuoys(Node):
 
         confirmedBuoys.boxes = list(map(lambda b: b['box'], filter(lambda b: b['count'] > 90, self.buoy_counts)))
 
-        self.get_logger().info('confirmedBuoys ' + str(len(confirmedBuoys.boxes)))
+        # self.get_logger().info('confirmedBuoys ' + str(len(confirmedBuoys.boxes)))
         
         self.boxes_pub.publish(confirmedBuoys)
 
