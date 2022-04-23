@@ -17,24 +17,20 @@ class ShoreFilter():
     vrx_border_mappoints = None
     vrx_shore:Polygon = None
     geo_to_map_count = 0
-    creating = False
     
     def create_shore(fromLL_cli:Client, tf_buffer:Buffer):
 
-        # if not ShoreFilter.creating:
-        #     ShoreFilter.creating = True
         if (ShoreFilter.vrx_border_mappoints is not None):
             ShoreFilter.convert_to_lidar(tf_buffer)
             return
 
         vrx_border_points = [
             # (lat, long)
-            (-33.72279754, 150.6739663),
-            (-33.7228804, 150.6747816),
-            (-33.7225852, 150.6749084),
-            (-33.7226768, 150.6752924),
+            (-33.7227681, 150.673908), # where the wamv starts
+            (-33.7225852, 150.6749084), 
+            (-33.7226768, 150.6752924), 
             (-33.7229284, 150.6751755),
-            (-33.7229839, 150.67387875),
+            (-33.7236431, 150.6737446),
             (-33.7225977, 150.6733497),
             (-33.7220645, 150.6736035),
             (-33.7220424, 150.6738909),
@@ -83,23 +79,30 @@ class ShoreFilter():
         if ShoreFilter.vrx_shore is not None:
             return
 
-        # trans = None
-        # try:
-        #     trans = tf_buffer.lookup_transform('wamv/lidar_wamv_link', 'map', Time())
-        # except:
-        #     return
+        trans = None
+        try:
+            trans = tf_buffer.lookup_transform('wamv/lidar_wamv_link', 'map', Time())
+        except:
+            return
         
         vrx_shore_list = list()
 
         for p in ShoreFilter.vrx_border_mappoints:
-            # pStamped = PointStamped()
-            # pStamped.point = p
-            # pStamped.header.frame_id = 'map'
-            # transPoint = do_transform_point(pStamped, trans)
-            # vrx_shore_list.append((transPoint.point.x, transPoint.point.y))
-            vrx_shore_list.append((p.x, p.y))
+            pStamped = PointStamped()
+            pStamped.point = p
+            pStamped.header.frame_id = 'map'
+            transPoint = do_transform_point(pStamped, trans)
+            vrx_shore_list.append((transPoint.point.x, transPoint.point.y))
+            # vrx_shore_list.append((p.x, p.y))
 
-        ShoreFilter.vrx_shore = scale(Polygon(vrx_shore_list), xfact=1.05, yfact=1.05, zfact=1.05, origin='center')
+        # ShoreFilter.vrx_shore = scale(Polygon(vrx_shore_list), xfact=1.5, yfact=1.5, zfact=1.5, origin='center')
+        ShoreFilter.vrx_shore = Polygon(vrx_shore_list)
+        # ShoreFilter.vrx_shore = [
+        #     Polygon([vrx_shore_list[0], vrx_shore_list[9], vrx_shore_list[5]]),
+        #     Polygon([vrx_shore_list[7], vrx_shore_list[8], vrx_shore_list[9], vrx_shore_list[6]]),
+        #     Polygon([vrx_shore_list[0], vrx_shore_list[1], vrx_shore_list[5]]),
+        #     Polygon([vrx_shore_list[2], vrx_shore_list[3], vrx_shore_list[4], vrx_shore_list[1]])
+        # ]
 
     def filter_points(points:PointCloud2):
 
@@ -109,7 +112,14 @@ class ShoreFilter():
         filtered_points = []
 
         for i, point in enumerate(read_points(points, field_names=('x', 'y', 'z'))):
-            if (ShoreFilter.vrx_shore.contains(ShapelyPoint(point[0], point[1]))):
+            # if (ShoreFilter.vrx_shore.contains(ShapelyPoint(point[0], point[1]))):
+            # for poly in ShoreFilter.vrx_shore:
+            #     if (poly.contains(ShapelyPoint(point[0], point[1]))):
+            #         filtered_points.append([float("NaN") for _ in range(3)])
+            #         break
+            # else:
+                # filtered_points.append([point[j] for j in range(3)])
+            if (ShapelyPoint(point[0], point[1]).within(ShoreFilter.vrx_shore)):
                 filtered_points.append([float("NaN") for _ in range(3)])
             else:
                 filtered_points.append([point[j] for j in range(3)])

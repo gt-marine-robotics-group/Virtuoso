@@ -27,30 +27,27 @@ class ShoreFilterer(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
     def callback(self, msg:PointCloud2):
+        if (not self.fromLL_cli.service_is_ready()):
+            return
         if (not ShoreFilter.vrx_shore):
             ShoreFilter.create_shore(self.fromLL_cli, self.tf_buffer)
             return
 
-        # for p in read_points(msg):
-        #     self.get_logger().info(str(p))
-
-        # self.get_logger().info(str(self.shore_filter.vrx_shore))
-        self.get_logger().info(str(len(msg.data)))
         filtered = ShoreFilter.filter_points(msg)
-        self.get_logger().info(str(len(filtered.data if filtered else [])))
-        # self.get_logger().info(str(filtered))
 
-        # self.get_logger().info('creating polygon')
+        self.display_border_array()
 
+        if filtered is not None:
+            self.publisher.publish(filtered)
+    
+    # Mainly for debugging,
+    # displays the points that make up the shore, labelled 1 - (1 - len)
+    def display_border_array(self):
         markerArr = MarkerArray()
-        s = '['
         for i, p in enumerate(ShoreFilter.vrx_border_mappoints):
-            # self.get_logger().info(str(p))
-            s += f'({p.x}, {p.y}),' 
             marker = Marker()
             marker.ns = 'polygon_border'
             marker.id = i
-            # marker.header.stamp = Time()
             marker.type = Marker.TEXT_VIEW_FACING
             marker.header.frame_id = 'map'
             marker.pose.position = p
@@ -65,15 +62,7 @@ class ShoreFilterer(Node):
             marker.text = str(i)
             markerArr.markers.append(marker)
 
-        s += ']'
-        self.get_logger().info(s)
-
-        # self.get_logger().info('publishing polygon')
-        # self.get_logger().info(str(len(markerArr.markers)))
         self.poly_pub.publish(markerArr)
-
-        if filtered is not None:
-            self.publisher.publish(filtered)
 
 
 def main(args=None):
