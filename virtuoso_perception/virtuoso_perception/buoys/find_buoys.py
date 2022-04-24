@@ -35,7 +35,7 @@ class FindBuoys(Node):
 
         filteredBoxesPrevFound = {}
 
-        # self.get_logger().info('msg ' + str(len(msg.boxes)))
+        self.get_logger().info('msg ' + str(len(msg.boxes)))
 
         trans = None
         try:
@@ -45,8 +45,27 @@ class FindBuoys(Node):
             return
 
         # self.get_logger().info('trans ' + str(trans.transform.translation))
-        
+
+        counter = 0
         for box in msg.boxes:
+            # if box.centroid.z > .5: continue
+            if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
+
+            if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 40: continue
+
+            if box.centroid.z + 1.55 > 0: 
+                box.value = 1.0
+            else:
+                box.value = 0.5
+
+            filtered_boxes.boxes.append(box)
+
+            if not filteredBoxesPrevFound.get(counter):
+                filteredBoxesPrevFound.update({counter: False})
+
+            counter += 1
+        
+        for box in filtered_boxes.boxes:
 
             transBox = None
             try:
@@ -61,31 +80,12 @@ class FindBuoys(Node):
         # for box in msg.boxes:
             # self.get_logger().info(str(box.centroid))
 
-        counter = 0
-        for box in msg.boxes:
-            # if box.centroid.z > .5: continue
-            if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
 
-            # need to update this check as now in map instead of lidar frame
-            if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 20: continue
+        self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
+        self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
 
-            if box.centroid.z + 1.55 > 0: 
-                box.value = 1.0
-            else:
-                box.value = 0.5
-
-            filtered_boxes.boxes.append(box)
-
-            if not filteredBoxesPrevFound.get(counter):
-                filteredBoxesPrevFound.update({counter: False})
-
-            counter += 1
-
-        # self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
-        # self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
-
-        # for box in filtered_boxes.boxes:
-        #     self.get_logger().info(str(box.centroid))
+        for box in filtered_boxes.boxes:
+            self.get_logger().info(str(box.centroid))
 
         if len(self.buoy_counts) == 0:
             for i, _ in enumerate(filtered_boxes.boxes):
