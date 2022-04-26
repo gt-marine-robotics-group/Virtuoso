@@ -69,6 +69,7 @@ class SafetyCheck(Node):
 
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
+        self.get_logger().info('NAV SUCCESS')
         if len(self.channel_nav.channels) == 0:
             self.channel_nav.end_nav = True
 

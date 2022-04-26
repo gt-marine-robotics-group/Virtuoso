@@ -33,7 +33,7 @@ class ShoreFilterer(Node):
             ShoreFilter.create_shore(self.fromLL_cli, self.tf_buffer)
             return
 
-        filtered = ShoreFilter.filter_points(msg)
+        filtered = ShoreFilter.filter_points(msg, self.tf_buffer)
 
         self.display_border_array()
 

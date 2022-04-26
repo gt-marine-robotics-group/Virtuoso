@@ -35,7 +35,7 @@ class FindBuoys(Node):
 
         filteredBoxesPrevFound = {}
 
-        self.get_logger().info('msg ' + str(len(msg.boxes)))
+        # self.get_logger().info('msg ' + str(len(msg.boxes)))
 
         trans = None
         try:
@@ -81,11 +81,11 @@ class FindBuoys(Node):
             # self.get_logger().info(str(box.centroid))
 
 
-        self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
+        # self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
         self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
 
-        for box in filtered_boxes.boxes:
-            self.get_logger().info(str(box.centroid))
+        # for box in filtered_boxes.boxes:
+        #     self.get_logger().info(str(box.centroid))
 
         if len(self.buoy_counts) == 0:
             for i, _ in enumerate(filtered_boxes.boxes):

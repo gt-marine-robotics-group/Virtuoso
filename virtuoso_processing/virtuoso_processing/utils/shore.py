@@ -9,7 +9,7 @@ from tf2_ros.buffer import Buffer
 from geographic_msgs.msg import GeoPoint
 from geometry_msgs.msg import Point, PointStamped
 from rclpy.time import Time
-from .geometry_msgs import do_transform_point
+from .geometry_msgs import do_transform_point, do_transform_pose_stamped
 import matplotlib.pyplot as plt
 
 class ShoreFilter():
@@ -19,10 +19,6 @@ class ShoreFilter():
     geo_to_map_count = 0
     
     def create_shore(fromLL_cli:Client, tf_buffer:Buffer):
-
-        if (ShoreFilter.vrx_border_mappoints is not None):
-            ShoreFilter.convert_to_lidar(tf_buffer)
-            return
 
         vrx_border_points = [
             # (lat, long)
@@ -59,7 +55,11 @@ class ShoreFilter():
                 ll = fromLL_cli.call_async(req)
                 ll.add_done_callback(ll_callback)
             else:
-                ShoreFilter.convert_to_lidar(tf_buffer)
+                vrx_shore_list = list()
+                for p in ShoreFilter.vrx_border_mappoints:
+                    vrx_shore_list.append((p.x, p.y))
+                ShoreFilter.vrx_shore = Polygon(vrx_shore_list)
+
         
         if (ShoreFilter.geo_to_map_count == -1):
             ShoreFilter.vrx_border_mappoints = None
@@ -74,37 +74,26 @@ class ShoreFilter():
         ll = fromLL_cli.call_async(req)
         ll.add_done_callback(ll_callback)
 
-    def convert_to_lidar(tf_buffer:Buffer):
+    def filter_points(points:PointCloud2, tf_buffer:Buffer):
 
-        if ShoreFilter.vrx_shore is not None:
+        if not ShoreFilter.vrx_shore:
             return
 
         trans = None
         try:
-            trans = tf_buffer.lookup_transform('wamv/lidar_wamv_link', 'map', Time())
+            trans = tf_buffer.lookup_transform('map', 'wamv/lidar_wamv_link', Time())
         except:
-            return
-        
-        vrx_shore_list = list()
-
-        for p in ShoreFilter.vrx_border_mappoints:
-            pStamped = PointStamped()
-            pStamped.point = p
-            pStamped.header.frame_id = 'map'
-            transPoint = do_transform_point(pStamped, trans)
-            vrx_shore_list.append((transPoint.point.x, transPoint.point.y))
-
-        ShoreFilter.vrx_shore = Polygon(vrx_shore_list)
-
-    def filter_points(points:PointCloud2):
-
-        if not ShoreFilter.vrx_shore:
             return
 
         filtered_points = []
 
         for i, point in enumerate(read_points(points, field_names=('x', 'y', 'z'))):
-            if (ShapelyPoint(point[0], point[1]).within(ShoreFilter.vrx_shore)):
+            p = PointStamped()
+            p.header.frame_id = 'wamv/lidar_wamv_link'
+            p.point.x = point[0]
+            p.point.y = point[1]
+            pTrans = do_transform_point(p, trans)
+            if (ShapelyPoint(pTrans.point.x, pTrans.point.y).within(ShoreFilter.vrx_shore)):
                 filtered_points.append([float("NaN") for _ in range(3)])
             else:
                 filtered_points.append([point[j] for j in range(3)])
