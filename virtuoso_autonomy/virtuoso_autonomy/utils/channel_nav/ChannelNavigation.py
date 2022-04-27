@@ -19,7 +19,7 @@ class ChannelNavigation():
             self.channels.append(self.curr_channel)
             self.curr_channel = None
 
-        buoys.sort(key=lambda b: ChannelNavigation.distance(loc, b), reverse=True)
+        buoys.sort(key=lambda b: ChannelNavigation.distance(loc, b))
 
         filteredBuoys = list(filter(lambda b: not self.isPrevNavigatedBuoy(b), buoys))
 

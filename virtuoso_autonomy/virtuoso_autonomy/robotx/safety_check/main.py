@@ -79,7 +79,6 @@ class SafetyCheck(Node):
         if len(self.channel_nav.channels) == 1:
             self.channel_nav.end_nav = True
 
-        self.robot_pose = None
         self.nav_to_next_midpoint()
 
 
