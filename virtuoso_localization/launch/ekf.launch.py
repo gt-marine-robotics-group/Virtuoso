@@ -41,7 +41,7 @@ def generate_launch_description():
          {"zero_altitude": False},
          {"yaw_offset": 0.0},
          {"use_odometry_yaw": True},
-         {"magnetic_declination_radians": 0.33929201},
+         {"magnetic_declination_radians": 0.0},
          {"delay": 0.0},
          {"frequency": 30.0},
          {"broadcast_utm_transform": True}]
