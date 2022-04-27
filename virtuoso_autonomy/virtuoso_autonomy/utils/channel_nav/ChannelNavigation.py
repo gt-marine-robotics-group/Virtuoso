@@ -1,5 +1,5 @@
 from typing import List, Tuple
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 import math
 
 class ChannelNavigation():
