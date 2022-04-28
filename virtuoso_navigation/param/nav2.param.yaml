@@ -14,7 +14,7 @@ local_costmap:
       plugins: ["stvl_layer"]
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: false
+        enabled: false 
         voxel_decay: 15.
         decay_model: 0
         voxel_size: 0.05
@@ -50,7 +50,7 @@ local_costmap:
           decay_acceleration: 15.0
           model_type: 1
       static_layer:
-        enabled: true 
+        enabled: false 
         map_subscribe_transient_local: False
         always_send_full_costmap: True
   local_costmap_client:
@@ -162,7 +162,7 @@ global_costmap:
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: true
-        inflation_radius: 0.55
+        inflation_radius: 3.0
       global_costmap_client:
         ros__parameters:
           use_sim_time: True
@@ -258,7 +258,7 @@ controller_server:
       max_vel_y: 3.0
       max_vel_theta: 0.4
       min_speed_xy: 0.0
-      max_speed_xy: 5.0
+      max_speed_xy: 1.0
       min_speed_theta: -0.4
       # Add high threshold velocity for turtlebot 3 issue.
       # https://github.com/ROBOTIS-GIT/turtlebot3_simulations/issues/75
