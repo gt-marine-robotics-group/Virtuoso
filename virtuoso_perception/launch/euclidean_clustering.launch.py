@@ -20,6 +20,6 @@ def generate_launch_description():
             package='euclidean_cluster_nodes',
             executable='euclidean_cluster_node_exe',
             parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
-            remappings=[('/points_in', '/points_self_filtered')]
+            remappings=[('/points_in', '/local_costmap/voxel_grid')]
         )
     ])
