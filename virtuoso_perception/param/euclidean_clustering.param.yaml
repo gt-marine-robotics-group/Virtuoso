@@ -11,7 +11,7 @@
     use_lfit: True
     use_z: True
     cluster:
-      frame_id: "wamv/lidar_wamv_link"
+      frame_id: "map"
       min_cluster_size: 2
       max_num_clusters: 256
       min_cluster_threshold_m: 0.1

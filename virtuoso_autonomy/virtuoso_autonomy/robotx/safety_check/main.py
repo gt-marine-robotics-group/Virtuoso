@@ -64,10 +64,6 @@ class SafetyCheck(Node):
 
         mid = SafetyCheck.midpoint(channel[0], channel[1])
 
-        # self.get_logger().info('ch 1 ' + str(channel[0].pose.position.x))
-        # self.get_logger().info('ch 2 ' + str(channel[1].pose.position.x))
-        # self.get_logger().info('mid ' + str(mid.pose.position.x))
-
         path = Path()
         path.poses.append(mid)
 
@@ -75,7 +71,6 @@ class SafetyCheck(Node):
 
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
-        self.get_logger().info('NAV SUCCESS')
         if len(self.channel_nav.channels) == 1:
             self.channel_nav.end_nav = True
 

@@ -1,4 +1,3 @@
-import enum
 import rclpy
 from rclpy.node import Node
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
@@ -17,9 +16,6 @@ class FindBuoys(Node):
         self.boxes_pub = self.create_publisher(BoundingBoxArray, '/buoys/bounding_boxes', 10)
 
         self.buoy_counts = []
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
     
     def to_pose_stamped(p:Point32):
         ps = PoseStamped()
@@ -35,20 +31,8 @@ class FindBuoys(Node):
 
         filteredBoxesPrevFound = {}
 
-        # self.get_logger().info('msg ' + str(len(msg.boxes)))
-
-        trans = None
-        try:
-            trans = self.tf_buffer.lookup_transform('map', 'wamv/lidar_wamv_link', Time()) 
-        except:
-            self.get_logger().info('TF BUFFER NOT WORKING')
-            return
-
-        # self.get_logger().info('trans ' + str(trans.transform.translation))
-
         counter = 0
         for box in msg.boxes:
-            # if box.centroid.z > .5: continue
             if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
 
             if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 40: continue
@@ -65,27 +49,6 @@ class FindBuoys(Node):
 
             counter += 1
         
-        for box in filtered_boxes.boxes:
-
-            transBox = None
-            try:
-                transBox = do_transform_pose_stamped(FindBuoys.to_pose_stamped(box.centroid), trans)
-                # self.get_logger().info(f'transBox {transBox}')
-            except:
-                self.get_logger().info('FAILED TO DO TRANSFORM')
-
-            box.centroid.x = transBox.pose.position.x
-            box.centroid.y = transBox.pose.position.y
-
-        # for box in msg.boxes:
-            # self.get_logger().info(str(box.centroid))
-
-
-        # self.get_logger().info('buoy_counts ' + str(len(self.buoy_counts)))
-        self.get_logger().info('filtered_boxes ' + str(len(filtered_boxes.boxes)))
-
-        # for box in filtered_boxes.boxes:
-        #     self.get_logger().info(str(box.centroid))
 
         if len(self.buoy_counts) == 0:
             for i, _ in enumerate(filtered_boxes.boxes):
@@ -99,7 +62,6 @@ class FindBuoys(Node):
                 if (filteredBoxesPrevFound.get(i)):
                     continue
                 if math.sqrt((prevBox.centroid.x - box.centroid.x)**2 + (prevBox.centroid.y - box.centroid.y)**2) < 3:
-                    # self.get_logger().info('found a repeat')
                     filteredBoxesPrevFound.update({i: True})
                     count.get('box').centroid.x = self.find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
                     count.get('box').centroid.y = self.find_avg(prevBox.centroid.y, prevCount, box.centroid.y)
@@ -109,8 +71,6 @@ class FindBuoys(Node):
             if prevCount == count.get('count') and prevCount > 0:
                 count.update({'count': prevCount - 1})
         
-        # self.get_logger().info('filteredBoxesPrevFound ' + str(filteredBoxesPrevFound))
-            
         for key, prevFound in filteredBoxesPrevFound.items():
             if not prevFound:
                 self.buoy_counts.append({
@@ -123,8 +83,6 @@ class FindBuoys(Node):
 
         confirmedBuoys.boxes = list(map(lambda b: b['box'], filter(lambda b: b['count'] > 90, self.buoy_counts)))
 
-        # self.get_logger().info('confirmedBuoys ' + str(len(confirmedBuoys.boxes)))
-        
         self.boxes_pub.publish(confirmedBuoys)
 
     
