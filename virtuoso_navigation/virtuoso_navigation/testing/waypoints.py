@@ -13,8 +13,8 @@ class TestWaypoints(Node):
         pose_stamped = PoseStamped()
         
         pose = Pose()
-        pose.position.x = 5.0
-        pose.position.y = 5.0
+        pose.position.x = 20.0
+        pose.position.y = -20.0
         pose.position.z = 0.0
         pose.orientation = Quaternion()
 
@@ -22,16 +22,16 @@ class TestWaypoints(Node):
         path.poses.append(pose_stamped)
 
 
-        pose_stamped = PoseStamped()
+        # pose_stamped = PoseStamped()
         
-        pose = Pose()
-        pose.position.x = 5.0
-        pose.position.y = 0.0
-        pose.position.z = 0.0
-        pose.orientation = Quaternion()
+        # pose = Pose()
+        # pose.position.x = 5.0
+        # pose.position.y = 0.0
+        # pose.position.z = 0.0
+        # pose.orientation = Quaternion()
 
-        pose_stamped.pose = pose
-        path.poses.append(pose_stamped)
+        # pose_stamped.pose = pose
+        # path.poses.append(pose_stamped)
 
         self.pub.publish(path)
 

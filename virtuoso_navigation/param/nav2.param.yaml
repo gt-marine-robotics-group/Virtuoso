@@ -11,10 +11,10 @@ local_costmap:
       height: 50
       resolution: 0.05
       robot_radius: 5.0
-      plugins: ["stvl_layer"]
+      plugins: ["stvl_layer", "inflation_layer"]
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: false
+        enabled: true
         voxel_decay: 15.
         decay_model: 0
         voxel_size: 0.05
@@ -53,6 +53,10 @@ local_costmap:
         enabled: false 
         map_subscribe_transient_local: False
         always_send_full_costmap: True
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 0.55
   local_costmap_client:
     ros__parameters:
       use_sim_time: True
@@ -98,24 +102,27 @@ bt_navigator:
 global_costmap:
   global_costmap:
     ros__parameters:
-      always_send_full_costmap: False 
-      update_frequency: 1.0
-      publish_frequency: 1.0
+      always_send_full_costmap: True
+      update_frequency: 4.0
+      publish_frequency: 4.0
+      transform_tolerance: 1.0
+      # lethal_cost_threshold: 10
       global_frame: map
       robot_base_frame: wamv/base_link 
       use_sim_time: True
       robot_radius: 5.0
-      resolution: 1.0
+      resolution: 3.0
       track_unknown_space: false
       rolling_window: true
-      height: 1000
-      width: 1000
+      height: 50
+      width: 50
       plugins: ["obstacle_layer", "stvl_layer", "inflation_layer"]
+      # plugins: ["obstacle_layer", "inflation_layer"]
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
-        enabled: true 
-        voxel_decay: 15.
-        decay_model: 0
+        enabled: true
+        voxel_decay: 30.
+        decay_model: -1
         voxel_size: 0.05
         track_unknown_space: false
         max_obstacle_height: 10.0
@@ -143,7 +150,7 @@ global_costmap:
           voxel_filter: true
           clear_after_reading: false 
           max_z: 10.0
-          min_z: 2.0
+          min_z: 0.0
           vertical_fov_angle: 3.14
           horizontal_fov_angle: 3.14
           decay_acceleration: 15.0
@@ -155,14 +162,17 @@ global_costmap:
         pointcloud:
           data_type: PointCloud2
           topic: /points_self_filtered
-          obstacle_min_range: 5.0
+          sensor_frame: wamv/lidar_wamv_link
+          obstacle_min_range: 0.0
+          obstacle_max_range: 50.0
           max_obstacle_height: 10.0
           marking: True
-          clearing: True
+          clearing: False
+          inf_is_valid: False
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
         enabled: true
-        inflation_radius: 3.0
+        inflation_radius: 6.0
       global_costmap_client:
         ros__parameters:
           use_sim_time: True
@@ -188,7 +198,7 @@ planner_server:
       analytic_expansion_max_length: 3.0  # For Hybrid/Lattice nodes: The maximum length of the analytic expansion to be considered valid to prevent unsafe shortcutting
 
       minimum_turning_radius: 10.0        # minimum turning radius in m of path / vehicle
-      reverse_penalty: 10.0                # Penalty to apply if motion is reversing, must be => 1
+      reverse_penalty: 1.0                # Penalty to apply if motion is reversing, must be => 1
       change_penalty: 1.0                 # Penalty to apply if motion is changing directions (L to R), must be >= 0
 
       non_straight_penalty: 1.0           # Penalty to apply if motion is non-straight, must be => 1
@@ -283,21 +293,21 @@ controller_server:
       trans_stopped_velocity: 0.25
       short_circuit_trajectory_evaluation: True
       stateful: True
-      # critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
-      #  "GoalAlign", "PathAlign", 
-      #  "PathDist", "GoalDist"]
-      # BaseObstacle.scale: 0.02
-      # PathAlign.scale: 32.0
-      # PathAlign.forward_point_distance: 10.1
-      # GoalAlign.scale: 24.0
-      # GoalAlign.forward_point_distance: 10.1
-      # PathDist.scale: 64.0
-      # GoalDist.scale: 24.0
+      critics: ["RotateToGoal", "Oscillation", "BaseObstacle",
+       "GoalAlign", "PathAlign", 
+       "PathDist", "GoalDist"]
+      BaseObstacle.scale: 0.02
+      PathAlign.scale: 32.0
+      PathAlign.forward_point_distance: 10.1
+      GoalAlign.scale: 24.0
+      GoalAlign.forward_point_distance: 10.1
+      PathDist.scale: 64.0
+      GoalDist.scale: 24.0
 
-      # RotateToGoal.scale: 32.0
-      # RotateToGoal.slowing_factor: 10.0
+      RotateToGoal.scale: 32.0
+      RotateToGoal.slowing_factor: 10.0
 
-      # RotateToGoal.lookahead_time: -1.0
+      RotateToGoal.lookahead_time: -1.0
       shorten_transformed_plan: false
 
       
