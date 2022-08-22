@@ -78,6 +78,7 @@ ros2 launch virtuoso_autonomy main.launch.py
 ## Installation of Sensor Drivers
 ### IMU
 See https://github.com/LORD-MicroStrain/microstrain_inertial/tree/ros2
+```
 sudo apt-get update && sudo apt-get install ros-foxy-microstrain-inertial-driver
 sudo apt-get update && sudo apt-get install ros-foxy-microstrain-inertial-rqt
-
+```
