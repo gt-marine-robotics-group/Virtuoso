@@ -28,7 +28,9 @@ setup(
             'perception = virtuoso_autonomy.tasks.perception.main:main',
             'station_keeping = virtuoso_autonomy.tasks.station_keeping.main:main',
             'wayfinding = virtuoso_autonomy.tasks.wayfinding.main:main',
-            'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.main:main'
+
+            'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.main:main',
+            'robotX_gymkhana = virtuoso_autonomy.robotx.gymkhana.main:main'
         ],
     },
 )

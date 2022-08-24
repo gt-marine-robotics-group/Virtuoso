@@ -22,6 +22,6 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_autonomy',
-            executable='robotX_safetyCheck'
+            executable='robotX_gymkhana'
         )
     ])
