@@ -20,7 +20,8 @@ wamv_imu:
 lidar:
     - name: lidar_wamv
       type: 16_beam
-      P: ${radians(8)}
+      # P: ${radians(8)}
+      y: -0.3
 wamv_ball_shooter:
     - name: ball_shooter
       x: 0.55
