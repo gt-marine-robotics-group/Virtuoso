@@ -69,7 +69,7 @@ class FindBuoys(Node):
                     break
 
             if prevCount == count.get('count') and prevCount > 0:
-                count.update({'count': prevCount - 1})
+                count.update({'count': prevCount - 10})
         
         for key, prevFound in filteredBoxesPrevFound.items():
             if not prevFound:

@@ -1,3 +1,4 @@
+import math
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
@@ -6,6 +7,7 @@ from nav_msgs.msg import Odometry
 from ...utils.channel_nav import ChannelNavigation
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from rclpy.time import Time
+import tf_transformations
 
 class SafetyCheck(Node):
 
@@ -41,11 +43,28 @@ class SafetyCheck(Node):
         return ps
     
     
-    def midpoint(p1:PoseStamped, p2:PoseStamped):
+    def midpoint(self, p1:PoseStamped, p2:PoseStamped):
         ps = PoseStamped()
         ps.header.frame_id = "map"
         ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
         ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
+
+        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x))
+
+        rq = self.robot_pose.pose.orientation
+        robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
+
+        if ang > math.pi * 2:
+            ang = ang % (math.pi * 2)
+
+        if abs(ang - robot_euler[2]) > abs((ang + math.pi) - robot_euler[2]):
+            ang += math.pi
+        
+        quat = tf_transformations.quaternion_from_euler(0, 0, ang - (math.pi / 2))
+        ps.pose.orientation.x = quat[0]
+        ps.pose.orientation.y = quat[1]
+        ps.pose.orientation.z = quat[2]
+        ps.pose.orientation.w = quat[3]
         return ps
     
     def nav_to_next_midpoint(self):
@@ -62,7 +81,7 @@ class SafetyCheck(Node):
         if channel is None:
             return
 
-        mid = SafetyCheck.midpoint(channel[0], channel[1])
+        mid = self.midpoint(channel[0], channel[1])
 
         path = Path()
         path.poses.append(mid)
