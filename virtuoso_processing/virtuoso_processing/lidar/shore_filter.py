@@ -16,7 +16,8 @@ class ShoreFilterer(Node):
     def __init__(self):
         super().__init__('shore_filter')
 
-        self.lidar_sub = self.create_subscription(PointCloud2, '/points_nonground', self.callback, 10)
+        # self.lidar_sub = self.create_subscription(PointCloud2, '/points_nonground', self.callback, 10)
+        self.lidar_sub = self.create_subscription(PointCloud2, '/local_costmap/voxel_grid', self.callback, 10)
         self.publisher = self.create_publisher(PointCloud2, '/points_shore_filtered', 10)
 
         self.poly_pub = self.create_publisher(MarkerArray, '/shore_polygon', 10)
