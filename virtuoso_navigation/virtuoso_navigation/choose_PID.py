@@ -92,7 +92,7 @@ class choosePID(Node):
      	          target_quat.w = target_orient[3]
      	           
      	          targetWaypoint.pose.pose.orientation = target_quat
-             #targetWaypoint.pose.pose.orientation = 
+     	          #targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
              self.waypointPub.publish(targetWaypoint)
   
     def odometry_callback(self, msg):
