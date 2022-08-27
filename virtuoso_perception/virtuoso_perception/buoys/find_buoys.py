@@ -78,6 +78,7 @@ class FindBuoys(Node):
         
         for key, prevFound in filteredBoxesPrevFound.items():
             if not prevFound:
+                filtered_boxes.boxes[key].value = 0.5
                 self.buoy_counts.append({
                     'box': filtered_boxes.boxes[key],
                     'count': 1
