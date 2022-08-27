@@ -37,7 +37,7 @@ class FindBuoys(Node):
 
             if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
 
-            if box.centroid.z + 1.55 > 0: 
+            if box.centroid.z - 0.2 > 0: 
                 box.value = 1.0
             else:
                 box.value = 0.5
@@ -65,6 +65,11 @@ class FindBuoys(Node):
                     filteredBoxesPrevFound.update({i: True})
                     count.get('box').centroid.x = self.find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
                     count.get('box').centroid.y = self.find_avg(prevBox.centroid.y, prevCount, box.centroid.y)
+                    # count.get('box').value = box.value
+                    if count.get('box').value < box.value:
+                        count.get('box').value = count.get('box').value + 0.1
+                    elif count.get('box').value > box.value:
+                        count.get('box').value = count.get('box').value - 0.1
                     count.update({'count': prevCount + 10})
                     break
 
