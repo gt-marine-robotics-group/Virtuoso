@@ -9,7 +9,7 @@ from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from rclpy.time import Time
 import tf_transformations
 
-class SafetyCheck(Node):
+class Gymkhana(Node):
 
     def __init__(self):
         super().__init__('safety_check')
@@ -74,9 +74,10 @@ class SafetyCheck(Node):
         if self.robot_pose is None:
             return
 
-        self.get_logger().info(f'Robot pose: {self.robot_pose}')
-
-        buoyPoses = list(map(lambda b: SafetyCheck.point32ToPoseStamped(b.centroid), self.buoys.boxes))
+        self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
+        # buoyPoses = list(map(lambda b: Gymkhana.point32ToPoseStamped(b.centroid), self.buoys.boxes))
+        buoyPoses = list(Gymkhana.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
+        self.get_logger().info(str(len(buoyPoses)))
         channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
         if channel is None:
             return
@@ -90,7 +91,8 @@ class SafetyCheck(Node):
 
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
-        if len(self.channel_nav.channels) == 1:
+        # For gymkhana, this number will be 5
+        if len(self.channel_nav.channels) == 2:
             self.channel_nav.end_nav = True
 
         self.nav_to_next_midpoint()
@@ -100,7 +102,7 @@ def main(args=None):
     
     rclpy.init(args=args)
 
-    node = SafetyCheck()
+    node = Gymkhana()
 
     rclpy.spin(node)
 

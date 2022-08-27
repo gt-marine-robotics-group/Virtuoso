@@ -80,10 +80,10 @@ class ShoreFilter():
             return
 
         trans = None
-        try:
-            trans = tf_buffer.lookup_transform('map', 'wamv/lidar_wamv_link', Time())
-        except:
-            return
+        # try:
+        #     trans = tf_buffer.lookup_transform('map', 'wamv/lidar_wamv_link', Time())
+        # except:
+        #     return
 
         filtered_points = []
 
@@ -92,7 +92,8 @@ class ShoreFilter():
             p.header.frame_id = 'wamv/lidar_wamv_link'
             p.point.x = point[0]
             p.point.y = point[1]
-            pTrans = do_transform_point(p, trans)
+            # pTrans = do_transform_point(p, trans)
+            pTrans = p
             if (ShapelyPoint(pTrans.point.x, pTrans.point.y).within(ShoreFilter.vrx_shore)):
                 filtered_points.append([float("NaN") for _ in range(3)])
             else:
