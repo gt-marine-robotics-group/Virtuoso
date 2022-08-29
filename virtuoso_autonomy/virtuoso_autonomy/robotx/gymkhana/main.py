@@ -74,10 +74,9 @@ class Gymkhana(Node):
         if self.robot_pose is None:
             return
 
-        self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
-        # buoyPoses = list(map(lambda b: Gymkhana.point32ToPoseStamped(b.centroid), self.buoys.boxes))
+        # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
         buoyPoses = list(Gymkhana.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
-        self.get_logger().info(str(len(buoyPoses)))
+        # self.get_logger().info(str(len(buoyPoses)))
         channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
         if channel is None:
             return
