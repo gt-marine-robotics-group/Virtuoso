@@ -17,11 +17,11 @@ class MultiGates():
 
         farthest_pair = (farthest_buoy, MultiGates.find_closest_buoy(buoys[:3], farthest_buoy))
 
-        remaining_buoys = filter(lambda b: not MultiGates.same_loc(farthest_pair[1], b), buoys[:3])
+        remaining_buoys = list(filter(lambda b: not MultiGates.same_loc(farthest_pair[1], b), buoys[:3]))
 
         middle_pair = (farthest_pair[1], MultiGates.find_closest_buoy(remaining_buoys, farthest_pair[1]))
 
-        last_buoy = filter(lambda b: not MultiGates.same_loc(middle_pair[1], b), remaining_buoys)
+        last_buoy = list(filter(lambda b: not MultiGates.same_loc(middle_pair[1], b), remaining_buoys))
 
         closest_pair = (middle_pair[1], last_buoy[0])
 
