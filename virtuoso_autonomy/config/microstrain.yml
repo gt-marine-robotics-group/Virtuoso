@@ -1,9 +1,13 @@
 microstrain_inertial_driver:
   ros__parameters:
     # Copy this file to a new file, fill out this section with desired parameters, and specify the new file via params_file to override the default params
-    device_setup: True
-    debug: True
-    diagnostics: True
-    publish_filter: True
-    filter_auto_init: True
+    use_enu_frame: True
+    imu_frame_id: imu_frame    
+    #device_setup: True
+    #debug: True
+    #diagnostics: True
+    #publish_filter: True
+    #filter_auto_init: True
+    #filter_reset_after_config: True
     filter_sensor2vehicle_frame_selector: 0
+    #name: 'gx3'

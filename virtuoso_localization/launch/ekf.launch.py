@@ -34,7 +34,7 @@ def generate_launch_description():
        ("/odometry/filtered", "/localization/odometry"),
        ("/odometry/gps", "/odometry/gps2")
     ],
-    output='screen',
+    #output='screen',
     parameters=[            
          {"publish_filtered_gps": True},
          {"wait_for_datum": False},
