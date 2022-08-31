@@ -51,22 +51,22 @@ class Gymkhana(Node):
 
         ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
 
-        self.get_logger().info(f'first angle: {ang}')
+        # self.get_logger().info(f'first angle: {ang}')
 
         while ang < 0:
             ang += (2 * math.pi)
 
-        self.get_logger().info(f'negative check: {ang}')
+        # self.get_logger().info(f'negative check: {ang}')
 
         rq = self.robot_pose.pose.orientation
         robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
 
-        self.get_logger().info(f'robot angle: {robot_euler[2]}')
+        # self.get_logger().info(f'robot angle: {robot_euler[2]}')
 
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        self.get_logger().info(f'check if > 360: {ang}')
+        # self.get_logger().info(f'check if > 360: {ang}')
 
         if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
             ang += math.pi
