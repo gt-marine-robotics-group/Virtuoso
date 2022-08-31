@@ -54,7 +54,10 @@ class EnterAndExit(Node):
         ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
         ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
 
-        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x))
+        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
+
+        while ang < 0:
+            ang += (2 * math.pi)
 
         rq = self.robot_pose.pose.orientation
         robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
@@ -62,10 +65,10 @@ class EnterAndExit(Node):
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        if abs(ang - robot_euler[2]) > abs((ang + math.pi) - robot_euler[2]):
+        if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
             ang += math.pi
         
-        quat = tf_transformations.quaternion_from_euler(0, 0, ang - (math.pi / 2))
+        quat = tf_transformations.quaternion_from_euler(0, 0, ang)
         ps.pose.orientation.x = quat[0]
         ps.pose.orientation.y = quat[1]
         ps.pose.orientation.z = quat[2]
@@ -73,6 +76,9 @@ class EnterAndExit(Node):
         return ps
 
     def navigate_to_enterance(self):
+
+        if self.robot_pose is None:
+            return
 
         buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
         

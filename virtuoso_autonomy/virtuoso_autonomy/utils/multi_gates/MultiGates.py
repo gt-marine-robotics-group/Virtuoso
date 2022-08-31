@@ -48,3 +48,15 @@ class MultiGates():
 
     def same_loc(p1:PoseStamped, p2:PoseStamped):
         return p1.pose.position.x == p2.pose.position.x and p1.pose.position.y == p2.pose.position.y
+
+    def find_closest_gate_to_robot(self, loc:PoseStamped, mids:List[PoseStamped]):
+        min_dist = MultiGates.distance(loc, mids[0])
+        min_gate = mids[0]
+        for i, mid in enumerate(mids):
+            if i == 0: continue
+            dist = MultiGates.distance(loc, mid)
+            if dist < min_dist:
+                min_dist = dist
+                min_gate = mid
+        
+        return min_gate

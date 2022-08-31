@@ -71,7 +71,7 @@ class Gymkhana(Node):
         if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
             ang += math.pi
 
-        self.get_logger().info(f'check relative to robot angle: {ang}')
+        # self.get_logger().info(f'check relative to robot angle: {ang}')
         
         quat = tf_transformations.quaternion_from_euler(0, 0, ang)
         ps.pose.orientation.x = quat[0]
