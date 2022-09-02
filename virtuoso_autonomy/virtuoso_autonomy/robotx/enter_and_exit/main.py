@@ -35,11 +35,12 @@ class EnterAndExit(Node):
         self.buoys = msg
         if (self.state == 'finding_enterance'):
             self.navigate_to_enterance()
-        if (self.state == 'finding_looping_cone'):
+        if (self.state == 'finding_loop_cone'):
             self.loop_around_cone()
 
     def nav_success(self, msg:PoseStamped):
-        pass
+        if self.state == 'entering':
+            self.state = 'finding_loop_cone'
 
     def point32ToPoseStamped(p:Point32):
         ps = PoseStamped()
@@ -101,6 +102,24 @@ class EnterAndExit(Node):
         self.path_pub.publish(path)
 
     def loop_around_cone(self):
+
+        if self.robot_pose is None:
+            return
+        
+        buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
+
+        looping_buoy = self.multi_gates.find_looping_buoy(buoyPoses, self.robot_pose)
+
+        if looping_buoy is None:
+            return
+
+        # Just go to the looping buoy for now to test
+        
+        self.state = 'looping'
+        path = Path()
+        path.poses.append(looping_buoy)
+        self.path_pub.publish(path)
+
         pass
 
 def main(args=None):

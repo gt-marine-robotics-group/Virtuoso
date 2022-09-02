@@ -1,8 +1,14 @@
 import math
 from typing import List
+
+from soupsieve import closest
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Path
 
 class MultiGates():
+
+    first_buoys = None
+    buoy_range = 3.0
 
     def find_gates(self, buoys:List[PoseStamped], loc:PoseStamped):
 
@@ -12,6 +18,8 @@ class MultiGates():
         buoys.sort(key=lambda b: MultiGates.distance(loc, b))
 
         buoys = buoys[:4]
+
+        self.first_buoys = buoys
 
         farthest_buoy = buoys[3]
 
@@ -60,3 +68,70 @@ class MultiGates():
                 min_gate = mid
         
         return min_gate
+    
+    def find_looping_buoy(self, buoys:List[PoseStamped], loc:PoseStamped):
+
+        possible_buoys = []
+
+        for buoy in buoys:
+            duplicate = False
+            for gate_buoy in self.first_buoys:
+                if MultiGates.distance(gate_buoy, buoy) < MultiGates.buoy_range:
+                    duplicate = True
+                    continue
+            if not duplicate:
+                possible_buoys.append(buoy)
+
+        if len(possible_buoys) == 0:
+            return None
+        
+        possible_buoys.sort(key=lambda b: MultiGates.distance(loc, b))
+
+        return possible_buoys[0]
+    
+    def find_path_around_buoy(self, buoy:PoseStamped, loc:PoseStamped):
+
+        path = Path()
+
+        buoy_pos = buoy.pose.position
+
+        # points = [
+        #     ((buoy_pos.x + 5, buoy_pos.y), False),
+        #     ((buoy_pos.x - 5, buoy_pos.y), False),
+        #     ((buoy_pos.x, buoy_pos.y + 5), False),
+        #     ((buoy_pos.x, buoy_pos.y - 5), False)
+        # ]
+        # distances = list(MultiGates.distance(MultiGates.xy_to_pose_stamped(p[0]), loc) for p in points)
+        # (closest_i, dist) = MultiGates.find_closest_index(distances)
+
+        # points[closest_i][1] = True
+        # distances2 = list(d for i, d in enumerate(distances) if i is not closest_i)
+        # closest_i, dist = MultiGates.find_closest_index(distances2)
+        # closest_i = distances.index(dist)
+        # path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i][0]))
+        # points[closest_i][1] = True
+
+        # closest_i = (closest_i + 2) % 4
+        # path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i][0]))
+        # points[closest_i][1] = True
+
+
+
+        
+
+    def xy_to_pose_stamped(point):
+        ps = PoseStamped()
+        ps.pose.position.x = point[0]
+        ps.pose.position.y = point[1]
+        return ps
+
+    def find_closest_index(dists:List[float]):
+        min_dist = dists[0] 
+        index = 0
+        for i, dist in enumerate(dists):
+            if dist < min_dist:
+                index = i
+        return index, min_dist
+
+
+
