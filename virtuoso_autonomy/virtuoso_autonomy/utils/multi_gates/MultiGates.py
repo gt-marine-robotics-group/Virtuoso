@@ -1,9 +1,8 @@
 import math
 from typing import List
-
-from soupsieve import closest
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path
+from .LoopPoint import LoopPoint
 
 class MultiGates():
 
@@ -95,29 +94,46 @@ class MultiGates():
 
         buoy_pos = buoy.pose.position
 
-        # points = [
-        #     ((buoy_pos.x + 5, buoy_pos.y), False),
-        #     ((buoy_pos.x - 5, buoy_pos.y), False),
-        #     ((buoy_pos.x, buoy_pos.y + 5), False),
-        #     ((buoy_pos.x, buoy_pos.y - 5), False)
-        # ]
-        # distances = list(MultiGates.distance(MultiGates.xy_to_pose_stamped(p[0]), loc) for p in points)
-        # (closest_i, dist) = MultiGates.find_closest_index(distances)
+        points = [
+            (buoy_pos.x + 5, buoy_pos.y),
+            (buoy_pos.x - 5, buoy_pos.y),
+            (buoy_pos.x, buoy_pos.y + 5),
+            (buoy_pos.x, buoy_pos.y - 5)
+        ]
 
-        # points[closest_i][1] = True
-        # distances2 = list(d for i, d in enumerate(distances) if i is not closest_i)
-        # closest_i, dist = MultiGates.find_closest_index(distances2)
-        # closest_i = distances.index(dist)
-        # path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i][0]))
-        # points[closest_i][1] = True
+        points = list(
+            LoopPoint('x' if i < 2 else 'y', p, MultiGates.distance(MultiGates.xy_to_pose_stamped(p), loc))
+            for i, p in enumerate(points)
+        )
 
-        # closest_i = (closest_i + 2) % 4
-        # path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i][0]))
-        # points[closest_i][1] = True
+        closest_i = MultiGates.find_closest_index(points)
+        # path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i].xy))
+        points[closest_i].used = True
 
+        closest_i = MultiGates.find_closest_index(points)
+        path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i].xy))
+        points[closest_i].used = True
 
-
+        for point in points:
+            if point.used:
+                continue
+            if point.change is not points[closest_i].change:
+                path.poses.append(MultiGates.xy_to_pose_stamped(point.xy))
+                point.used = True
+                break
         
+        for point in points:
+            if point.used:
+                continue
+            path.poses.append(MultiGates.xy_to_pose_stamped(point.xy))
+            break
+
+        # path.poses.insert(0, path.poses[len(path.poses) - 1])
+
+        # We can later remove this and have the robot choose a random gate to go through
+        path.poses.append(loc)
+
+        return path
 
     def xy_to_pose_stamped(point):
         ps = PoseStamped()
@@ -125,13 +141,19 @@ class MultiGates():
         ps.pose.position.y = point[1]
         return ps
 
-    def find_closest_index(dists:List[float]):
-        min_dist = dists[0] 
-        index = 0
-        for i, dist in enumerate(dists):
-            if dist < min_dist:
+    def find_closest_index(points:List[LoopPoint]):
+        min_dist = None
+        index = -1
+        for i, point in enumerate(points):
+            if point.used:
+                continue
+            if index == -1:
+                min_dist = point.dist
                 index = i
-        return index, min_dist
+            elif point.dist < min_dist:
+                min_dist = point.dist
+                index = i
+        return index
 
 
 

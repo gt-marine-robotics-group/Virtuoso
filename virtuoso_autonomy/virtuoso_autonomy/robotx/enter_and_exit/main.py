@@ -116,8 +116,9 @@ class EnterAndExit(Node):
         # Just go to the looping buoy for now to test
         
         self.state = 'looping'
-        path = Path()
-        path.poses.append(looping_buoy)
+        # path = Path()
+        # path.poses.append(looping_buoy)
+        path = self.multi_gates.find_path_around_buoy(looping_buoy, self.robot_pose)
         self.path_pub.publish(path)
 
         pass
