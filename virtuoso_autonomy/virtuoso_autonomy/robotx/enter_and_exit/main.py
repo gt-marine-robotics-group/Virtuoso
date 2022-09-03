@@ -3,16 +3,16 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
-from nav_msgs.msg import Odometry
-from ...utils.channel_nav import ChannelNavigation
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
-from rclpy.time import Time
+from nav_msgs.msg import Odometry
+from ...utils.multi_gates import MultiGates
+import random
 import tf_transformations
 
-class Gymkhana(Node):
+class EnterAndExit(Node):
 
     def __init__(self):
-        super().__init__('safety_check')
+        super().__init__('enter_and_exit')
 
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 
@@ -20,20 +20,27 @@ class Gymkhana(Node):
         self.buoys_sub = self.create_subscription(BoundingBoxArray, '/buoys/bounding_boxes', self.update_buoys, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_robot_pose, 10)
 
-        self.robot_pose = None
+        self.multi_gates = MultiGates.MultiGates()
 
-        self.channel_nav = ChannelNavigation.ChannelNavigation()
+        self.robot_pose = None
         self.buoys = BoundingBoxArray()
+        self.state = 'finding_enterance' # other states are 'entering', 'finding_loop_cone', 'looping'
 
     def update_robot_pose(self, msg:Odometry):
         ps = PoseStamped()
         ps.pose = msg.pose.pose
         self.robot_pose = ps
-    
+
     def update_buoys(self, msg:BoundingBoxArray):
         self.buoys = msg
-        if (not self.channel_nav.curr_channel):
-            self.nav_to_next_midpoint()
+        if (self.state == 'finding_enterance'):
+            self.navigate_to_enterance()
+        if (self.state == 'finding_loop_cone'):
+            self.loop_around_cone()
+
+    def nav_success(self, msg:PoseStamped):
+        if self.state == 'entering':
+            self.state = 'finding_loop_cone'
 
     def point32ToPoseStamped(p:Point32):
         ps = PoseStamped()
@@ -41,8 +48,7 @@ class Gymkhana(Node):
         ps.pose.position.y = p.y
         ps.pose.position.z = p.z
         return ps
-    
-    
+
     def midpoint(self, p1:PoseStamped, p2:PoseStamped):
         ps = PoseStamped()
         ps.header.frame_id = "map"
@@ -51,27 +57,17 @@ class Gymkhana(Node):
 
         ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
 
-        # self.get_logger().info(f'first angle: {ang}')
-
         while ang < 0:
             ang += (2 * math.pi)
-
-        # self.get_logger().info(f'negative check: {ang}')
 
         rq = self.robot_pose.pose.orientation
         robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
 
-        # self.get_logger().info(f'robot angle: {robot_euler[2]}')
-
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        # self.get_logger().info(f'check if > 360: {ang}')
-
         if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
             ang += math.pi
-
-        # self.get_logger().info(f'check relative to robot angle: {ang}')
         
         quat = tf_transformations.quaternion_from_euler(0, 0, ang)
         ps.pose.orientation.x = quat[0]
@@ -79,42 +75,58 @@ class Gymkhana(Node):
         ps.pose.orientation.z = quat[2]
         ps.pose.orientation.w = quat[3]
         return ps
-    
-    def nav_to_next_midpoint(self):
-        if self.channel_nav.end_nav:
-            return
+
+    def navigate_to_enterance(self):
 
         if self.robot_pose is None:
             return
 
-        # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
-        buoyPoses = list(Gymkhana.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
-        # self.get_logger().info(str(len(buoyPoses)))
-        channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
-        if channel is None:
+        buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
+        
+        gates = self.multi_gates.find_gates(buoyPoses, self.robot_pose)
+
+        self.get_logger().info(str(gates))
+
+        if gates is None:
             return
 
-        mid = self.midpoint(channel[0], channel[1])
+        self.state = 'entering'
+
+        randGate = gates[random.randint(0, 2)]
+
+        mid = self.midpoint(randGate[0], randGate[1])
 
         path = Path()
         path.poses.append(mid)
 
         self.path_pub.publish(path)
 
-    def nav_success(self, msg:PoseStamped):
-        # 1 less than number of channels needed to navigate
-        # For gymkhana, this number will be 5
-        if len(self.channel_nav.channels) == 2:
-            self.channel_nav.end_nav = True
+    def loop_around_cone(self):
 
-        self.nav_to_next_midpoint()
+        if self.robot_pose is None:
+            return
+        
+        buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
 
+        looping_buoy = self.multi_gates.find_looping_buoy(buoyPoses, self.robot_pose)
+
+        if looping_buoy is None:
+            return
+
+        # Just go to the looping buoy for now to test
+        
+        self.state = 'looping'
+        # path = Path()
+        # path.poses.append(looping_buoy)
+        path = self.multi_gates.find_path_around_buoy(looping_buoy, self.robot_pose)
+        self.path_pub.publish(path)
+
+        pass
 
 def main(args=None):
-    
     rclpy.init(args=args)
 
-    node = Gymkhana()
+    node = EnterAndExit()
 
     rclpy.spin(node)
 
