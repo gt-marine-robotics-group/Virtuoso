@@ -1,8 +1,9 @@
 import math
 from typing import List
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Quaternion
 from nav_msgs.msg import Path
 from .LoopPoint import LoopPoint
+import tf_transformations
 
 class MultiGates():
 
@@ -92,6 +93,15 @@ class MultiGates():
 
         path = Path()
 
+        rq = loc.pose.orientation
+        r_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
+        rrq = tf_transformations.quaternion_from_euler(r_euler[0], r_euler[1], r_euler[2] + math.pi)
+        rq_reverse = Quaternion()
+        rq_reverse.x = rrq[0]
+        rq_reverse.y = rrq[1]
+        rq_reverse.z = rrq[2]
+        rq_reverse.w = rrq[3]
+
         buoy_pos = buoy.pose.position
 
         points = [
@@ -102,43 +112,51 @@ class MultiGates():
         ]
 
         points = list(
-            LoopPoint('x' if i < 2 else 'y', p, MultiGates.distance(MultiGates.xy_to_pose_stamped(p), loc))
+            LoopPoint('x' if i < 2 else 'y', p, MultiGates.distance(MultiGates.xy_to_pose_stamped(p, rq), loc))
             for i, p in enumerate(points)
         )
 
         closest_i = MultiGates.find_closest_index(points)
-        # path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i].xy))
+        path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i].xy, rq))
         points[closest_i].used = True
 
-        closest_i = MultiGates.find_closest_index(points)
-        path.poses.append(MultiGates.xy_to_pose_stamped(points[closest_i].xy))
-        points[closest_i].used = True
-
-        for point in points:
+        for i, point in enumerate(points):
             if point.used:
                 continue
             if point.change is not points[closest_i].change:
-                path.poses.append(MultiGates.xy_to_pose_stamped(point.xy))
+                closest_i = i
+                path.poses.append(MultiGates.xy_to_pose_stamped(point.xy, rq))
+                point.used = True
+                break
+
+        for i, point in enumerate(points):
+            if point.used:
+                continue
+            if point.change is not points[closest_i].change:
+                closest_i = i
+                path.poses.append(MultiGates.xy_to_pose_stamped(point.xy, rq_reverse))
                 point.used = True
                 break
         
         for point in points:
             if point.used:
                 continue
-            path.poses.append(MultiGates.xy_to_pose_stamped(point.xy))
+            path.poses.append(MultiGates.xy_to_pose_stamped(point.xy, rq_reverse))
             break
 
-        # path.poses.insert(0, path.poses[len(path.poses) - 1])
+        final = MultiGates.xy_to_pose_stamped((path.poses[0].pose.position.x, path.poses[0].pose.position.y), rq_reverse)
+        path.poses.append(final)
 
         # We can later remove this and have the robot choose a random gate to go through
         path.poses.append(loc)
 
         return path
 
-    def xy_to_pose_stamped(point):
+    def xy_to_pose_stamped(point, orientation:Quaternion):
         ps = PoseStamped()
         ps.pose.position.x = point[0]
         ps.pose.position.y = point[1]
+        ps.pose.orientation = orientation
         return ps
 
     def find_closest_index(points:List[LoopPoint]):
