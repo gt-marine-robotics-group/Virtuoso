@@ -12,6 +12,8 @@ from launch.events import matches_action
 from launch_ros.actions import LifecycleNode
 from launch_ros.events.lifecycle import ChangeState
 from launch_ros.substitutions import FindPackageShare
+import launch
+from launch_ros.actions import Node
 
 from lifecycle_msgs.msg import Transition
 from ament_index_python.packages import get_package_share_directory
@@ -40,11 +42,14 @@ virtuoso_params_file = os.path.join(
 def generate_launch_description():
 
   # Declare arguments with default values
-  launch_description = []
+  launch_description = [Node(
+    package='virtuoso_autonomy',
+    executable='gx3_republish'
+  )]
   launch_description.append(DeclareLaunchArgument('namespace',   default_value='/',                description='Namespace to use when launching the nodes in this launch file'))
   launch_description.append(DeclareLaunchArgument('node_name',   default_value=_PACKAGE_NAME,      description='Name to give the Microstrain Inertial Driver node'))
-  launch_description.append(DeclareLaunchArgument('configure',   default_value='false',            description='Whether or not to configure the node on startup'))
-  launch_description.append(DeclareLaunchArgument('activate',    default_value='false',            description='Whether or not to activate the node on startup'))
+  launch_description.append(DeclareLaunchArgument('configure',   default_value='true',            description='Whether or not to configure the node on startup'))
+  launch_description.append(DeclareLaunchArgument('activate',    default_value='true',            description='Whether or not to activate the node on startup'))
   launch_description.append(DeclareLaunchArgument('params_file', default_value=virtuoso_params_file, description='Path to file that will load additional parameters'))
 
   # Add some old launch parameters for backwards compatibility
@@ -110,10 +115,30 @@ def generate_launch_description():
     ),
     condition = LaunchConfigurationEquals('activate', 'true')
   )
+  
+  timer2 = launch.actions.TimerAction(period = 2.0, actions = [EmitEvent(
+    event = ChangeState(
+      lifecycle_node_matcher = matches_action(microstrain_node),
+      transition_id          = Transition.TRANSITION_ACTIVATE
+    ),
+    condition = LaunchConfigurationEquals('activate', 'true')
+  )])
+  timer1 = launch.actions.TimerAction(period = 1.0, actions = [EmitEvent(
+    event = ChangeState(
+      lifecycle_node_matcher = matches_action(microstrain_node),
+      transition_id          = Transition.TRANSITION_CONFIGURE
+    ),
+    condition = LaunchConfigurationEquals('configure', 'true')
+  )])
+  
+
 
   launch_description.append(microstrain_node)
+  #launch_description.append(timer1)
   launch_description.append(config_event)
+  #launch_description.append(timer2)
   launch_description.append(activate_event)
+
   return LaunchDescription(launch_description)
   
 
