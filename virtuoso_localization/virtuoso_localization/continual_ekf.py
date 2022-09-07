@@ -70,7 +70,7 @@ class continualEKF(Node):
     
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def state_estimation(self):
-        if(self.GPS_vel_ready, self.GPS_ready, self.IMU_ready):
+        if(self.GPS_ready, self.IMU_ready):
              self.imuPublisher.publish(self.measured_IMU)
              self.gpsPublisher.publish(self.gps_fix)
 

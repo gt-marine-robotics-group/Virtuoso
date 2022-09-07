@@ -108,10 +108,10 @@ class motorCMDGenerator(Node):
             leftRearCmd = Float32()
             rightFrontCmd = Float32()
 
-            leftFrontAngle.data = -90*numpy.pi/180
-            rightRearAngle.data = 90*numpy.pi/180
-            rightFrontAngle.data = 90*numpy.pi/180
-            leftRearAngle.data = -90*numpy.pi/180
+            leftFrontAngle.data = -90*numpy.pi/180*0
+            rightRearAngle.data = 90*numpy.pi/180*0
+            rightFrontAngle.data = 90*numpy.pi/180*0
+            leftRearAngle.data = -90*numpy.pi/180*0
 
             if (self.navigateToPoint):
                 targetForceX = self.basicForceX
@@ -122,11 +122,11 @@ class motorCMDGenerator(Node):
             targetTorque = self.basicTorque
             
                   
-            leftFrontCmd.data = (-targetForceY - targetForceX - targetTorque)
+            leftFrontCmd.data = (-targetForceY + targetForceX - targetTorque)
 
-            rightFrontCmd.data = (targetForceY - targetForceX + targetTorque)
-            leftRearCmd.data = (-targetForceY*0.9 + targetForceX + targetTorque)
-            rightRearCmd.data = (targetForceY*0.9 + targetForceX - targetTorque)
+            rightFrontCmd.data = (targetForceY + targetForceX + targetTorque)
+            leftRearCmd.data = (targetForceY*0.9 + targetForceX - targetTorque)
+            rightRearCmd.data = (-targetForceY*0.9 + targetForceX + targetTorque)
             
             if(leftFrontCmd.data <0):
                     leftFrontCmd.data = leftFrontCmd.data*2.5
