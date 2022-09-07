@@ -11,3 +11,5 @@ microstrain_inertial_driver:
     #filter_reset_after_config: True
     filter_sensor2vehicle_frame_selector: 0
     #name: 'gx3'
+    imu_linear_cov: [0.2, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]
+
