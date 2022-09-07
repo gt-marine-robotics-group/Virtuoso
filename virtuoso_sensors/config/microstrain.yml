@@ -9,6 +9,7 @@ microstrain_inertial_driver:
     #publish_filter: True
     #filter_auto_init: True
     #filter_reset_after_config: True
+    # poll_port: True
     filter_sensor2vehicle_frame_selector: 0
     #name: 'gx3'
     imu_linear_cov: [0.2, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]

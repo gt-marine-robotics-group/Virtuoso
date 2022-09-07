@@ -7,17 +7,12 @@ import os
 
 def generate_launch_description():
 
-    processing = get_package_share_directory('virtuoso_processing')
-    navigation = get_package_share_directory('virtuoso_navigation')
-    localization = get_package_share_directory('virtuoso_localization')
-    perception = get_package_share_directory('virtuoso_perception')
-    controller = get_package_share_directory('virtuoso_controller')
-    autonomy = get_package_share_directory('virtuoso_autonomy')
+    sensors = get_package_share_directory('virtuoso_sensors')
 
     return LaunchDescription([
         #IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py'))),
         Node(
-            package='virtuoso_autonomy',
+            package='virtuoso_sensors',
             executable='f9p_gps_republish'
         ),
         Node(
@@ -32,5 +27,5 @@ def generate_launch_description():
             name='gps_to_baselink',
             arguments=['0', '0', '0', '0', '0', '0', 'wamv/base_link', 'ubx']
         ),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(autonomy, 'launch', 'f9p.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'f9p.launch.py'))),
     ])
