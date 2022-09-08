@@ -13,6 +13,7 @@
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>ray_ground_classifier_nodes</exec_depend>
+  <exec_depend>virtuoso_sensors</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
