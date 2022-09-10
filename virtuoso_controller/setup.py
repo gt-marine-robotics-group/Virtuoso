@@ -29,6 +29,7 @@ setup(
             'test_vel_generator = virtuoso_controller.testing.test_vel_generator:main',
             'test_forward = virtuoso_controller.testing.test_forward:main',
             'test_backward = virtuoso_controller.testing.test_backward:main',
+            'test_left = virtuoso_controller.testing.test_left:main',
             'motor_cmd_generator = virtuoso_controller.motor_cmd_generator:main',
         ],
     },
