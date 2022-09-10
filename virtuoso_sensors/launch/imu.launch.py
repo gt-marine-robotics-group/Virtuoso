@@ -34,7 +34,7 @@ _EMPTY_PARAMS_FILE = os.path.join(
 #virtuoso_params_file = os.path.join(pkg_share, 'config/microstrain.yml') 
 
 virtuoso_params_file = os.path.join(
-  get_package_share_directory('virtuoso_autonomy'),
+  get_package_share_directory('virtuoso_sensors'),
   'config',
   'microstrain.yml'
 )
@@ -43,7 +43,7 @@ def generate_launch_description():
 
   # Declare arguments with default values
   launch_description = [Node(
-    package='virtuoso_autonomy',
+    package='virtuoso_sensors',
     executable='gx3_republish'
   )]
   launch_description.append(DeclareLaunchArgument('namespace',   default_value='/',                description='Namespace to use when launching the nodes in this launch file'))
