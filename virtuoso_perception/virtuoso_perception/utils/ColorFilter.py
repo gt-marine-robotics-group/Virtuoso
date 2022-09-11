@@ -44,6 +44,12 @@ class ColorFilter():
 
         return self.filter(lower_green, upper_green)
     
+    def blue_filter(self):
+        lower_blue = np.array([110, 50, 50])
+        upper_blue = np.array([130, 255, 255])
+
+        return self.filter(lower_blue, upper_blue)
+    
     def filter(self, lower, upper):
 
         mask = cv2.inRange(self.hsv, lower, upper)

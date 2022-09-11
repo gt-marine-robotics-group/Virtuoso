@@ -3,7 +3,8 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
-from ..utils.scan_code import read_curr_code
+from ..utils.scan_code import read_curr_code, find_code_coords_and_size
+import numpy as np
 
 class ScanCode(Node):
 
@@ -31,12 +32,17 @@ class ScanCode(Node):
 
         bgr = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
 
-        curr_code = read_curr_code(bgr)
+        # curr_code = read_curr_code(bgr)
+        box = find_code_coords_and_size(bgr)
 
-        image_msg = CvBridge().cv2_to_imgmsg(curr_code, encoding='bgr8')
-        self.get_logger().info('SENDING IMG')
+        self.get_logger().info(str(box))
 
-        self.debug_pub.publish(image_msg)
+        # image_msg = CvBridge().cv2_to_imgmsg(curr_code)
+        # self.get_logger().info(str(np.shape(curr_code)))
+        # self.get_logger().info(str(len(curr_code)))
+        self.get_logger().info('-------')
+
+        # self.debug_pub.publish(image_msg)
 
 
 def main(args=None):
