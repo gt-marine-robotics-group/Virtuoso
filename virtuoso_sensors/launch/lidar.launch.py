@@ -23,5 +23,9 @@ def generate_launch_description():
             parameters=[LaunchConfiguration('vlp16_node_param_file')],
             remappings=[("topic", "points_xyzi")],
             arguments=["--model", "vlp16"]
+        ),
+        Node(
+            package='virtuoso_sensors',
+            executable='lidar_republish'
         )
     ])
