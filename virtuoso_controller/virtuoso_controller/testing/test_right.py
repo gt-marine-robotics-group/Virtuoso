@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32
 
-class TestLeft(Node):
+class TestRight(Node):
 
     def __init__(self):
         super().__init__('test_controller_right')
@@ -45,7 +45,7 @@ class TestLeft(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    test = TestLeft()
+    test = TestRight()
 
     rclpy.spin(test)
 

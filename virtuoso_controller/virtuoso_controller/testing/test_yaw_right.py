@@ -2,10 +2,10 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32
 
-class TestYawLeft(Node):
+class TestYawRight(Node):
 
     def __init__(self):
-        super().__init__('test_controller_yaw_left')
+        super().__init__('test_controller_yaw_right')
 
         self.navigateToPoint = Bool()
         self.navigateToPoint.data = True
@@ -14,11 +14,11 @@ class TestYawLeft(Node):
         self.basicTargetForceY = Float32()
         self.basicTargetForceY.data = 0.0
         self.basicTorque = Float32()
-        self.basicTorque.data = 1.0
+        self.basicTorque.data = -1.0
         self.velForceX = Float32()
         self.velForceX.data = 0.0
         self.velForceY = Float32()
-        self.velForceY.data = 1.0
+        self.velForceY.data = -1.0
         self.velTorque = Float32()
         self.velTorque.data = 0.0
 
@@ -45,7 +45,7 @@ class TestYawLeft(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    test = TestYawLeft()
+    test = TestYawRight()
 
     rclpy.spin(test)
 
