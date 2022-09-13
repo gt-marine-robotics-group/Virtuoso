@@ -30,6 +30,7 @@ setup(
             'test_forward = virtuoso_controller.testing.test_forward:main',
             'test_backward = virtuoso_controller.testing.test_backward:main',
             'test_left = virtuoso_controller.testing.test_left:main',
+            'test_right = virtuoso_controller.testing.test_right:main',
             'motor_cmd_generator = virtuoso_controller.motor_cmd_generator:main',
         ],
     },
