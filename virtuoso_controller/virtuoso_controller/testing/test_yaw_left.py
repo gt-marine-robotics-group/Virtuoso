@@ -5,16 +5,16 @@ from std_msgs.msg import Bool, Float32
 class TestLeft(Node):
 
     def __init__(self):
-        super().__init__('test_controller_left')
+        super().__init__('test_controller_yaw_left')
 
         self.navigateToPoint = Bool()
         self.navigateToPoint.data = True
         self.basicTargetForceX = Float32()
         self.basicTargetForceX.data = 0.0
         self.basicTargetForceY = Float32()
-        self.basicTargetForceY.data = 1.0
+        self.basicTargetForceY.data = 0.0
         self.basicTorque = Float32()
-        self.basicTorque.data = 0.0
+        self.basicTorque.data = 1.0
         self.velForceX = Float32()
         self.velForceX.data = 0.0
         self.velForceY = Float32()

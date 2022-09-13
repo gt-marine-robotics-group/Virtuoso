@@ -5,7 +5,7 @@ from std_msgs.msg import Bool, Float32
 class TestLeft(Node):
 
     def __init__(self):
-        super().__init__('test_controller_backward')
+        super().__init__('test_controller_right')
 
         self.navigateToPoint = Bool()
         self.navigateToPoint.data = True
