@@ -6,6 +6,14 @@ from geometry_msgs.msg import Vector3Stamped
 from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Odometry
 
+from tf2_ros import TransformException 
+from tf2_ros.buffer import Buffer
+
+from tf2_ros.transform_listener import TransformListener 
+from tf2_ros import TransformBroadcaster
+
+from geometry_msgs.msg import TransformStamped
+
 class continualEKF(Node):
 
     def __init__(self):
@@ -47,6 +55,14 @@ class continualEKF(Node):
         self.gps_fix_subscriber
         self.gps_fix_vel_subscriber
 
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.broadcaster = TransformBroadcaster(self)
+
+        self.declare_parameter('sim_time', '')
+
+        # self.create_timer(.5, self.state_estimation)
+
     def imu_callback(self, msg):
         #msg2 = Imu()
         self.measured_IMU = msg
@@ -70,13 +86,65 @@ class continualEKF(Node):
     
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def state_estimation(self):
-        if(self.GPS_ready, self.IMU_ready):
-             self.imuPublisher.publish(self.measured_IMU)
-             self.gpsPublisher.publish(self.gps_fix)
+        # self.get_logger().info(str(self.get_parameter('sim_time').value))
+        if not self.GPS_ready or not self.IMU_ready:
+            return
 
-             self.IMU_ready = False
-             self.GPS_ready = False
-             self.GPS_vel_ready = False        
+        self.imuPublisher.publish(self.measured_IMU)
+        self.gpsPublisher.publish(self.gps_fix)
+
+        self.IMU_ready = False
+        self.GPS_ready = False
+        self.GPS_vel_ready = False        
+
+        if self.get_parameter('sim_time').value:
+            return
+
+        # self.get_logger().info('SIM TIME IS FALSE')
+
+        trans = None
+    
+        try:
+            now = rclpy.time.Time()
+            trans = self.tf_buffer.lookup_transform(
+                'wamv/base_link',
+                'utm',
+                now)
+            #self.get_logger().info('transform success')
+        except TransformException as ex:
+            #self.get_logger().info(
+            #    f'Could not transform utm to base link: {ex}')
+            return
+
+        trans2 = None
+
+        try:
+            now = rclpy.time.Time()
+            trans2 = self.tf_buffer.lookup_transform(
+                'wamv/base_link',
+                'ubx',
+                now)
+            
+        except TransformException as ex:
+            #self.get_logger().info(
+            #    f'Could not transform ubx to base link: {ex}')
+            return
+            
+
+        static_transformStamped = TransformStamped()
+        
+        static_transformStamped.header.stamp = self.get_clock().now().to_msg()
+        static_transformStamped.header.frame_id = 'ubx_utm'
+        static_transformStamped.child_frame_id = 'wamv/base_link'
+        
+        static_transformStamped.transform.translation.x = trans2.transform.translation.x
+        static_transformStamped.transform.translation.y = trans2.transform.translation.y
+        static_transformStamped.transform.translation.z = trans2.transform.translation.z
+        
+        static_transformStamped.transform.rotation.x = trans.transform.rotation.x
+        static_transformStamped.transform.rotation.y = trans.transform.rotation.y
+        static_transformStamped.transform.rotation.z = trans.transform.rotation.z
+        static_transformStamped.transform.rotation.w = trans.transform.rotation.w
 
         
 def main(args=None):

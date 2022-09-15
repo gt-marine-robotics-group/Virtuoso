@@ -13,19 +13,13 @@ def generate_launch_description():
         Node(
             package='virtuoso_controller',
             executable='basic_pid',
-        parameters=[            
-         {"use_sim_time": True}]
         ),
         Node(
             package='virtuoso_controller',
             executable='velocity_pid',
-        parameters=[            
-         {"use_sim_time": True}]
         ),
         Node(
             package='virtuoso_controller',
             executable='motor_cmd_generator',
-        parameters=[            
-         {"use_sim_time": True}]
         ),
     ])
