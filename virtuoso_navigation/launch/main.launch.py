@@ -8,7 +8,8 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    sim_time = LaunchConfiguration('sim_time')
+    sim_time = DeclareLaunchArgument('sim_time')
+    sim_time_config = LaunchConfiguration('sim_time', default='False')
 
     pkg_share = get_package_share_directory('virtuoso_navigation')
 
@@ -18,6 +19,7 @@ def generate_launch_description():
     nav2_params_file = os.path.join(pkg_share, 'param', 'nav2.param.yaml')
 
     return LaunchDescription([
+        sim_time,
         DeclareLaunchArgument(
             name='sim_time',
             default_value='False'
@@ -35,10 +37,10 @@ def generate_launch_description():
             executable='choose_PID'
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
-        'use_sim_time': sim_time}.items()),
+        'use_sim_time': sim_time_config}.items()),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(rviz_launch_file)),
         Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
-        parameters=[{'use_sim_time': sim_time}]),
+        parameters=[{'use_sim_time': sim_time_config}]),
 
         # Currently, state estimation only using odom frame for localization, so no difference between 
         # odom and map frame. Transformation being used for the costmaps.
