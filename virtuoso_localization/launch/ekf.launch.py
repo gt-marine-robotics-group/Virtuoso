@@ -8,8 +8,8 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    sim_path = DeclareLaunchArgument('sim', default_value='')
-    sim_time = DeclareLaunchArgument('sim_time', default_value='True')
+    sim_path = DeclareLaunchArgument('sim_path', default_value='')
+    sim_time = DeclareLaunchArgument('sim_time', default_value='Path')
 
     # pkg_share = FindPackageShare(package='virtuoso_localization').find('virtuoso_localization')
     # robot_localization_file_path = os.path.join(pkg_share, 'config/ekf.yaml') 
