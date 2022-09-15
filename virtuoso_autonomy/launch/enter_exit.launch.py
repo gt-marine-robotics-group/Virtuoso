@@ -1,5 +1,6 @@
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
+from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -19,6 +20,7 @@ def generate_launch_description():
     localization = get_package_share_directory('virtuoso_localization')
     perception = get_package_share_directory('virtuoso_perception')
     controller = get_package_share_directory('virtuoso_controller')
+    sensors = get_package_share_directory('virtuoso_sensors')
 
     return LaunchDescription([
         sim_time,
@@ -34,6 +36,11 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py'))),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'main.launch.py')),
+            condition=UnlessCondition(sim_time_config)
+        ),
 
         Node(
             package='virtuoso_autonomy',
