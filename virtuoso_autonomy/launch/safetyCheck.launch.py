@@ -13,7 +13,7 @@ def generate_launch_description():
     sim_path = DeclareLaunchArgument('sim_path', default_value='')
 
     sim_time_config = LaunchConfiguration('sim_time', default='False')
-    sim_path_config = LaunchConfiguration('sim_path', default='False')
+    sim_path_config = LaunchConfiguration('sim_path', default='')
 
     processing = get_package_share_directory('virtuoso_processing')
     navigation = get_package_share_directory('virtuoso_navigation')
