@@ -59,9 +59,9 @@ class continualEKF(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.broadcaster = TransformBroadcaster(self)
 
-        self.declare_parameter('sim_time', 'True')
+        self.declare_parameter('sim_time', '')
 
-        self.create_timer(.5, self.state_estimation)
+        # self.create_timer(.5, self.state_estimation)
 
     def imu_callback(self, msg):
         #msg2 = Imu()
@@ -86,7 +86,7 @@ class continualEKF(Node):
     
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def state_estimation(self):
-        self.get_logger().info(str(self.get_parameter('sim_time').value))
+        # self.get_logger().info(str(self.get_parameter('sim_time').value))
         if not self.GPS_ready or not self.IMU_ready:
             return
 
@@ -99,6 +99,8 @@ class continualEKF(Node):
 
         if self.get_parameter('sim_time').value:
             return
+
+        # self.get_logger().info('SIM TIME IS FALSE')
 
         trans = None
     
