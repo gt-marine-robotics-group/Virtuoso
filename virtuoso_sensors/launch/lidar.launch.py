@@ -27,5 +27,11 @@ def generate_launch_description():
         Node(
             package='virtuoso_sensors',
             executable='lidar_republish'
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='lidar_to_baselink',
+            arguments=['0', '0', '0', '0', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link']
         )
     ])
