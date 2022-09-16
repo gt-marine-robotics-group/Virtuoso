@@ -32,7 +32,8 @@ setup(
             'test_change_goal = virtuoso_navigation.testing.change_goal:main',
             'test_waypoints = virtuoso_navigation.testing.waypoints:main',
             'test_controller = virtuoso_navigation.testing.controller:main',
-            'test_forward = virtuoso_navigation.testing.forward:main'
+            'test_forward = virtuoso_navigation.testing.forward:main',
+            'test_backward = virtuoso_navigation.testing.backward:main'
         ],
     },
 )
