@@ -2,6 +2,10 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped, Pose, Quaternion
 from nav_msgs.msg import Path
+from nav_msgs.msg import Odometry
+from tf2_ros.buffer import Buffer
+from rclpy.time import Time
+from tf2_ros.transform_listener import TransformListener
 
 class TestForward(Node):
 
@@ -9,18 +13,33 @@ class TestForward(Node):
         super().__init__('test_set_path')
 
         self.pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
+
+        self.path_sent = False
+        self.robot_pose = None
+
+        self.create_timer(1.0, self.send_path)
+    
+    def update_pose(self, msg:Odometry):
+        ps = PoseStamped()
+        ps.pose = msg.pose.pose
+        self.robot_pose = ps
+    
+    def send_path(self):
+
+        if self.robot_pose is None or self.path_sent:
+            return
+
+        self.path_sent = True
 
         path = Path()
-        pose_stamped = PoseStamped()
 
-        pose = Pose()
-        pose.position.x = 10
+        self.robot_pose.pose.position.x += 10
+        self.robot_pose.header.frame_id = 'map'
 
-        pose_stamped.pose = pose
-        pose_stamped.header.frame_id = 'wamv/base_link'
+        path.poses.append(self.robot_pose)
 
-        path.poses.append(pose_stamped)
-
+        self.get_logger().info('PUBLISHING PATH')
         self.pub.publish(path)
 
 
