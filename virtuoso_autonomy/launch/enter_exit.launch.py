@@ -25,6 +25,12 @@ def generate_launch_description():
     return LaunchDescription([
         sim_time,
         sim_path,
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'main.launch.py')),
+            condition=UnlessCondition(sim_time_config)
+        ),
+
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py'))),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py')),
@@ -36,11 +42,6 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py'))),
-
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'main.launch.py')),
-            condition=UnlessCondition(sim_time_config)
-        ),
 
         Node(
             package='virtuoso_autonomy',

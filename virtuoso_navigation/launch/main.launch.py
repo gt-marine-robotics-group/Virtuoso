@@ -15,7 +15,7 @@ def generate_launch_description():
 
     # the launch file which we pass stvl in as a plugin an the params file
     bringup_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'navigation_launch.py')
-    rviz_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'rviz_launch.py')
+    # rviz_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'rviz_launch.py')
     nav2_params_file = os.path.join(pkg_share, 'param', 'nav2.param.yaml')
 
     return LaunchDescription([
@@ -38,7 +38,7 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
         'use_sim_time': sim_time_config}.items()),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(rviz_launch_file)),
+        # IncludeLaunchDescription(PythonLaunchDescriptionSource(rviz_launch_file)),
         Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
         parameters=[{'use_sim_time': sim_time_config}]),
 
