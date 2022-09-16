@@ -18,6 +18,8 @@ class TestForward(Node):
         self.path_sent = False
         self.robot_pose = None
 
+        self.declare_parameter('dist', 10.0)
+
         self.create_timer(1.0, self.send_path)
     
     def update_pose(self, msg:Odometry):
@@ -34,7 +36,7 @@ class TestForward(Node):
 
         path = Path()
 
-        self.robot_pose.pose.position.x += 10
+        self.robot_pose.pose.position.x += self.get_parameter('dist').value
         self.robot_pose.header.frame_id = 'map'
 
         path.poses.append(self.robot_pose)
