@@ -97,8 +97,8 @@ class f9pGPSRepublish(Node):
              
              navsatmsg.status.status = 1
              
-             navsatmsg.latitude = float(self.gps_fix.lon*10**(-7) + self.gps_fix.lon_hp*10**(-9))
-             navsatmsg.longitude = float(float(self.gps_fix.lat)*10**(-7) + float(self.gps_fix.lat_hp)*10**(-9))
+             navsatmsg.latitude = float(self.gps_fix.lat*10**(-7) + self.gps_fix.lat_hp*10**(-9))
+             navsatmsg.longitude = float(float(self.gps_fix.lon)*10**(-7) + float(self.gps_fix.lon_hp)*10**(-9))
              navsatmsg.altitude = float(self.gps_fix.height + self.gps_fix.height_hp*0.1)*10**(-3)
              
              #navsatmsg.position_covariance = [self.gps_cov.pos_cov_ee, self.gps_cov.pos_cov_ne, -self.gps_cov.pos_cov_ed, self.gps_cov.pos_cov_ne, self.gps_cov.pos_cov_nn, -self.gps_cov.pos_cov_nd, -self.gps_cov.pos_cov_ed, -self.gps_cov.pos_cov_nd, self.gps_cov.pos_cov_dd]

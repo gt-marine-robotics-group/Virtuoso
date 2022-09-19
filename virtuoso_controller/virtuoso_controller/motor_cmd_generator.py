@@ -128,6 +128,7 @@ class motorCMDGenerator(Node):
             leftRearCmd.data = (targetForceY*0.9 + targetForceX - targetTorque)
             rightRearCmd.data = (-targetForceY*0.9 + targetForceX + targetTorque)
             
+            '''
             if(leftFrontCmd.data <0):
                     leftFrontCmd.data = leftFrontCmd.data*2.5
             if(rightFrontCmd.data <0):
@@ -136,6 +137,7 @@ class motorCMDGenerator(Node):
                     leftRearCmd.data = leftRearCmd.data*2.5
             if(rightRearCmd.data <0):
                     rightRearCmd.data = rightRearCmd.data*2.5
+                    '''
                                                                 
             self.rightFrontPubAngle.publish(rightFrontAngle)
             self.leftRearPubAngle.publish(leftRearAngle)
