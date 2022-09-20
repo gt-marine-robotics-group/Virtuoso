@@ -167,7 +167,7 @@ class basicPID(Node):
         if(self.receivedWaypoint):
              self.targetForceXPub.publish(targetXToSend)
              self.targetForceYPub.publish(targetYToSend)
-        self.targetTorquePub.publish(targetTorqueToSend)
+             self.targetTorquePub.publish(targetTorqueToSend)
         
         '''
         leftFrontAngle = Float32()
