@@ -40,5 +40,8 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config}.items()
         ),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py'))),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
+            launch_arguments={'sim_time': sim_time_config}.items()
+        ),
     ])
