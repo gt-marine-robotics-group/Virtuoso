@@ -49,18 +49,31 @@ class SafetyCheck(Node):
         ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
         ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
 
-        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x))
+        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
+
+        # self.get_logger().info(f'first angle: {ang}')
+
+        while ang < 0:
+            ang += (2 * math.pi)
+
+        # self.get_logger().info(f'negative check: {ang}')
 
         rq = self.robot_pose.pose.orientation
         robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
 
+        # self.get_logger().info(f'robot angle: {robot_euler[2]}')
+
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        if abs(ang - robot_euler[2]) > abs((ang + math.pi) - robot_euler[2]):
+        # self.get_logger().info(f'check if > 360: {ang}')
+
+        if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
             ang += math.pi
+
+        # self.get_logger().info(f'check relative to robot angle: {ang}')
         
-        quat = tf_transformations.quaternion_from_euler(0, 0, ang - (math.pi / 2))
+        quat = tf_transformations.quaternion_from_euler(0, 0, ang)
         ps.pose.orientation.x = quat[0]
         ps.pose.orientation.y = quat[1]
         ps.pose.orientation.z = quat[2]
@@ -74,9 +87,9 @@ class SafetyCheck(Node):
         if self.robot_pose is None:
             return
 
-        self.get_logger().info(f'Robot pose: {self.robot_pose}')
-
-        buoyPoses = list(map(lambda b: SafetyCheck.point32ToPoseStamped(b.centroid), self.buoys.boxes))
+        # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
+        buoyPoses = list(SafetyCheck.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
+        # self.get_logger().info(str(len(buoyPoses)))
         channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
         if channel is None:
             return
@@ -90,7 +103,8 @@ class SafetyCheck(Node):
 
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
-        if len(self.channel_nav.channels) == 1:
+        # For gymkhana, this number will be 5
+        if len(self.channel_nav.channels) == 2:
             self.channel_nav.end_nav = True
 
         self.nav_to_next_midpoint()

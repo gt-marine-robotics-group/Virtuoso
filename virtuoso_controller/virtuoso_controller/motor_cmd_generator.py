@@ -72,6 +72,8 @@ class motorCMDGenerator(Node):
 
         self.timer = self.create_timer(self.controllerRate, self.timer_callback)
 
+        self.declare_parameter('sim_time', False)
+
     def navigateToPoint_callback(self, msg):
         self.navigateToPoint = msg.data
 
@@ -137,16 +139,15 @@ class motorCMDGenerator(Node):
                  rightRearCmd.data = rightRearCmd.data/highestCommand
             
             
-            '''
-            if(leftFrontCmd.data <0):
-                    leftFrontCmd.data = leftFrontCmd.data*2.5
-            if(rightFrontCmd.data <0):
-                    rightFrontCmd.data = rightFrontCmd.data*2.5
-            if(leftRearCmd.data <0):
-                    leftRearCmd.data = leftRearCmd.data*2.5
-            if(rightRearCmd.data <0):
-                    rightRearCmd.data = rightRearCmd.data*2.5
-            '''
+            if self.get_parameter('sim_time').value:
+                if(leftFrontCmd.data <0):
+                        leftFrontCmd.data = leftFrontCmd.data*2.5
+                if(rightFrontCmd.data <0):
+                        rightFrontCmd.data = rightFrontCmd.data*2.5
+                if(leftRearCmd.data <0):
+                        leftRearCmd.data = leftRearCmd.data*2.5
+                if(rightRearCmd.data <0):
+                        rightRearCmd.data = rightRearCmd.data*2.5
                                                                 
             self.rightFrontPubAngle.publish(rightFrontAngle)
             self.leftRearPubAngle.publish(leftRearAngle)

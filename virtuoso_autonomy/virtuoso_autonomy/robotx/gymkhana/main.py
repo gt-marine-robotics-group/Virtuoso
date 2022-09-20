@@ -12,7 +12,7 @@ import tf_transformations
 class Gymkhana(Node):
 
     def __init__(self):
-        super().__init__('safety_check')
+        super().__init__('gymkhana')
 
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 

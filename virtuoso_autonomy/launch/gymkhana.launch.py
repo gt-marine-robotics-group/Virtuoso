@@ -42,7 +42,10 @@ def generate_launch_description():
             launch_arguments={'sim_time': sim_time_config}.items()
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py'))),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py'))),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
+            launch_arguments={'sim_time': sim_time_config}.items()
+        ),
 
         Node(
             package='virtuoso_autonomy',
