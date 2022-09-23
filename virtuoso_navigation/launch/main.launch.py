@@ -1,3 +1,4 @@
+from struct import pack
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
@@ -39,12 +40,27 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
         'use_sim_time': sim_time_config}.items()),
+        # Node(
+        #     executable='controller_server',
+        #     package='nav2_controller',
+        #     parameters=[nav2_params_file]
+        # ),
+
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(rviz_launch_file),
             condition=IfCondition(sim_time_config)
         ),
-        Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
-        parameters=[{'use_sim_time': sim_time_config}]),
+        # Node(
+        #     executable='nav2_costmap_2d',
+        #     package='nav2_costmap_2d',
+        #     parameters=[costmap_params_file]
+        # ),
+        # Node(
+        #     executable='nav2_costmap_2d_cloud',
+        #     package='nav2_costmap_2d'
+        # ),
+        # Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
+        # parameters=[{'use_sim_time': sim_time_config}]),
 
         # Currently, state estimation only using odom frame for localization, so no difference between 
         # odom and map frame. Transformation being used for the costmaps.

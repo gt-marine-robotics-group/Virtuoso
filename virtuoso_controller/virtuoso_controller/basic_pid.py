@@ -54,7 +54,7 @@ class basicPID(Node):
         #subscribe to waypoints
         self.waypoint_subscriber = self.create_subscription(
             Odometry,
-            '/waypoint',
+            '/waypoint_manual',
             self.waypoint_callback,
             10)     
         self.navigateToPoint_subscriber = self.create_subscription(
@@ -165,6 +165,7 @@ class basicPID(Node):
         targetTorqueToSend.data = targetTorque
         
         if(self.receivedWaypoint):
+          #    self.get_logger().info('SENDING TARGET FORCES')
              self.targetForceXPub.publish(targetXToSend)
              self.targetForceYPub.publish(targetYToSend)
              self.targetTorquePub.publish(targetTorqueToSend)
