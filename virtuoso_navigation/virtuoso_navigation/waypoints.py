@@ -88,7 +88,7 @@ class Waypoints(Node):
     
     def navigate(self):
 
-        if self.path is None:
+        if self.robot_pose is None or self.path is None:
             return
 
         if not self.nav2_path:
