@@ -4,7 +4,7 @@ from rclpy import Future
 from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped
-from nav2_msgs.action import NavigateToPose
+from nav2_msgs.action import NavigateToPose, ComputePathToPose
 from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
 
@@ -14,7 +14,7 @@ class Waypoints(Node):
         super().__init__('waypoint_nav')
 
         self.goal_sub = self.create_subscription(Path, '/virtuoso_navigation/set_path', self.set_path, 10)
-        # self.nav_action = ActionClient(self, NavigateToPose, '/navigate_to_pose')
+        self.nav_action = ActionClient(self, ComputePathToPose, '/compute_path_to_pose')
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
 
         self.waypoint_pub = self.create_publisher(Odometry, '/waypoint_manual', 10)
@@ -23,6 +23,9 @@ class Waypoints(Node):
 
         self.waypoints_completed = 0
         self.path = None
+        self.nav2_path = None
+        self.nav2_waypoints_completed = 0
+        self.nav2_goal = None
         self.robot_pose = None
 
         self.create_timer(.1, self.navigate)
@@ -39,60 +42,83 @@ class Waypoints(Node):
 
         self.path = msg
         self.waypoints_completed = 0
+
+        self.nav2_path = None
+        self.nav2_waypoints_completed = 0
+        self.nav2_goal = None
+    
+    def calc_nav2_path(self):
+        self.get_logger().info('sending nav2 goal')
+        self.nav2_goal = ComputePathToPose.Goal()
+
+        self.nav2_goal.pose = PoseStamped()
+        self.nav2_goal.pose.pose = self.path.poses[self.waypoints_completed].pose
+
+        goal_future = self.nav_action.send_goal_async(self.nav2_goal)
+        goal_future.add_done_callback(self.nav2_goal_response_callback)
+
+    def nav2_goal_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('goal rejected')
+            # send straight path
+            return
+        self.get_logger().info('goal accepted')
+
+        result_future = goal_handle.get_result_async()
+        result_future.add_done_callback(self.nav2_goal_done_callback) 
+    
+    def nav2_goal_done_callback(self, future):
+        result = future.result()
+
+        self.nav2_path = result.result.path
+    
+    def find_next_nav2_waypoint(self):
+        if self.nav2_waypoints_completed == len(self.nav2_path.poses) - 1:
+            return self.nav2_waypoints_completed + 1
+        curr = self.nav2_path.poses[self.nav2_waypoints_completed].pose
+        next_point = self.nav2_waypoints_completed + 1
+        while next_point < len(self.nav2_path.poses):
+            if self.distance(curr, self.nav2_path.poses[next_point].pose) >= 1:
+                break
+            next_point += 1
+        if next_point == len(self.nav2_path.poses):
+            return next_point - 1
+        return next_point
     
     def navigate(self):
 
         if self.path is None:
             return
 
-        if self.distance(self.robot_pose, self.path.poses[self.waypoints_completed].pose) < 1:
-            self.waypoints_completed += 1
+        if not self.nav2_path:
+            if not self.nav2_goal:
+                self.calc_nav2_path() 
+            return        
 
-        if self.waypoints_completed == len(self.path.poses):
-            self.get_logger().info('COMPLETED GOAL')
-            self.success_pub.publish(self.path.poses[self.waypoints_completed - 1])
-            self.path = None
+        if self.distance(self.robot_pose, self.nav2_path.poses[self.nav2_waypoints_completed].pose) < 1:
+            self.nav2_waypoints_completed = self.find_next_nav2_waypoint()
+        
+        if self.nav2_waypoints_completed == len(self.nav2_path.poses):
+            self.waypoints_completed += 1
+            if self.waypoints_completed == len(self.path.poses):
+                self.get_logger().info('COMPLETED GOAL')
+                self.success_pub.publish(self.path.poses[self.waypoints_completed - 1])
+                self.path = None
+                return
+            self.nav2_path = None
+            self.nav2_goal = None
             return
 
+        self.send_waypoint(self.nav2_path.poses[self.nav2_waypoints_completed].pose)
+    
+    def send_waypoint(self, pose):
         msg = Odometry()
         msg.header.frame_id = 'map'
-        msg.pose.pose = self.path.poses[self.waypoints_completed].pose
+        msg.pose.pose = pose
+        msg.pose.pose.orientation = self.path.poses[self.waypoints_completed].pose.orientation
 
         self.waypoint_pub.publish(msg)
-
-    # def nav_to_next_waypoint(self):
-
-    #     if (self.waypoints_completed >= len(self.path.poses)):
-    #         self.success_pub.publish(self.path.poses[-1])
-    #         return
-
-    #     self.goal = NavigateToPose.Goal()
-    #     self.goal.pose = self.path.poses[self.waypoints_completed]
-    #     self.goal.behavior_tree = "/opt/ros/foxy/share/nav2_bt_navigator/behavior_trees/navigate_w_replanning_time.xml"
-        
-    #     goal_future = self.nav_action.send_goal_async(self.goal)
-
-    #     goal_future.add_done_callback(self.goal_response_callback)
-    
-    # def goal_response_callback(self, future:Future):
-    #     goal_handle = future.result()
-    #     if (not goal_handle.accepted):
-    #         self.get_logger().info('goal rejected')
-    #         return
-    #     self.get_logger().info('goal accepted')
-
-    #     result_future = goal_handle.get_result_async()
-    #     result_future.add_done_callback(self.goal_done_callback)
-    
-    # def goal_done_callback(self, future:Future):
-    #     result = future.result()
-    #     self.get_logger().info('successfully navigated to pose ' + str(self.waypoints_completed))
-
-    #     if (result.status == 4):
-    #         self.waypoints_completed += 1
-            
-    #     self.nav_to_next_waypoint()
-
 
 
 def main(args=None):
