@@ -34,7 +34,8 @@ setup(
             'test_controller = virtuoso_navigation.testing.controller:main',
             'test_forward = virtuoso_navigation.testing.forward:main',
             'test_backward = virtuoso_navigation.testing.backward:main',
-            'test_diamond = virtuoso_navigation.testing.diamond:main'
+            'test_diamond = virtuoso_navigation.testing.diamond:main',
+            'test_station_keeping = virtuoso_navigation.testing.station_keeping:main'
         ],
     },
 )
