@@ -50,15 +50,6 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(rviz_launch_file),
             condition=IfCondition(sim_time_config)
         ),
-        # Node(
-        #     executable='nav2_costmap_2d',
-        #     package='nav2_costmap_2d',
-        #     parameters=[costmap_params_file]
-        # ),
-        # Node(
-        #     executable='nav2_costmap_2d_cloud',
-        #     package='nav2_costmap_2d'
-        # ),
         # Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
         # parameters=[{'use_sim_time': sim_time_config}]),
 
