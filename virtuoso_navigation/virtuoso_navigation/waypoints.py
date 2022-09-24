@@ -79,7 +79,7 @@ class Waypoints(Node):
         curr = self.nav2_path.poses[self.nav2_waypoints_completed].pose
         next_point = self.nav2_waypoints_completed + 1
         while next_point < len(self.nav2_path.poses):
-            if self.distance(curr, self.nav2_path.poses[next_point].pose) >= 1:
+            if self.distance(curr, self.nav2_path.poses[next_point].pose) >= 10:
                 break
             next_point += 1
         if next_point == len(self.nav2_path.poses):
