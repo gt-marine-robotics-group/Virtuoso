@@ -28,6 +28,8 @@ class ShoreFilterer(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
     def callback(self, msg:PointCloud2):
+        self.publisher.publish(msg)
+        return
         if (not self.fromLL_cli.service_is_ready()):
             return
         if (not ShoreFilter.vrx_shore):

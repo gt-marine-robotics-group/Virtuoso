@@ -36,7 +36,7 @@ class TestForward(Node):
 
         path = Path()
 
-        self.robot_pose.pose.position.x -= self.get_parameter('dist').value
+        self.robot_pose.pose.position.y += self.get_parameter('dist').value
         self.robot_pose.header.frame_id = 'map'
 
         path.poses.append(self.robot_pose)
