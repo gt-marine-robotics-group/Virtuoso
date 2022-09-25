@@ -100,7 +100,7 @@ class motorCMDGenerator(Node):
         
     def timer_callback(self):
         # self.get_logger().info(f'RECEIVED COMMAND: {self.receivedCMD}')
-        if(self.receivedCMD):
+        if(self.receivedCMD and self.receivedBasic and self.receivedVel):
             leftFrontAngle = Float32()
             rightRearAngle = Float32()
             rightFrontAngle = Float32()      
@@ -116,12 +116,12 @@ class motorCMDGenerator(Node):
             rightFrontAngle.data = 90*numpy.pi/180*0
             leftRearAngle.data = -90*numpy.pi/180*0
 
-            # if (self.navigateToPoint):
-            targetForceX = self.basicForceX
-            targetForceY = self.basicForceY
-            # else:
-            #     targetForceX = self.velForceX
-            #     targetForceY= self.velForceY
+            if (self.navigateToPoint):
+                 targetForceX = self.basicForceX
+                 targetForceY = self.basicForceY
+            else:
+                 targetForceX = self.velForceX
+                 targetForceY= self.velForceY
             targetTorque = self.basicTorque
             
                   

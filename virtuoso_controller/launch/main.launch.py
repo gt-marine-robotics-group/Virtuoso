@@ -33,4 +33,8 @@ def generate_launch_description():
                 {'sim_time', sim_time_config}
             ]
         ),
+        Node(
+            package='virtuoso_controller',
+            executable='cmd_vel_generator',
+       )
     ])

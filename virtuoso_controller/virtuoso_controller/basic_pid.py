@@ -54,7 +54,7 @@ class basicPID(Node):
         #subscribe to waypoints
         self.waypoint_subscriber = self.create_subscription(
             Odometry,
-            '/waypoint_manual',
+            '/waypoint',
             self.waypoint_callback,
             10)     
         self.navigateToPoint_subscriber = self.create_subscription(
@@ -120,8 +120,8 @@ class basicPID(Node):
         if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
              targetForceY = (targetVel[1]*0.15 - currentVelY*0.15) + self.yIntegral*0.000
              targetForceX = (targetVel[0]*0.11 - currentVelX*0.11) + self.xIntegral*0.000
-     #    targetForceX = targetForceX * (5/3)
-     #    targetForceY = targetForceY * (5/3)
+        targetForceX = targetForceX * (5/3)
+        targetForceY = targetForceY * (5/3)
         if(abs(targetForceY) < 0.2):
              targetForceY = targetForceY/abs(targetForceY)*0.2
         if(abs(targetForceX)<0.2):
@@ -171,53 +171,6 @@ class basicPID(Node):
              self.targetForceXPub.publish(targetXToSend)
              self.targetForceYPub.publish(targetYToSend)
              self.targetTorquePub.publish(targetTorqueToSend)
-        
-        '''
-        leftFrontAngle = Float32()
-        rightRearAngle = Float32()
-        rightFrontAngle = Float32()      
-        leftRearAngle = Float32()
-        
-        leftFrontCmd = Float32()
-        rightRearCmd = Float32()
-        leftRearCmd = Float32()
-        rightFrontCmd = Float32()
-
-        leftFrontAngle.data = -90*numpy.pi/180
-        rightRearAngle.data = 90*numpy.pi/180
-        rightFrontAngle.data = 90*numpy.pi/180
-        leftRearAngle.data = -90*numpy.pi/180
-        
-        
-                     
-        leftFrontCmd.data = (-targetForceY - targetForceX - targetTorque)
-
-        rightFrontCmd.data = (targetForceY - targetForceX + targetTorque)
-        leftRearCmd.data = (-targetForceY*0.9 + targetForceX + targetTorque)
-        rightRearCmd.data = (targetForceY*0.9 + targetForceX - targetTorque)
-        
-        if(leftFrontCmd.data <0):
-             leftFrontCmd.data = leftFrontCmd.data*2.5
-        if(rightFrontCmd.data <0):
-             rightFrontCmd.data = rightFrontCmd.data*2.5
-        if(leftRearCmd.data <0):
-             leftRearCmd.data = leftRearCmd.data*2.5
-        if(rightRearCmd.data <0):
-             rightRearCmd.data = rightRearCmd.data*2.5
-                                                            
-        if(self.receivedWaypoint and self.navigateToPoint):
-             self.get_logger().info('targetTorque: ' + str(targetTorque))   
-             self.get_logger().info('Distance to target: ' + str(numpy.sqrt(velocityX**2 + velocityY**2))) 
-             self.rightFrontPubAngle.publish(rightFrontAngle)
-             self.leftRearPubAngle.publish(leftRearAngle)
-             self.leftFrontPubAngle.publish(leftFrontAngle)
-             self.rightRearPubAngle.publish(rightRearAngle)     
-         
-             self.leftFrontPubCmd.publish(leftFrontCmd)
-             self.rightRearPubCmd.publish(rightRearCmd)      
-             self.rightFrontPubCmd.publish(rightFrontCmd)
-             self.leftRearPubCmd.publish(leftRearCmd)       
-     	'''
         
         self.previousTargetWaypoint = self.targetWaypoint
 

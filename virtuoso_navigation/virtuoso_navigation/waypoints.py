@@ -20,6 +20,8 @@ class Waypoints(Node):
         self.waypoint_pub = self.create_publisher(Odometry, '/waypoint_manual', 10)
 
         self.success_pub = self.create_publisher(PoseStamped, '/virtuoso_navigation/success', 10)
+        
+        self.path_pub = self.create_publisher(Path, '/transformed_global_plan', 10)
 
         self.waypoints_completed = 0
         self.path = None
@@ -111,6 +113,7 @@ class Waypoints(Node):
             return
 
         self.send_waypoint(self.nav2_path.poses[self.nav2_waypoints_completed].pose)
+        self.path_pub.publish(self.nav2_path)
     
     def send_waypoint(self, pose):
         msg = Odometry()
