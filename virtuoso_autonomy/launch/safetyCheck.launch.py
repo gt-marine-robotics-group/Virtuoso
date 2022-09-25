@@ -30,7 +30,7 @@ def generate_launch_description():
         # IncludeLaunchDescription(
          #   PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'main.launch.py')),
          #   condition=UnlessCondition(sim_time_config)
-        # ),
+        #),
 
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py'))),
         IncludeLaunchDescription(

@@ -54,7 +54,7 @@ class basicPID(Node):
         #subscribe to waypoints
         self.waypoint_subscriber = self.create_subscription(
             Odometry,
-            '/waypoint',
+            '/waypoint_manual',
             self.waypoint_callback,
             10)     
         self.navigateToPoint_subscriber = self.create_subscription(
@@ -120,6 +120,8 @@ class basicPID(Node):
         if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
              targetForceY = (targetVel[1]*0.15 - currentVelY*0.15) + self.yIntegral*0.000
              targetForceX = (targetVel[0]*0.11 - currentVelX*0.11) + self.xIntegral*0.000
+        targetForceX = targetForceX * (5/3)
+        targetForceY = targetForceY * (5/3)
         if(abs(targetForceY) < 0.2):
              targetForceY = targetForceY/abs(targetForceY)*0.2
         if(abs(targetForceX)<0.2):
@@ -165,6 +167,7 @@ class basicPID(Node):
         targetTorqueToSend.data = targetTorque
         
         if(self.receivedWaypoint):
+          #    self.get_logger().info('SENDING TARGET FORCES')
              self.targetForceXPub.publish(targetXToSend)
              self.targetForceYPub.publish(targetYToSend)
              self.targetTorquePub.publish(targetTorqueToSend)

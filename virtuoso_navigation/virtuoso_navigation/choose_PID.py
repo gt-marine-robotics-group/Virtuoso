@@ -65,10 +65,10 @@ class choosePID(Node):
         
              distance = ((destX - selfX)**2 + (destY - selfY)**2)**(1/2)
              #self.get_logger().info('distance: ' + str(distance)) 
-             if(distance < 2.0):
-                  self.navigateToPoint.data = True
-             else:
-                  self.navigateToPoint.data = False
+            #  if(distance < 2.0):
+             self.navigateToPoint.data = True
+            #  else:
+            #       self.navigateToPoint.data = False
              self.navigateToPointPub.publish(self.navigateToPoint)
         
              targetWaypoint = Odometry()
