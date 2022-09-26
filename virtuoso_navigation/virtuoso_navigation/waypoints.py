@@ -26,7 +26,6 @@ class Waypoints(Node):
         self.waypoints_completed = 0
         self.path = None
         self.nav2_path = None
-        self.nav2_waypoints_completed = 0
         self.nav2_goal = None
         self.robot_pose = None
 
@@ -52,7 +51,6 @@ class Waypoints(Node):
     def calc_nav2_path(self):
         self.get_logger().info('sending nav2 goal')
         self.nav2_goal = ComputePathToPose.Goal()
-        self.nav2_waypoints_completed = 0
 
         self.nav2_goal.pose = PoseStamped()
         self.nav2_goal.pose.pose = self.path.poses[self.waypoints_completed].pose
@@ -76,19 +74,6 @@ class Waypoints(Node):
 
         self.nav2_path = result.result.path
     
-    def find_next_nav2_waypoint(self):
-        if self.nav2_waypoints_completed == len(self.nav2_path.poses) - 1:
-            return self.nav2_waypoints_completed + 1
-        curr = self.nav2_path.poses[self.nav2_waypoints_completed].pose
-        next_point = self.nav2_waypoints_completed + 1
-        while next_point < len(self.nav2_path.poses):
-            if self.distance(curr, self.nav2_path.poses[next_point].pose) >= 1:
-                break
-            next_point += 1
-        if next_point == len(self.nav2_path.poses):
-            return next_point - 1
-        return next_point
-    
     def navigate(self):
 
         if self.robot_pose is None or self.path is None:
@@ -99,22 +84,16 @@ class Waypoints(Node):
                 self.calc_nav2_path() 
             return        
 
-        # self.get_logger().info(f'Nav2 waypoints completed: {self.nav2_waypoints_completed}')
-        # self.get_logger().info(f'Nav2 poses: {len(self.nav2_path.poses)}')
-        if self.distance(self.robot_pose, self.nav2_path.poses[self.nav2_waypoints_completed].pose) < 1:
-            self.nav2_waypoints_completed = self.find_next_nav2_waypoint()
-        
-        if self.nav2_waypoints_completed == len(self.nav2_path.poses):
+        if self.distance(self.robot_pose, self.path.poses[self.waypoints_completed].pose) < 1:
             self.waypoints_completed += 1
             if self.waypoints_completed == len(self.path.poses):
                 self.get_logger().info('COMPLETED GOAL')
                 self.success_pub.publish(self.path.poses[self.waypoints_completed - 1])
                 self.path = None
-                return
             self.nav2_path = None
             self.nav2_goal = None
             return
-
+        
         self.send_waypoint(self.nav2_path.poses[self.nav2_waypoints_completed].pose)
         self.path_pub.publish(self.nav2_path)
     
