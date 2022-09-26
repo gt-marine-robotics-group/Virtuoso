@@ -52,6 +52,7 @@ class Waypoints(Node):
     def calc_nav2_path(self):
         self.get_logger().info('sending nav2 goal')
         self.nav2_goal = ComputePathToPose.Goal()
+        self.nav2_waypoints_completed = 0
 
         self.nav2_goal.pose = PoseStamped()
         self.nav2_goal.pose.pose = self.path.poses[self.waypoints_completed].pose
@@ -81,7 +82,7 @@ class Waypoints(Node):
         curr = self.nav2_path.poses[self.nav2_waypoints_completed].pose
         next_point = self.nav2_waypoints_completed + 1
         while next_point < len(self.nav2_path.poses):
-            if self.distance(curr, self.nav2_path.poses[next_point].pose) >= 10:
+            if self.distance(curr, self.nav2_path.poses[next_point].pose) >= 1:
                 break
             next_point += 1
         if next_point == len(self.nav2_path.poses):
@@ -98,6 +99,8 @@ class Waypoints(Node):
                 self.calc_nav2_path() 
             return        
 
+        # self.get_logger().info(f'Nav2 waypoints completed: {self.nav2_waypoints_completed}')
+        # self.get_logger().info(f'Nav2 poses: {len(self.nav2_path.poses)}')
         if self.distance(self.robot_pose, self.nav2_path.poses[self.nav2_waypoints_completed].pose) < 1:
             self.nav2_waypoints_completed = self.find_next_nav2_waypoint()
         
