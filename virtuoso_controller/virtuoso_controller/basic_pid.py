@@ -120,8 +120,8 @@ class basicPID(Node):
         if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
              targetForceY = (targetVel[1]*0.15 - currentVelY*0.15) + self.yIntegral*0.000
              targetForceX = (targetVel[0]*0.11 - currentVelX*0.11) + self.xIntegral*0.000
-        targetForceX = targetForceX * (5/3)
-        targetForceY = targetForceY * (5/3)
+        targetForceX = targetForceX * (5/3) * 4
+        targetForceY = targetForceY * (5/3) * 4
         if(abs(targetForceY) < 0.2):
              targetForceY = targetForceY/abs(targetForceY)*0.2
         if(abs(targetForceX)<0.2):

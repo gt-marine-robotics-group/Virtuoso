@@ -65,8 +65,10 @@ class cmdVelGenerator(Node):
                   if (nextPoseDistance < minPoseDistance):
                       closestPose = i
              if(len(self.nav2Path.poses) > i+1):
-                  closestPose = i + 1     
-             
+                  closestPose = i + 1   
+                    
+
+                               
              nextX = self.nav2Path.poses[closestPose].pose.position.x
              nextY = self.nav2Path.poses[closestPose].pose.position.y
              if(len(self.nav2Path.poses) > closestPose+1):
@@ -75,7 +77,10 @@ class cmdVelGenerator(Node):
              else:
                  secondX = nextX
                  secondY = nextY
-             
+                 
+             if(secondX != nextX):
+                 minPoseDistance = abs((secondX - nextX)*(nextY - selfY) - (nextX - selfX)*(secondY - nextY))/((secondX - nextX)**2 + (secondY - nextY)**2)**(1/2)    
+                              
              q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
              q_inv = q.copy()
              q_inv[0] = -q_inv[0]
@@ -89,19 +94,25 @@ class cmdVelGenerator(Node):
              vel_parallel2 = tf_transformations.quaternion_multiply(vel_parallel, q)      
              vel_parallel = [vel_parallel[0], vel_parallel[1], vel_parallel[2], vel_parallel[3]]       
              #self.get_logger().info('vel_parallel: ' + str(vel_parallel))             
-             vel_parallel_mag = 2.0/((vel_parallel[0])**2 + (vel_parallel[1])**2)**(1/2)
+             
+             vel_angle = numpy.arctan2(vel_parallel[0], vel_parallel[1])
+             
+             vel_parallel_speed = 2.0 - 2.0*abs(vel_angle)/numpy.pi - 2.0*minPoseDistance/3.0
+             
+             if(vel_parallel_speed < 0.3):
+                  vel_parallel_speed = 0.3
+             
+             vel_parallel_mag = vel_parallel_speed/((vel_parallel[0])**2 + (vel_parallel[1])**2)**(1/2)
 
              vel_towards = [float(nextX - selfX), float(nextY - selfY), 0.0, 0.0]
              vel_towards = tf_transformations.quaternion_multiply(q_inv, vel_towards)
              vel_towards2 = tf_transformations.quaternion_multiply(vel_towards, q)      
              vel_towards = [vel_towards2[0], vel_towards2[1], vel_towards2[2], vel_towards2[3]]       
              
-             if(secondX != nextX):
-                  minPoseDistance = abs((secondX - nextX)*(nextY - selfY) - (nextX - selfX)*(secondY - nextY))/((secondX - nextX)**2 + (secondY - nextY)**2)**(1/2)     
                
-             speed_towards = minPoseDistance/5.0
-             if(speed_towards > 0.4):
-                 speed_towards = 0.4
+             speed_towards = minPoseDistance/2.0
+             if(speed_towards > 0.8):
+                 speed_towards = 0.8
              if(speed_towards < 0.05):
                  speed_towards = 0.05
              
@@ -115,7 +126,7 @@ class cmdVelGenerator(Node):
              velToCommand.linear.x = vel_parallel[0] + vel_towards[0];
              velToCommand.linear.y = vel_parallel[1] + vel_towards[1];
              
-             speed = 1.5
+             speed = 1.5 - 1.5*abs(vel_angle)/numpy.pi
              
              if(distToTarget < 6.0):
                  speed = distToTarget/4.0
