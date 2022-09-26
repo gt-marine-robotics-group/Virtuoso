@@ -95,7 +95,7 @@ class motorCMDGenerator(Node):
         self.velTorque = msg.data
 
     def checkReceivedCmd(self):
-        if(self.receivedBasic):
+        if(self.receivedBasic and self.receivedVel):
             self.receivedCMD = True
         
     def timer_callback(self):
