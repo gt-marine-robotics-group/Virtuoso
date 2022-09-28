@@ -100,11 +100,11 @@ class cmdVelGenerator(Node):
              
              vel_parallel_speed = 2.0
              if(distToTarget < 6.0):
-                  vel_parallel_speed = distToTarget/4.0
+                  vel_parallel_speed = distToTarget/3.0
              if(vel_parallel_speed < 0.3):
                   vel_parallel_speed = 0.3
              
-             vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*minPoseDistance/2.0
+             vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*minPoseDistance/3.0
              
              if(vel_parallel_speed < 0.3):
                   vel_parallel_speed = 0.3
@@ -113,6 +113,11 @@ class cmdVelGenerator(Node):
              
              vel_parallel[0] = vel_parallel[0]*vel_parallel_mag
              vel_parallel[1] = vel_parallel[1]*vel_parallel_mag
+             
+             if(numpy.isnan(vel_parallel[0])):
+                  vel_parallel[0] = 0.0
+             if(numpy.isnan(vel_parallel[1])):
+                  vel_parallel[1] = 0.0
              
              self.get_logger().info('vel_parallel: ' + str(vel_parallel))              
              
@@ -142,7 +147,7 @@ class cmdVelGenerator(Node):
              vel_towards = [vel_towards2[0], vel_towards2[1], vel_towards2[2], vel_towards2[3]]       
            
                
-             speed_towards = minPoseDistance/3.0
+             speed_towards = minPoseDistance/2.0
              if(speed_towards > 2.0):
                  speed_towards = 2.0
              if(speed_towards < 0.05):
@@ -166,8 +171,8 @@ class cmdVelGenerator(Node):
              
              vel_angle = numpy.arctan2(velToCommand.linear.x, velToCommand.linear.y)
              
-             velToCommand.linear.x = velToCommand.linear.x - velToCommand.linear.x*abs(vel_angle)/numpy.pi
-             velToCommand.linear.y = velToCommand.linear.y - velToCommand.linear.y*abs(vel_angle)/numpy.pi
+             velToCommand.linear.x = velToCommand.linear.x - velToCommand.linear.x*abs(vel_angle)/numpy.pi/2
+             velToCommand.linear.y = velToCommand.linear.y - velToCommand.linear.y*abs(vel_angle)/numpy.pi/2
              '''
              speed = 1.5 - 1.5*abs(vel_angle)/numpy.pi
              
