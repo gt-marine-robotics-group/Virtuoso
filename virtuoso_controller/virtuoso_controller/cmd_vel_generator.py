@@ -81,7 +81,7 @@ class cmdVelGenerator(Node):
                  
              if(secondX != nextX or secondY != nextY):
                  minPoseDistance = abs((secondX - nextX)*(nextY - selfY) - (nextX - selfX)*(secondY - nextY))/((secondX - nextX)**2 + (secondY - nextY)**2)**(1/2)    
-             self.get_logger().info('minPoseDistance: ' + str(minPoseDistance))                          
+             #self.get_logger().info('minPoseDistance: ' + str(minPoseDistance))                          
              q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
              q_inv = q.copy()
              q_inv[0] = -q_inv[0]
@@ -119,7 +119,7 @@ class cmdVelGenerator(Node):
              if(numpy.isnan(vel_parallel[1])):
                   vel_parallel[1] = 0.0
              
-             self.get_logger().info('vel_parallel: ' + str(vel_parallel))              
+             #self.get_logger().info('vel_parallel: ' + str(vel_parallel))              
              
              closestX = 0.0
              closestY = 0.0
@@ -163,7 +163,7 @@ class cmdVelGenerator(Node):
                         
              vel_towards[0] = vel_towards[0]*vel_towards_mag
              vel_towards[1] = vel_towards[1]*vel_towards_mag      
-             self.get_logger().info('vel_towards: ' + str(vel_towards))  
+             #self.get_logger().info('vel_towards: ' + str(vel_towards))  
                                
              velToCommand = Twist()
              velToCommand.linear.x = vel_parallel[0] + vel_towards[0];
