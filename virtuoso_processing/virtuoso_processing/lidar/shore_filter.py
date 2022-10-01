@@ -3,7 +3,6 @@ from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 import math
 from ..utils.pointcloud import read_points, create_cloud_xyz32
-from ..utils.shore import ShoreFilter
 from robot_localization.srv import FromLL
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
