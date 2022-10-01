@@ -8,9 +8,8 @@ class SelfFilter(Node):
 
     def __init__(self):
         super().__init__('self_filter')
-        # self.lidar_sub = self.create_subscription(PointCloud2, '/points_shore_filtered', self.callback, 10)
-        self.lidar_sub = self.create_subscription(PointCloud2, '/points_nonground', self.callback, 10)
-        self.publisher = self.create_publisher(PointCloud2, '/points_self_filtered', 10)
+        self.lidar_sub = self.create_subscription(PointCloud2, '/processing/points_nonground', self.callback, 10)
+        self.publisher = self.create_publisher(PointCloud2, '/processing/points_self_filtered', 10)
 
     def callback(self, msg:PointCloud2):
 
