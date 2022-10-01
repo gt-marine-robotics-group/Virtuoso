@@ -104,7 +104,7 @@ class SafetyCheck(Node):
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
         # For gymkhana, this number will be 5
-        if len(self.channel_nav.channels) == 2:
+        if len(self.channel_nav.channels) == 1:
             self.channel_nav.end_nav = True
 
         self.nav_to_next_midpoint()
