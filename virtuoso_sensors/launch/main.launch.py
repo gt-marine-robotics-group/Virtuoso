@@ -14,5 +14,6 @@ def generate_launch_description():
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/lidar.launch.py'))),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/gps.launch.py'))),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/imu.launch.py')))
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/imu.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/camera.launch.py')))
     ])

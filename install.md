@@ -43,6 +43,8 @@ Install processing dependencies (https://github.com/gt-marine-robotics-group/Vir
 
 Install perception dependencies (https://github.com/gt-marine-robotics-group/Virtuoso/tree/main/virtuoso_perception)
 
+Install sensor dependencies (see sensor package readme)
+
 ### Clone the messages workspace into a separate workspace from the vrx workspace and the workspace with virtuoso
 https://github.com/gt-marine-robotics-group/Virtuoso-Messages
 
