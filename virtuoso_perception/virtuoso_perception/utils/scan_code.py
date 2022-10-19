@@ -6,7 +6,7 @@ import numpy as np
 def distance(a, b):
     return math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
-def find_display_box(bgr, targetCoord=None, targetArea=None):
+def find_display_box(bgr, targetCoord=None):
     canny = cv2.Canny(bgr, 50, 150)
 
     kernel = np.ones((3))
@@ -27,9 +27,13 @@ def find_display_box(bgr, targetCoord=None, targetArea=None):
                 closestCoord = (x, y)
                 closestArea = w * h
             continue
+        # else:
+        #     if closestArea is None:
+        #         closestArea = w * h
 
-        if closestCoord is None or (distance((x, y), targetCoord) < distance(closestCoord, targetCoord) 
-        and (w * h) - targetArea < closestArea - targetArea):
+
+        if closestCoord is None or (distance((x, y), targetCoord) < 10 
+            and (w * h) > closestArea):
             closestCoord = (x, y)
             closestArea = w * h
 
@@ -46,7 +50,7 @@ def find_code_coords_and_size(bgr):
 
     return find_display_box(red_or_orange)
 
-def read_curr_code(bgr, coord, area):
+def read_curr_code(bgr, coord):
 
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
 
@@ -57,3 +61,23 @@ def read_curr_code(bgr, coord, area):
     red_or_orange = filter.red_orange_filter(white)
     green = filter.green_filter()
     blue = filter.blue_filter()
+
+    boxes = [ # [r, g, b]
+        find_display_box(red_or_orange, coord),
+        find_display_box(green, coord),
+        find_display_box(blue, coord)
+    ]
+
+    curr_code = -1
+
+    for i, box in enumerate(boxes):
+        if box[0] is None or box[1] is None:
+            continue
+        if box[1] < 500 or distance(box[0], coord) > 30:
+            continue
+        if curr_code == -1 or distance(box[0], coord) < distance(boxes[curr_code][0], coord):
+            curr_code = i
+
+    return curr_code
+
+
