@@ -13,7 +13,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py'))),
-        (os.path.join('share', package_name, 'param'), glob(os.path.join('param', '*.param.yaml')))
+        (os.path.join('share', package_name, 'param'), glob(os.path.join('param', '*.yaml')))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -31,7 +31,12 @@ setup(
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',
             'test_change_goal = virtuoso_navigation.testing.change_goal:main',
             'test_waypoints = virtuoso_navigation.testing.waypoints:main',
-            'test_controller = virtuoso_navigation.testing.controller:main'
+            'test_controller = virtuoso_navigation.testing.controller:main',
+            'test_forward = virtuoso_navigation.testing.forward:main',
+            'test_backward = virtuoso_navigation.testing.backward:main',
+            'test_diamond = virtuoso_navigation.testing.diamond:main',
+            'test_station_keeping = virtuoso_navigation.testing.station_keeping:main',
+            'test_circle = virtuoso_navigation.testing.circle:main'
         ],
     },
 )

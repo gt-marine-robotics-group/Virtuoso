@@ -3,7 +3,6 @@ from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 import math
 from ..utils.pointcloud import read_points, create_cloud_xyz32
-from ..utils.shore import ShoreFilter
 from robot_localization.srv import FromLL
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
@@ -16,55 +15,29 @@ class ShoreFilterer(Node):
     def __init__(self):
         super().__init__('shore_filter')
 
-        # self.lidar_sub = self.create_subscription(PointCloud2, '/points_nonground', self.callback, 10)
-        self.lidar_sub = self.create_subscription(PointCloud2, '/local_costmap/voxel_grid', self.callback, 10)
-        self.publisher = self.create_publisher(PointCloud2, '/points_shore_filtered', 10)
-
-        self.poly_pub = self.create_publisher(MarkerArray, '/shore_polygon', 10)
-
-        self.fromLL_cli = self.create_client(FromLL, '/fromLL')
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.lidar_sub = self.create_subscription(PointCloud2, '/processing/points_self_filtered', self.callback, 10)
+        self.publisher = self.create_publisher(PointCloud2, '/processing/points_shore_filtered', 10)
 
     def callback(self, msg:PointCloud2):
-        if (not self.fromLL_cli.service_is_ready()):
-            return
-        if (not ShoreFilter.vrx_shore):
-            ShoreFilter.create_shore(self.fromLL_cli, self.tf_buffer)
-            return
 
-        filtered = ShoreFilter.filter_points(msg, self.tf_buffer)
+        points = [] 
 
-        self.display_border_array()
+        for i, point in enumerate(read_points(msg)):
+            points.append([0, 0, 0])
+            if point[0] <= 0 or point[1] > 15 or point[1] < -15:
+                points[i][0] = float("NaN")
+                points[i][1] = float("NaN")
+                points[i][2] = float("NaN")
+            else:
+                points[i][0] = point[0] 
+                points[i][1] = point[1]
+                points[i][2] = point[2] 
+        
+        
+        filtered_cloud = create_cloud_xyz32(msg.header, points)
 
-        if filtered is not None:
-            self.publisher.publish(filtered)
+        self.publisher.publish(filtered_cloud)
     
-    # Mainly for debugging,
-    # displays the points that make up the shore, labelled 1 - (1 - len)
-    def display_border_array(self):
-        markerArr = MarkerArray()
-        for i, p in enumerate(ShoreFilter.vrx_border_mappoints):
-            marker = Marker()
-            marker.ns = 'polygon_border'
-            marker.id = i
-            marker.type = Marker.TEXT_VIEW_FACING
-            marker.header.frame_id = 'map'
-            marker.pose.position = p
-            marker.scale.x = 1.0
-            marker.scale.y = 1.0
-            marker.scale.z = 1.0
-            marker.color.r = 0.0
-            marker.color.g = 1.0
-            marker.color.b = 0.0
-            marker.color.a = 1.0
-            marker.lifetime = Duration(seconds=0).to_msg()
-            marker.text = str(i)
-            markerArr.markers.append(marker)
-
-        self.poly_pub.publish(markerArr)
-
 
 def main(args=None):
     
