@@ -6,6 +6,7 @@ from cv_bridge import CvBridge
 import cv2
 from ..utils.scan_code import read_curr_code, find_code_coords_and_size
 import numpy as np
+from collections import deque
 
 class ScanCode(Node):
 
@@ -20,13 +21,49 @@ class ScanCode(Node):
         self.image = None
 
         # scan twice (or more) to verify code is correct before publishing
-        self.codes = [] # [['red', 'green', 'blue], ['red', 'green', 'blue']]
-        self.is_black = False # code resets when it goes black
+        self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
+        self.curr_raw_data = deque(maxlen=5)
+        self.curr_code_found = list()
+
+        self.code_published = False
 
         self.code_coords = dict()
         self.code_coord = None
 
         self.create_timer(.1, self.read_code)
+    
+    def find_mode(self, data):
+        counts = dict()
+        curr_mode = None
+        for d in data:
+            if d in counts:
+                counts[d] += 1
+            else:
+                counts[d] = 0
+            if curr_mode is None or counts[d] > counts[curr_mode]:
+                curr_mode = d
+        return curr_mode
+    
+    def add_curr_code(self, code):
+        # make sure the first code we add is black
+        if len(self.curr_code_found) == 0 and code != -1:
+            return
+
+        if code in self.curr_code_found:
+            return
+        self.curr_code_found.append(code)
+    
+    def update_codes(self):
+        self.codes.append(self.curr_code_found)
+        self.curr_code_found = list()
+        if len(self.codes) == 2:
+            self.check_for_finalized_code()
+    
+    def check_for_finalized_code(self):
+        if self.codes[0] != self.codes[1]:
+            return
+        self.code_published = True
+        self.get_logger().info(f'FOUND CODE: {self.codes[0]}')
 
     def image_callback(self, msg:Image):
         self.image = msg
@@ -36,10 +73,6 @@ class ScanCode(Node):
             return self.code_coord
 
         coord, size = find_code_coords_and_size(bgr)
-
-        self.get_logger().info(str((coord, size)))
-        self.get_logger().info(str(self.code_coords))
-        self.get_logger().info('--------')
 
         if coord is None or size is None:
             return None
@@ -63,31 +96,34 @@ class ScanCode(Node):
 
     def read_code(self):
 
+        if self.code_published:
+            return
+
         if self.image is None:
             return
 
         bgr = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
 
-        # curr_code = read_curr_code(bgr)
         coord = self.get_code_coord(bgr)
 
         if coord is None:
             return
         
-        self.get_logger().info(str(coord))
-
         curr_code = read_curr_code(bgr, coord)
 
-        self.get_logger().info(str(curr_code))
+        self.curr_raw_data.append(curr_code)
 
-        # self.get_logger().info(str(box))
+        if len(self.curr_raw_data) < 5:
+            return
+        
+        curr_code = self.find_mode(self.curr_raw_data)
 
-        # image_msg = CvBridge().cv2_to_imgmsg(curr_code)
-        # self.get_logger().info(str(np.shape(curr_code)))
-        # self.get_logger().info(str(len(curr_code)))
-        self.get_logger().info('-------')
+        self.add_curr_code(curr_code) 
 
-        # self.debug_pub.publish(image_msg)
+        self.get_logger().info(str(self.curr_code_found))
+
+        if len(self.curr_code_found) == 4:
+            self.update_codes()
 
     def distance(self, a, b):
         return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
