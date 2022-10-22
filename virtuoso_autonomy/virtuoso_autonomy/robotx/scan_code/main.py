@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray
+from nav_msgs.msg import Path, Odometry
 
 class ScanCode(Node):
 
@@ -8,17 +9,39 @@ class ScanCode(Node):
         super().__init__('autonomy_scan_code')
 
         self.scan_req_pub = self.create_publisher(Int8, '/perception/get_code', 10)
+        self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 
         self.scan_res_sub = self.create_subscription(Int32MultiArray, '/perception/code',
             self.code_callback, 10)
+        self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
+            self.odom_callback, 10)
 
         self.req_sent = False
+        self.station_keeping_enabled = False
+        self.odom = False
 
         self.create_timer(1.0, self.send_req)
     
+    def odom_callback(self, msg):
+        if not self.odom is None:
+            return
+        self.odom = msg
+        self.enable_station_keeping()
+
+    def enable_station_keeping(self):
+        path = Path()
+        path.poses.append(self.odom.pose.pose)
+        self.path_pub.publish(path)
+        self.station_keeping_enabled = True
+        self.get_logger().info('Station Keeping Enabled')
+    
     def send_req(self):
+        if not self.station_keeping_enabled:
+            return
+
         if self.req_sent:
             return
+
         self.get_logger().info('Sending Scan Code Request')
         self.req_sent = True
         self.scan_req_pub.publish(Int8(data=1))
