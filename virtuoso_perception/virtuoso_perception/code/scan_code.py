@@ -2,6 +2,7 @@ from math import sqrt
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from std_msgs.msg import Int32MultiArray, Int8
 from cv_bridge import CvBridge
 import cv2
 from ..utils.scan_code import read_curr_code, find_code_coords_and_size
@@ -16,9 +17,12 @@ class ScanCode(Node):
         # self.camera_sub = self.create_subscription(Image, '/downscaled_image', self.image_callback, 10)
         self.camera_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.image_callback, 10)
-        self.debug_pub = self.create_publisher(Image, '/scan_code/debug', 10)
+        self.get_code_sub = self.create_subscription(Int8, '/perception/get_code', 
+            self.start_scan, 10)
+        self.code_pub = self.create_publisher(Int32MultiArray, '/perception/code', 10)
 
         self.image = None
+        self.scan_requested = False
 
         # scan twice (or more) to verify code is correct before publishing
         self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
@@ -27,10 +31,16 @@ class ScanCode(Node):
 
         self.code_published = False
 
+        self.code_requested = False
+
         self.code_coords = dict()
         self.code_coord = None
 
         self.create_timer(.1, self.read_code)
+    
+    def start_scan(self, msg):
+        self.get_logger().info('Received Scan Code Request')
+        self.scan_requested = True
     
     def find_mode(self, data):
         counts = dict()
@@ -63,7 +73,11 @@ class ScanCode(Node):
         if self.codes[0] != self.codes[1]:
             return
         self.code_published = True
-        self.get_logger().info(f'FOUND CODE: {self.codes[0]}')
+        msg = Int32MultiArray()
+        msg.data = self.codes[0][1:]
+        self.code_pub.publish(msg)
+        # self.finalized_code = self.codes[0][1:-1]
+        self.get_logger().info(f'FOUND CODE: {self.codes[0][1:]}')
 
     def image_callback(self, msg:Image):
         self.image = msg
@@ -95,6 +109,10 @@ class ScanCode(Node):
         return self.code_coord
 
     def read_code(self):
+        # self.get_logger().info(str(self.scan_requested))
+
+        if not self.scan_requested:
+            return
 
         if self.code_published:
             return
@@ -112,6 +130,8 @@ class ScanCode(Node):
         curr_code = read_curr_code(bgr, coord)
 
         self.curr_raw_data.append(curr_code)
+
+        self.get_logger().info(str(self.curr_raw_data))
 
         if len(self.curr_raw_data) < 5:
             return
