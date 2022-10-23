@@ -30,7 +30,8 @@ setup(
             'wayfinding = virtuoso_autonomy.tasks.wayfinding.main:main',
             'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.main:main',
             'robotX_gymkhana = virtuoso_autonomy.robotx.gymkhana.main:main',
-            'robotX_enter_exit = virtuoso_autonomy.robotx.enter_and_exit.main:main'
+            'robotX_enter_exit = virtuoso_autonomy.robotx.enter_and_exit.main:main',
+            'robotX_heartbeat = virtuoso_autonomy.robotx.heartbeat.main:main'
         ],
     },
 )
