@@ -1,12 +1,13 @@
 import math
 import cv2
+from cv_bridge import CvBridge
 from .ColorFilter import ColorFilter
 import numpy as np
 
 def distance(a, b):
     return math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
 
-def find_display_box(bgr, targetCoord=None):
+def find_display_box(bgr, targetCoord=None, node=None):
     canny = cv2.Canny(bgr, 50, 150)
 
     kernel = np.ones((3))
@@ -21,6 +22,11 @@ def find_display_box(bgr, targetCoord=None):
     for cnt in contours:
 
         x, y, w, h = cv2.boundingRect(cnt)
+
+        if not node is None:
+            node.get_logger().info(str((x, y)))
+            node.get_logger().info(str(w * h))
+            node.get_logger().info('----------')
 
         if targetCoord is None:
             if closestArea is None or closestArea < w * h:
@@ -39,7 +45,7 @@ def find_display_box(bgr, targetCoord=None):
 
     return closestCoord, closestArea
 
-def find_code_coords_and_size(bgr):
+def find_code_coords_and_size(bgr, node):
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
 
     filter = ColorFilter(hsv, bgr)
@@ -47,6 +53,10 @@ def find_code_coords_and_size(bgr):
     white = filter.white_filter()
     # No other red objects in background to confuse filter
     red_or_orange = filter.red_orange_filter(white)
+    # red_or_orange = filter.blue_filter()
+
+    image = CvBridge().cv2_to_imgmsg(red_or_orange, encoding='bgr8')
+    node.debug_pub.publish(image)
 
     return find_display_box(red_or_orange)
 

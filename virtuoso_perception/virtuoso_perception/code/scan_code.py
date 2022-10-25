@@ -21,8 +21,11 @@ class ScanCode(Node):
             self.start_scan, 10)
         self.code_pub = self.create_publisher(Int32MultiArray, '/perception/code', 10)
 
+        self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
+
         self.image = None
-        self.scan_requested = False
+        # self.scan_requested = False
+        self.scan_requested = True
 
         # scan twice (or more) to verify code is correct before publishing
         self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
@@ -86,7 +89,7 @@ class ScanCode(Node):
         if not self.code_coord is None:
             return self.code_coord
 
-        coord, size = find_code_coords_and_size(bgr)
+        coord, size = find_code_coords_and_size(bgr, self)
 
         if coord is None or size is None:
             return None
@@ -94,6 +97,7 @@ class ScanCode(Node):
         if size < 500:
             return
 
+        self.get_logger().info(f'coord: {coord}')
         for key, value in self.code_coords.items():
             if self.distance(key, coord) < 10:
                 self.code_coords.pop(key)
