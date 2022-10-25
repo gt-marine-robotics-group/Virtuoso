@@ -34,8 +34,6 @@ class ScanCode(Node):
 
         self.code_published = False
 
-        self.code_requested = False
-
         self.code_coords = dict()
         self.code_coord = None
 
