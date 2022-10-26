@@ -26,8 +26,8 @@ class ScanCode(Node):
         self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
 
         self.image = None
-        self.scan_requested = False
-        # self.scan_requested = True
+        # self.scan_requested = False
+        self.scan_requested = True
 
         # scan twice (or more) to verify code is correct before publishing
         self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
