@@ -19,13 +19,15 @@ class ScanCode(Node):
             self.image_callback, 10)
         self.get_code_sub = self.create_subscription(Int8, '/perception/get_code', 
             self.start_scan, 10)
+
+        self.ready_pub = self.create_publisher(Int8, '/perception/scan_code/ready', 10)
         self.code_pub = self.create_publisher(Int32MultiArray, '/perception/code', 10)
 
         self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
 
         self.image = None
-        # self.scan_requested = False
-        self.scan_requested = True
+        self.scan_requested = False
+        # self.scan_requested = True
 
         # scan twice (or more) to verify code is correct before publishing
         self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
@@ -38,6 +40,14 @@ class ScanCode(Node):
         self.code_coord = None
 
         self.create_timer(.1, self.read_code)
+        self.create_timer(1.0, self.send_ready)
+    
+    def send_ready(self):
+        if self.scan_requested:
+            return
+        msg = Int8()
+        msg.data = 1
+        self.ready_pub.publish(msg)
     
     def start_scan(self, msg):
         self.get_logger().info('Received Scan Code Request')
