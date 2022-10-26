@@ -25,7 +25,7 @@ class ColorFilter():
         return self.filter(lower, upper)
 
     def red_orange_filter(self, white_filtered):
-        lower_red = np.array([0, 100, 100])
+        lower_red = np.array([0, 50, 50])
         upper_red = np.array([10, 255, 255])
 
         # return self.filter(lower_red, upper_red)
