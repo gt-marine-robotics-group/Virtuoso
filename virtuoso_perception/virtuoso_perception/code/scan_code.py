@@ -72,10 +72,13 @@ class ScanCode(Node):
         # make sure the first code we add is black
         if len(self.curr_code_found) == 0 and code != -1:
             return
-
+        
+        if code == -1 and len(self.curr_code_found) > 0:
+            return
+        
         if len(self.curr_code_found) > 0 and code == self.curr_code_found[-1]:
             return
-
+        
         self.curr_code_found.append(code)
     
     def update_codes(self):
