@@ -37,7 +37,10 @@ class ScanCode(Node):
         self.code_published = False
 
         self.code_coords = dict()
+        self.coord_sizes = dict()
         self.code_coord = None
+        self.code_coord_iteration = 0
+        self.coord_largest_size = None
 
         self.create_timer(.1, self.read_code)
         self.create_timer(1.0, self.send_ready)
@@ -96,27 +99,41 @@ class ScanCode(Node):
     def get_code_coord(self, bgr):
         if not self.code_coord is None:
             return self.code_coord
+        
+        self.code_coord_iteration += 1
 
         coord, size = find_code_coords_and_size(bgr, self)
 
         if coord is None or size is None:
             return None
 
-        if size < 500:
-            return
-
         self.get_logger().info(f'coord: {coord}')
         for key, value in self.code_coords.items():
             if self.distance(key, coord) < 10:
                 self.code_coords.pop(key)
+                prevSize = self.coord_sizes.pop(key)
                 newKey = self.calc_new_avg(key, value, coord)
                 self.code_coords[newKey] = value + 1
-                if value + 1 > 9:
-                    self.code_coord = newKey
-                    return self.code_coord
+                self.coord_sizes[newKey] = ((prevSize * value) + size) / (value + 1)
+
+                if ((self.coord_largest_size is None or 
+                    not self.coord_largest_size in self.coord_sizes or
+                    self.coord_sizes[newKey] > self.coord_sizes[self.coord_largest_size]) 
+                    and (value + 1 > 4)):
+                    self.coord_largest_size = newKey
+                # self.coord_sizes
+                # if value + 1 > 9:
+                #     self.code_coord = newKey
+                #     return self.code_coord
                 break
         else: # if we never break
             self.code_coords[coord] = 1
+            self.coord_sizes[coord] = size
+        
+        if self.code_coord_iteration < 50:
+            return None
+        
+        self.code_coord = self.coord_largest_size
         
         return self.code_coord
 
@@ -138,6 +155,8 @@ class ScanCode(Node):
 
         if coord is None:
             return
+        
+        self.get_logger().info(f'coord: {coord}')
         
         curr_code = read_curr_code(bgr, coord)
 
