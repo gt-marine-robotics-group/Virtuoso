@@ -18,7 +18,7 @@ class FindDocks:
         msg.data = 1
         return msg
     
-    def find(self, node:Node):
+    def find(self, node:Node=None):
 
         if not self.search_requested:
             return
@@ -26,9 +26,12 @@ class FindDocks:
         if self.image is None:
             return
         
-
         bgr = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
 
         shape = bgr.shape
 
         node.get_logger().info(f'Shape: {shape}')
+    
+    
+    def find_red_code(self):
+        pass
