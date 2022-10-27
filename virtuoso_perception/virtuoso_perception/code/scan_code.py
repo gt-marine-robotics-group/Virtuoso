@@ -26,8 +26,8 @@ class ScanCode(Node):
         self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
 
         self.image = None
-        # self.scan_requested = False
-        self.scan_requested = True
+        self.scan_requested = False
+        # self.scan_requested = True
 
         # scan twice (or more) to verify code is correct before publishing
         self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
@@ -73,8 +73,9 @@ class ScanCode(Node):
         if len(self.curr_code_found) == 0 and code != -1:
             return
 
-        if code in self.curr_code_found:
+        if len(self.curr_code_found) > 0 and code == self.curr_code_found[-1]:
             return
+
         self.curr_code_found.append(code)
     
     def update_codes(self):
