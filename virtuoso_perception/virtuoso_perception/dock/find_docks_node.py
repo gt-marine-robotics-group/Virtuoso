@@ -21,7 +21,7 @@ class FindDocksNode(Node):
         
         # [Red dock offset, Green dock offset, Blue dock offset]
         # e.g. [100, 0, -100] -> red dock is 100px left, green dock staight in front,
-        # green dock 100px right
+        # blue dock 100px right
         self.dock_info_pub = self.create_publisher(Int32MultiArray, 
             '/perception/dock_code_offsets', 10)
 

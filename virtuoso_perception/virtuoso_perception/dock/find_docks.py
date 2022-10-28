@@ -1,3 +1,4 @@
+from collections import deque
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int32
 from cv_bridge import CvBridge
@@ -15,7 +16,13 @@ class FindDocks:
         # self.search_requested:bool = False
         self.search_requested:bool = True
 
-        self.node = None
+        self.code_locations = {
+            'red': deque(maxlen=5),
+            'blue': deque(maxlen=5),
+            'green': deque(maxlen=5)
+        }
+
+        self.node = None # for debugging
     
     def get_ready_msg(self):
         if self.search_requested:
@@ -40,13 +47,12 @@ class FindDocks:
         hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
         filter = ColorFilter(hsv, bgr)
 
-        red_code = self.find_red_code(filter)
-        node.get_logger().info(str(red_code))
+        self.update_code_locations(filter)
     
     def find_axis_range(self, target, alpha):
         if target is None:
             return (-1, -1)
-        dist = self.image_dimensions[0] * alpha
+        dist = self.image_dimensions[0] * alpha # cv2 gives coordinates in y,x
         lower = target - dist
         upper = target + dist
         return (lower, upper)
@@ -78,4 +84,22 @@ class FindDocks:
         red_or_orange = filter.red_orange_filter(white)
 
         return self.find_largest_rect_on_axis(red_or_orange)
+    
+    def find_blue_code(self, filter:ColorFilter, target):
+        blue = filter.blue_filter()
+        return self.find_largest_rect_on_axis(blue, target)
+    
+    def find_green_code(self, filter:ColorFilter, target):
+        green = filter.green_filter()
+        return self.find_largest_rect_on_axis(green, target)
+    
+    def update_code_locations(self, filter:ColorFilter):
+        red_code, red_area = self.find_red_code(filter)
+        self.node.get_logger().info(str(red_code))
+
+        if red_code is None: return
+
+        # blue_code, blue_area = self.find_blue_code(filter, red_code[1]) # red_code is (x,y) not (y,x)
+
+        
         
