@@ -19,8 +19,9 @@ class FindDocksNode(Node):
 
         self.ready_pub = self.create_publisher(Int8, 'find_docks/ready', 10)
         
-        # [Red dock offset, Green dock offset, Blue dock offset]
-        # e.g. [100, 0, -100] -> red dock is 100px left, green dock staight in front,
+        # [Red dock offset, Green dock offset, Blue dock offset, Red unknown, Green unknown, 
+        #   Blue unknown]
+        # e.g. [100, 0, -100, 0, 0, 0] -> red dock is 100px left, green dock staight in front,
         # blue dock 100px right
         self.dock_info_pub = self.create_publisher(Int32MultiArray, 
             '/perception/dock_code_offsets', 10)
@@ -43,7 +44,8 @@ class FindDocksNode(Node):
         self.ready_pub.publish(msg)
     
     def find(self):
-        self.find_docks.find(self)
+        offsets = self.find_docks.find_docks(self)
+        self.get_logger().info(f'Offsets: {offsets}')
 
 def main(args=None):
     rclpy.init(args=args)
