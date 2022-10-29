@@ -36,6 +36,10 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_navigation',
+            executable='translate'
+        ),
+        Node(
+            package='virtuoso_navigation',
             executable='choose_PID'
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
