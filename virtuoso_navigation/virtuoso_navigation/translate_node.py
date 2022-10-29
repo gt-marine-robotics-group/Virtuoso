@@ -13,17 +13,17 @@ from virtuoso_perception.utils.geometry_msgs import do_transform_pose_stamped
 class TranslateActionServer(Node):
 
     def __init__(self):
-        super().__init__('translate', namespace='navigation')
+        super().__init__('navigation_translate') # using namespace interferes with tf listener
 
-        self._action_server = ActionServer(self, Translate, 'translate', self.execute_callback)
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        self._action_server = ActionServer(self, Translate, '/navigation/translate', self.execute_callback)
 
         self.set_path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success',
             self.nav_success_callback, 10)
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self, spin_thread=True)
         
         self.goal_handle = None
         self.nav_success = False
@@ -32,10 +32,6 @@ class TranslateActionServer(Node):
     def nav_success_callback(self, msg):
         self.nav_success = True
     
-    def navigate(self):
-        future = self.tf_buffer.wait_for_transform_async('map', 'wamv/base_link', Time())
-        future.add_done_callback(self.send_path) 
-
     def send_path(self):
         
         trans = None
@@ -70,7 +66,7 @@ class TranslateActionServer(Node):
         self.goal_handle = goal_handle
 
         # self.send_path(goal_handle.request.x, goal_handle.request.y)
-        self.navigate()
+        self.send_path()
 
         while not self.nav_success:
             if self.aborted_result is not None: 
