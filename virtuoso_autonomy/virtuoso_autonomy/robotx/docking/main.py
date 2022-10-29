@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Int8
+from std_msgs.msg import Int8, Int32MultiArray
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import PoseStamped
 
@@ -9,6 +9,8 @@ class DockingNode(Node):
     def __init__(self):
         super().__init__('autonomy_docking', namespace='autonomy')
 
+        self.target_dock_color = 'red'
+
         self.find_docks_req_pub = self.create_publisher(Int8, '/perception/start_find_docks', 10)
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 
@@ -16,11 +18,15 @@ class DockingNode(Node):
             self.odom_callback, 10)
         self.find_docks_ready_sub = self.create_subscription(Int8, '/perception/find_docks/ready',
             self.find_docks_ready_callback, 10)
+        self.dock_offsets_sub = self.create_subscription(Int32MultiArray, 
+            '/perception/dock_code_offsets', self.offsets_callback, 10)
         
         self.odom:Odometry = None
         self.find_docks_ready = False
         self.station_keeping_enabled = False
         self.find_docks_req_sent = False
+
+        self.target_offset = 0
 
         self.create_timer(1.0, self.send_find_docks_req)
     
@@ -54,7 +60,10 @@ class DockingNode(Node):
         self.get_logger().info('Sending Find Docks Request')
         self.find_docks_req_sent = True
         self.find_docks_req_pub.publish(Int8(data=1))
-
+    
+    def offsets_callback(self, msg:Int32MultiArray):
+        if self.target_dock_color == 'red' and msg.data[3] != 1:
+            self.target_offset = msg.data[0]
 
 def main(args=None):
     rclpy.init(args=args)
