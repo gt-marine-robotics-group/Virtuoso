@@ -1,6 +1,6 @@
 from collections import deque
 from sensor_msgs.msg import Image
-from std_msgs.msg import Int32
+from std_msgs.msg import Int8
 from cv_bridge import CvBridge
 from rclpy.node import Node
 from ..utils.code_identification import find_contours
@@ -16,8 +16,8 @@ class FindDocks:
 
         self.image:Image = None
         self.image_dimensions = (0, 0) # (height, width)
-        # self.search_requested:bool = False
-        self.search_requested:bool = True
+        self.search_requested:bool = False
+        # self.search_requested:bool = True
 
         self.code_locations = {
             'red': deque(maxlen=5),
@@ -37,7 +37,7 @@ class FindDocks:
     def get_ready_msg(self):
         if self.search_requested:
             return None
-        msg = Int32() 
+        msg = Int8() 
         msg.data = 1
         return msg
     

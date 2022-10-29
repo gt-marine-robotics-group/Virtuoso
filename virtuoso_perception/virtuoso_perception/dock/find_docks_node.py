@@ -45,6 +45,8 @@ class FindDocksNode(Node):
     
     def find(self):
         offsets = self.find_docks.find_docks(self)
+        if offsets is None:
+            return
         self.get_logger().info(f'Offsets: {offsets}')
 
 def main(args=None):
