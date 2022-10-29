@@ -46,8 +46,4 @@ def generate_launch_description():
             launch_arguments={'sim_time': sim_time_config}.items()
         ),
 
-        Node(
-            package='virtuoso_autonomy',
-            executable='robotX_enter_exit'
-        )
     ])
