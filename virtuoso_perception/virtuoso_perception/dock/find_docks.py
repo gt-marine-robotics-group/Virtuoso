@@ -30,6 +30,10 @@ class FindDocks:
 
         self.node = None # for debugging
     
+    def debug(self, msg):
+        if self.node is None: return
+        self.node.get_logger().info(msg)
+    
     def find_docks(self, node:Node=None):
         
         if self.image is None:
@@ -49,7 +53,8 @@ class FindDocks:
             return None
         
         self.find_code_x_offsets()
-        self.node.get_logger().info(f'Map Offsets: {self.code_x_offsets}')
+        # self.node.get_logger().info(f'Map Offsets: {self.code_x_offsets}')
+        self.debug(f'Map Offsets: {self.code_x_offsets}')
 
         return self.format_x_offsets()
     
@@ -142,7 +147,8 @@ class FindDocks:
     
     def update_code_locations(self, filter:ColorFilter):
         red_coord, red_dimensions = self.find_red_code(filter)
-        self.node.get_logger().info(f'Red coord: {red_coord}, area: {self.area(red_dimensions)}')
+        # self.node.get_logger().info(f'Red coord: {red_coord}, area: {self.area(red_dimensions)}')
+        self.debug(f'Red coord: {red_coord}, area: {self.area(red_dimensions)}')
 
         if red_coord is None: return
 
@@ -152,8 +158,10 @@ class FindDocks:
         green_coord, green_dimensions = self.find_green_code(filter, axis,
             self.area(red_dimensions))
 
-        self.node.get_logger().info(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
-        self.node.get_logger().info(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
+        # self.node.get_logger().info(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
+        # self.node.get_logger().info(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
+        self.debug(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
+        self.debug(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
 
         self.code_locations['red'].append((red_coord, red_dimensions, self.code_locations_count))
         if blue_coord is not None:

@@ -27,8 +27,8 @@ class FindDocksNode(Node):
             '/perception/dock_code_offsets', 10)
 
         self.image = None
-        self.search_requested = False
-        # self.search_requested = True
+        # self.search_requested = False
+        self.search_requested = True
 
         self.find_docks = FindDocks() 
 
@@ -50,10 +50,11 @@ class FindDocksNode(Node):
     def find(self):
         if self.search_requested and self.image:
             self.find_docks.image = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
-        offsets = self.find_docks.find_docks(self)
+        offsets = self.find_docks.find_docks()
         if offsets is None:
             return
         self.get_logger().info(f'Offsets: {offsets}')
+
 
 def main(args=None):
     rclpy.init(args=args)
