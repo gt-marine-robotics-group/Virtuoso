@@ -26,24 +26,30 @@ class FindDocksNode(Node):
         self.dock_info_pub = self.create_publisher(Int32MultiArray, 
             '/perception/dock_code_offsets', 10)
 
+        self.image = None
+        self.search_requested = False
+        # self.search_requested = True
+
         self.find_docks = FindDocks() 
 
         self.create_timer(.1, self.find)
         self.create_timer(1.0, self.send_ready)
     
     def image_callback(self, image):
-        self.find_docks.image = image
+        self.image = image
     
     def start_callback(self, msg):
-        self.find_docks.search_requested = True
+        self.search_requested = True
     
     def send_ready(self):
-        msg = self.find_docks.get_ready_msg()
-        if msg is None:
+        if self.search_requested:
             return
+        msg = Int8(data=1) 
         self.ready_pub.publish(msg)
     
     def find(self):
+        if self.search_requested and self.image:
+            self.find_docks.image = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
         offsets = self.find_docks.find_docks(self)
         if offsets is None:
             return
