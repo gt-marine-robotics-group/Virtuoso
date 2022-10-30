@@ -72,7 +72,7 @@ class FindDocks:
         if len(self.code_locations[color]) < 5:
             return None
         total = sum(
-            FindDocks.code_loc_weights[i] * code[0][0] 
+            FindDocks.code_loc_weights[i] * (code[0][0] + (code[1][0]/2))
             for i, code in enumerate(self.code_locations[color])
         )
         return total
