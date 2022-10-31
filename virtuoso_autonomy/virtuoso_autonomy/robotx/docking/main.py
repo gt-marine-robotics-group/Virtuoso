@@ -3,6 +3,8 @@ from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import PoseStamped
+from rclpy.action import ActionClient
+from virtuoso_msgs.action import Translate
 
 class DockingNode(Node):
 
@@ -20,6 +22,8 @@ class DockingNode(Node):
             self.find_docks_ready_callback, 10)
         self.dock_offsets_sub = self.create_subscription(Int32MultiArray, 
             '/perception/dock_code_offsets', self.offsets_callback, 10)
+        
+        self.translate_client = ActionClient(self, Translate, '/navigation/translate')
         
         self.odom:Odometry = None
         self.find_docks_ready = False
@@ -71,9 +75,14 @@ class DockingNode(Node):
             self.target_offset = msg.data[2]
         else:
             self.target_offset = None
+
+        # check if we're close enough to midpoint to dock
         
-        # if self.target_offset and not self.translating:
-        #     self.translate()
+        if self.target_offset and not self.translating:
+            self.translate()
+    
+    def translate(self):
+        pass
 
 def main(args=None):
     rclpy.init(args=args)
