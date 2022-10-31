@@ -26,7 +26,8 @@ setup(
         'console_scripts': [
             'find_buoys = virtuoso_perception.buoys.find_buoys:main',
             'classify_buoys = virtuoso_perception.buoys.classify_buoys:main',
-            'scan_code = virtuoso_perception.code.scan_code:main'
+            'scan_code = virtuoso_perception.code.scan_code:main',
+            'find_docks = virtuoso_perception.dock.find_docks_node:main'
         ],
     },
 )

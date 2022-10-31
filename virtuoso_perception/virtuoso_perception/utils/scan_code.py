@@ -3,18 +3,12 @@ import cv2
 from cv_bridge import CvBridge
 from .ColorFilter import ColorFilter
 import numpy as np
-
-def distance(a, b):
-    return math.sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+from .math import distance
+from .code_identification import find_contours
 
 def find_display_box(bgr, targetCoord=None, node=None):
-    canny = cv2.Canny(bgr, 50, 150)
 
-    kernel = np.ones((3))
-
-    dilated = cv2.dilate(canny, kernel, iterations=1)
-
-    contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours = find_contours(bgr)
 
     closestCoord = None
     closestArea = None
@@ -57,6 +51,7 @@ def find_code_coords_and_size(bgr, node):
 
     image = CvBridge().cv2_to_imgmsg(red_or_orange, encoding='bgr8')
     node.debug_pub.publish(image)
+    node.get_logger().info('finding coord!')
 
     return find_display_box(red_or_orange)
 
