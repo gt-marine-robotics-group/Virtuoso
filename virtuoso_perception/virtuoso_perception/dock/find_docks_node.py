@@ -20,7 +20,7 @@ class FindDocksNode(Node):
         self.ready_pub = self.create_publisher(Int8, 'find_docks/ready', 10)
         
         # [Red dock offset, Green dock offset, Blue dock offset, Red unknown, Green unknown, 
-        #   Blue unknown]
+        #   Blue unknown, image width]
         # e.g. [100, 0, -100, 0, 0, 0] -> red dock is 100px left, green dock staight in front,
         # blue dock 100px right
         self.dock_info_pub = self.create_publisher(Int32MultiArray, 

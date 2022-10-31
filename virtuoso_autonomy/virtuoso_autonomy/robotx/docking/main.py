@@ -27,6 +27,7 @@ class DockingNode(Node):
         self.find_docks_req_sent = False
 
         self.target_offset = 0
+        self.translating = False
 
         self.create_timer(1.0, self.send_find_docks_req)
     
@@ -64,6 +65,15 @@ class DockingNode(Node):
     def offsets_callback(self, msg:Int32MultiArray):
         if self.target_dock_color == 'red' and msg.data[3] != 1:
             self.target_offset = msg.data[0]
+        elif self.target_dock_color == 'green' and msg.data[4] != 1:
+            self.target_offset = msg.data[1]
+        elif self.target_dock_color == 'blue' and msg.data[5] != 1:
+            self.target_offset = msg.data[2]
+        else:
+            self.target_offset = None
+        
+        # if self.target_offset and not self.translating:
+        #     self.translate()
 
 def main(args=None):
     rclpy.init(args=args)

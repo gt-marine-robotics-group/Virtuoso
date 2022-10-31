@@ -59,13 +59,14 @@ class FindDocks:
         return self.format_x_offsets()
     
     def format_x_offsets(self):
-        arr = list(0 for _ in range(6))
+        arr = list(0 for _ in range(7))
         for i, color in enumerate(FindDocks.code_colors):
             offset = self.code_x_offsets[color]
             if offset is None:
                 arr[i + 3] = 1
             else:
                 arr[i] = offset
+        arr[6] = self.image_dimensions[1]
         return arr
     
     def find_weighted_x_avg(self, color):
