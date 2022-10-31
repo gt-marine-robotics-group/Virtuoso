@@ -20,15 +20,19 @@ class Heartbeat(Node):
         
         self.gps_sub = self.create_subscription(NavSatFix, '/wamv/sensors/gps/gps/fix', self.gps_sub_callback, 10)
         self.system_mode_sub = self.create_subscription(Int8, '/wamv/nova/mode', self.system_mode_sub_callback, 10)
+        self.uav_mode_sub = self.create_subscription(Int8, '/uav/status', self.uav_status_sub_callback, 10)
         self.gps_ready = False
         self.system_mode = 0
+        self.uav_mode = 0
 
 
         self.heartbeat_pub = self.create_publisher(String, '/wamv/heartbeat', 10)
 
         self.heartbeat_timer = self.create_timer(1.0, self.send_heartbeat)
 
-    
+    def uav_status_sub_callback(self, msg):
+        self.uav_mode = msg.data
+        
     def gps_sub_callback(self, msg):
 
         self.lat = msg.latitude
@@ -50,7 +54,7 @@ class Heartbeat(Node):
              lat_str = str(round(self.lat,5)) + ",N"
              lon_str = str(round(self.lon,5)) + ",E"
              system_mode = str(self.system_mode)
-             uav_status = "1"
+             uav_status = str(self.uav_mode)
              time = self.get_clock().now().to_msg()
              dt = datetime.datetime.fromtimestamp(time.sec)
              aedt_date = str(dt.day) + str(dt.month) + str(dt.year)
