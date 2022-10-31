@@ -12,13 +12,13 @@ class TestLeft(Node):
         self.basicTargetForceX = Float32()
         self.basicTargetForceX.data = 0.0
         self.basicTargetForceY = Float32()
-        self.basicTargetForceY.data = 1.0
+        self.basicTargetForceY.data = 0.0
         self.basicTorque = Float32()
         self.basicTorque.data = 0.0
         self.velForceX = Float32()
         self.velForceX.data = 0.0
         self.velForceY = Float32()
-        self.velForceY.data = 1.0
+        self.velForceY.data = 0.0
         self.velTorque = Float32()
         self.velTorque.data = 0.0
 

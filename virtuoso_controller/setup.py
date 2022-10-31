@@ -34,6 +34,7 @@ setup(
             'test_yaw_left = virtuoso_controller.testing.test_yaw_left:main',
             'test_yaw_right = virtuoso_controller.testing.test_yaw_right:main',
             'motor_cmd_generator = virtuoso_controller.motor_cmd_generator:main',
+            'cmd_vel_generator = virtuoso_controller.cmd_vel_generator:main',
         ],
     },
 )

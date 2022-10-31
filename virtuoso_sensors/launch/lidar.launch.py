@@ -33,5 +33,14 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='lidar_to_baselink',
             arguments=['0', '0', '0', '0', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='lidarfront_to_wamvlidar',
+            # arguments=['0', '0', '0', '0', '-3.14159', '0', 'wamv/lidar_wamv_link', 'lidar_front']
+            arguments=['0', '0', '0', '0', '0', '0', 'wamv/lidar_wamv_link', 'lidar_front']
+            # arguments=['0', '0', '0', '0', '0', '3.14159', 'wamv/base_link', 'wamv/lidar_wamv_link']
+            # arguments=['0', '0', '0', '3.14149', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link']
         )
     ])

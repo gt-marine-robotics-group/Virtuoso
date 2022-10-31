@@ -72,6 +72,8 @@ class motorCMDGenerator(Node):
 
         self.timer = self.create_timer(self.controllerRate, self.timer_callback)
 
+        self.declare_parameter('sim_time', False)
+
     def navigateToPoint_callback(self, msg):
         self.navigateToPoint = msg.data
 
@@ -97,7 +99,8 @@ class motorCMDGenerator(Node):
             self.receivedCMD = True
         
     def timer_callback(self):
-        if(self.receivedCMD):
+        # self.get_logger().info(f'RECEIVED COMMAND: {self.receivedCMD}')
+        if(self.receivedCMD and self.receivedBasic and self.receivedVel):
             leftFrontAngle = Float32()
             rightRearAngle = Float32()
             rightFrontAngle = Float32()      
@@ -114,11 +117,11 @@ class motorCMDGenerator(Node):
             leftRearAngle.data = -90*numpy.pi/180*0
 
             if (self.navigateToPoint):
-                targetForceX = self.basicForceX
-                targetForceY = self.basicForceY
+                 targetForceX = self.basicForceX
+                 targetForceY = self.basicForceY
             else:
-                targetForceX = self.velForceX
-                targetForceY= self.velForceY
+                 targetForceX = self.velForceX
+                 targetForceY= self.velForceY
             targetTorque = self.basicTorque
             
                   
@@ -128,15 +131,26 @@ class motorCMDGenerator(Node):
             leftRearCmd.data = (targetForceY*0.9 + targetForceX - targetTorque)
             rightRearCmd.data = (-targetForceY*0.9 + targetForceX + targetTorque)
             
-            if(leftFrontCmd.data <0):
-                    leftFrontCmd.data = leftFrontCmd.data*2.5
-            if(rightFrontCmd.data <0):
-                    rightFrontCmd.data = rightFrontCmd.data*2.5
-            if(leftRearCmd.data <0):
-                    leftRearCmd.data = leftRearCmd.data*2.5
-            if(rightRearCmd.data <0):
-                    rightRearCmd.data = rightRearCmd.data*2.5
+            highestCommand = max(abs(leftFrontCmd.data), abs(rightFrontCmd.data), abs(leftRearCmd.data), abs(rightRearCmd.data))
+            
+            if(highestCommand > 1.0):
+                 leftFrontCmd.data = leftFrontCmd.data/highestCommand
+                 rightFrontCmd.data = rightFrontCmd.data/highestCommand
+                 leftRearCmd.data = leftRearCmd.data/highestCommand
+                 rightRearCmd.data = rightRearCmd.data/highestCommand
+            
+            
+            if self.get_parameter('sim_time').value:
+                if(leftFrontCmd.data <0):
+                        leftFrontCmd.data = leftFrontCmd.data*2.5
+                if(rightFrontCmd.data <0):
+                        rightFrontCmd.data = rightFrontCmd.data*2.5
+                if(leftRearCmd.data <0):
+                        leftRearCmd.data = leftRearCmd.data*2.5
+                if(rightRearCmd.data <0):
+                        rightRearCmd.data = rightRearCmd.data*2.5
                                                                 
+            # self.get_logger().info('PUBLISHING MOTOR COMMANDS')
             self.rightFrontPubAngle.publish(rightFrontAngle)
             self.leftRearPubAngle.publish(leftRearAngle)
             self.leftFrontPubAngle.publish(leftFrontAngle)

@@ -1,7 +1,9 @@
+from struct import pack
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 import os
 from ament_index_python.packages import get_package_share_directory
@@ -38,9 +40,18 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
         'use_sim_time': sim_time_config}.items()),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(rviz_launch_file)),
-        Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
-        parameters=[{'use_sim_time': sim_time_config}]),
+        # Node(
+        #     executable='controller_server',
+        #     package='nav2_controller',
+        #     parameters=[nav2_params_file]
+        # ),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(rviz_launch_file),
+            condition=IfCondition(sim_time_config)
+        ),
+        # Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
+        # parameters=[{'use_sim_time': sim_time_config}]),
 
         # Currently, state estimation only using odom frame for localization, so no difference between 
         # odom and map frame. Transformation being used for the costmaps.

@@ -30,7 +30,7 @@ class TestYawLeft(Node):
         self.velForceY_pub = self.create_publisher(Float32, 'controller/velocity_pid/targetForceY', 10)
         self.velTorque_pub = self.create_publisher(Float32, 'controller/velocity_pid/targetTorque', 10)
 
-        self.timer = self.create_timer(0.5, self.send_command)
+        self.timer = self.create_timer(0.01, self.send_command)
     
     def send_command(self):
         self.get_logger().info('SENDING COMMAND')
