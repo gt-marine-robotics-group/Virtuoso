@@ -102,7 +102,7 @@ class FindDocks:
         coord = None
         coord_dimensions = (0, 0)
 
-        axis_range = self.find_axis_range(target, .05)
+        axis_range = self._find_axis_range(target, .05)
 
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
@@ -147,7 +147,7 @@ class FindDocks:
         return dim[0] * dim[1]
     
     def _update_code_locations(self, filter:ColorFilter):
-        red_coord, red_dimensions = self.find_red_code(filter)
+        red_coord, red_dimensions = self._find_red_code(filter)
         # self.node.get_logger().info(f'Red coord: {red_coord}, area: {self.area(red_dimensions)}')
         self._debug(f'Red coord: {red_coord}, area: {self._area(red_dimensions)}')
 
@@ -155,14 +155,14 @@ class FindDocks:
 
         axis = red_coord[1] + (.5 * red_dimensions[1])
         blue_coord, blue_dimensions = self._find_blue_code(filter, axis, 
-            self.area(red_dimensions)) # red_code is (x,y) not (y,x)
+            self._area(red_dimensions)) # red_code is (x,y) not (y,x)
         green_coord, green_dimensions = self._find_green_code(filter, axis,
-            self.area(red_dimensions))
+            self._area(red_dimensions))
 
         # self.node.get_logger().info(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
         # self.node.get_logger().info(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
-        self._debug(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
-        self._debug(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
+        self._debug(f'Blue coord: {blue_coord}, area: {self._area(blue_dimensions)}')
+        self._debug(f'Green coord: {green_coord}, area: {self._area(green_dimensions)}')
 
         self._code_locations['red'].append((red_coord, red_dimensions, self._code_locations_count))
         if blue_coord is not None:

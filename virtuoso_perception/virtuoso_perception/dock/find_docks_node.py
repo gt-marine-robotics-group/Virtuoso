@@ -27,8 +27,8 @@ class FindDocksNode(Node):
             '/perception/dock_code_offsets', 10)
 
         self.image = None
-        # self.search_requested = False
-        self.search_requested = True
+        self.search_requested = False
+        # self.search_requested = True
 
         self.find_docks = FindDocks() 
 
@@ -53,7 +53,7 @@ class FindDocksNode(Node):
         offsets = self.find_docks.find_docks()
         if offsets is None:
             return
-        self.get_logger().info(f'Offsets: {offsets}')
+        # self.get_logger().info(f'Offsets: {offsets}')
         msg = Int32MultiArray()
         msg.data = list(int(offset) for offset in offsets)
         self.dock_info_pub.publish(msg)
