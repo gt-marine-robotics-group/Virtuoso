@@ -2,9 +2,7 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray
 from nav_msgs.msg import Odometry, Path
-from geometry_msgs.msg import PoseStamped
-from rclpy.action import ActionClient
-from virtuoso_msgs.action import Translate
+from geometry_msgs.msg import PoseStamped, Point
 
 class DockingNode(Node):
 
@@ -23,7 +21,9 @@ class DockingNode(Node):
         self.dock_offsets_sub = self.create_subscription(Int32MultiArray, 
             '/perception/dock_code_offsets', self.offsets_callback, 10)
         
-        self.translate_action_client = ActionClient(self, Translate, '/navigation/translate')
+        self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
+        self.trans_success_sub = self.create_subscription(Point, '/navigation/translate_success',
+            self.trans_success_callback, 10)
         
         self.odom:Odometry = None
         self.find_docks_ready = False
@@ -83,34 +83,15 @@ class DockingNode(Node):
     
     def translate(self):
         self.translating = True
-
-        msg = Translate.Goal()
+        msg = Point()
         if self.target_offset > 0:
             msg.y = 1.5
         else:
             msg.y = -1.5
-        msg.x = 0.0
+        self.trans_pub.publish(msg)
 
-        self.translate_action_client.wait_for_server()
-
-        future = self.translate_action_client.send_goal_async(msg)
-        future.add_done_callback(self.goal_response_callback)
-    
-    def goal_response_callback(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.translating = False
-            self.get_logger().info('Goal Rejected')
-            return
-        
-        self.get_logger().info('Goal Accepted')
-
-        result_future = goal_handle.get_result_async()
-        result_future.add_done_callback(self.get_result_callback)
-    
-    def get_result_callback(self, future):
-        self.get_logger().info('Finished Translation')
-        self.translate = False
+    def trans_success_callback(self, msg):
+        self.translating = False
 
 def main(args=None):
     rclpy.init(args=args)
