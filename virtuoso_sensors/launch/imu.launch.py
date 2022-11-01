@@ -66,6 +66,7 @@ def generate_launch_description():
   launch_description.append(DeclareLaunchArgument('filter_child_frame_id', default_value='sensor',              description="DEPRECATED. Use params_file instead"))
   launch_description.append(DeclareLaunchArgument('nmea_frame_id',         default_value='nmea',                description="DEPRECATED. Use params_file instead"))
   launch_description.append(DeclareLaunchArgument('use_enu_frame',         default_value='False',               description="DEPRECATED. Use params_file instead"))
+  launch_description.append(DeclareLaunchArgument('first_start',         default_value='0',               description="DEPRECATED. Use params_file instead"))
 
   # ****************************************************************** 
   # Microstrain sensor node 
@@ -93,6 +94,7 @@ def generate_launch_description():
         "imu_data_rate"         : LaunchConfiguration('imu_data_rate'),
         "filter_data_rate"      : LaunchConfiguration('filter_data_rate'),
         "use_enu_frame"         : LaunchConfiguration('use_enu_frame'),
+        "filter_sensor2vehicle_frame_selector" : LaunchConfiguration('first_start'),
       },
 
       # If you want to override any settings in the params.yml file, make a new yaml file, and set the value via the params_file arg
