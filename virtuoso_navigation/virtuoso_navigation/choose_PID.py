@@ -25,6 +25,7 @@ class choosePID(Node):
         self.receivedPath = False
         self.nextWaypoint = Pose()
         self.cmd_vel = Twist()
+        self.hold_final_orient = False
         
         self.path_subscriber = self.create_subscription(
             Path,
@@ -41,6 +42,9 @@ class choosePID(Node):
             '/cmd_vel',
             self.cmd_vel_callback,
             10)  
+            
+        self.hold_final_orientation_sub = self.create_subscription(
+            Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
 
         self.navigateToPointPub = self.create_publisher(Bool, '/navigation/navigateToPoint', 10)
         self.waypointPub = self.create_publisher(Odometry, '/waypoint', 10)        
@@ -54,6 +58,9 @@ class choosePID(Node):
         
     def cmd_vel_callback(self, msg):
         self.cmd_vel = msg
+        
+    def hold_final_orient_callback(self, msg):
+        self.hold_final_orient = msg.data
        
     def timer_callback(self):
         if(self.receivedPath):
@@ -73,8 +80,8 @@ class choosePID(Node):
         
              targetWaypoint = Odometry()
              #If we're within 2 m, point at the final heading. If greater than 2 m,
-             #point at the orientation corresponding to the next pose on the path
-             if(distance < 2.0):
+             #point at the orientation corresponding to the cmd velocity
+             if(distance < 2.0 or self.hold_final_orient):
                   targetWaypoint.pose.pose = self.destination
              else:
      	          targetWaypoint.pose.pose.position = self.destination.position

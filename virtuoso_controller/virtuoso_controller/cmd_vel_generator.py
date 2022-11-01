@@ -22,6 +22,7 @@ class cmdVelGenerator(Node):
         self.nextWaypoint = Pose()
         self.secondWaypoint = Pose()
         self.nav2Path = Path()
+        self.hold_final_orient = False
         
         self.path_subscriber = self.create_subscription(
             Path,
@@ -33,11 +34,16 @@ class cmdVelGenerator(Node):
             '/localization/odometry',
             self.odometry_callback,
             10)   
-
+        self.hold_final_orientation_sub = self.create_subscription(
+            Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
+            
         self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
         timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
-
+        
+    def hold_final_orient_callback(self, msg):
+        self.hold_final_orient = msg.data
+        
     def path_callback(self, msg):
         self.destination = msg.poses[-1].pose 
         #self.nextWaypoint = msg.poses[0].pose
@@ -47,6 +53,8 @@ class cmdVelGenerator(Node):
          #    self.secondWaypoint = msg.poses[0].pose
         self.nav2Path = msg
         self.receivedPath = True
+        
+    
        
     def timer_callback(self):
         if(self.receivedPath):
@@ -171,8 +179,11 @@ class cmdVelGenerator(Node):
              
              vel_angle = numpy.arctan2(velToCommand.linear.x, velToCommand.linear.y)
              
-             velToCommand.linear.x = velToCommand.linear.x - velToCommand.linear.x*abs(vel_angle)/numpy.pi/2
-             velToCommand.linear.y = velToCommand.linear.y - velToCommand.linear.y*abs(vel_angle)/numpy.pi/2
+             if(not self.hold_final_orient):
+                  velToCommand.linear.x = velToCommand.linear.x - velToCommand.linear.x*abs(vel_angle)/numpy.pi/2
+                  velToCommand.linear.y = velToCommand.linear.y - velToCommand.linear.y*abs(vel_angle)/numpy.pi/2
+             
+             
              '''
              speed = 1.5 - 1.5*abs(vel_angle)/numpy.pi
              

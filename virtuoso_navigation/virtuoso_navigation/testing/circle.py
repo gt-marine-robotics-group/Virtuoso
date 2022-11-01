@@ -3,6 +3,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped, Pose, Quaternion
 from nav_msgs.msg import Path
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Bool
 from tf2_ros.buffer import Buffer
 from rclpy.time import Time
 from tf2_ros.transform_listener import TransformListener
@@ -16,6 +17,7 @@ class TestCircle(Node):
 
         self.pub = self.create_publisher(Path, '/transformed_global_plan', 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
+        self.is_translation_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.path_sent = False
         self.robot_pose = None
@@ -30,6 +32,10 @@ class TestCircle(Node):
         self.robot_pose = ps
     
     def send_path(self):
+        
+        is_translation = Bool()
+        is_translation.data = True
+        self.is_translation_pub.publish(is_translation)
 
         if self.robot_pose is None or self.path_sent:
             return
