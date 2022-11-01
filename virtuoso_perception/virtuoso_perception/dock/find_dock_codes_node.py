@@ -17,7 +17,7 @@ class FindDocksNode(Node):
         self.start_sub = self.create_subscription(Int8, '/perception/start_find_docks', 
             self.start_callback, 10)
 
-        self.ready_pub = self.create_publisher(Int8, 'find_docks/ready', 10)
+        self.ready_pub = self.create_publisher(Int8, 'find_dock_codes/ready', 10)
         
         # [Red dock offset, Green dock offset, Blue dock offset, Red unknown, Green unknown, 
         #   Blue unknown, image width]

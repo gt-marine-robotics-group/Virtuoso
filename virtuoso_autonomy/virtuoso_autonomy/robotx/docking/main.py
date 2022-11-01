@@ -16,8 +16,12 @@ class DockingNode(Node):
 
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
-        self.find_docks_ready_sub = self.create_subscription(Int8, '/perception/find_docks/ready',
-            self.find_docks_ready_callback, 10)
+
+        self.find_docks_ready_sub = self.create_subscription(Int8, '/perception/find_dock_codes/ready',
+            self.find_dock_codes_ready_callback, 10)
+        self.find_dock_entrances_ready_sub = self.create_subscription(Int8, 
+            '/perception/find_dock_entrances/ready', self.find_dock_entrances_ready_callback, 10)
+
         self.dock_offsets_sub = self.create_subscription(Int32MultiArray, 
             '/perception/dock_code_offsets', self.offsets_callback, 10)
         
@@ -26,7 +30,8 @@ class DockingNode(Node):
             self.trans_success_callback, 10)
         
         self.odom:Odometry = None
-        self.find_docks_ready = False
+        self.find_dock_codes_ready = False
+        self.find_dock_entrances_ready = False
         self.station_keeping_enabled = False
         self.find_docks_req_sent = False
 
@@ -40,8 +45,13 @@ class DockingNode(Node):
         if not self.station_keeping_enabled:
             self.enable_station_keeping()
     
-    def find_docks_ready_callback(self, msg):
-        self.find_docks_ready = True
+    # def find_docks_ready_callback(self, msg):
+    #     self.find_docks_ready = True
+    def find_dock_codes_ready_callback(self, msg):
+        self.find_dock_codes_ready = True
+    
+    def find_dock_entrances_ready_callback(self, msg):
+        self.find_dock_entrances_ready = True
     
     def enable_station_keeping(self):
         path = Path()
@@ -56,7 +66,7 @@ class DockingNode(Node):
         if not self.station_keeping_enabled:
             return
         
-        if not self.find_docks_ready:
+        if not self.find_dock_entrances_ready or not self.find_dock_codes_ready:
             return
         
         if self.find_docks_req_sent:

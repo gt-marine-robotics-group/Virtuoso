@@ -16,4 +16,8 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='find_dock_codes'
         ),
+        Node(
+            package='virtuoso_perception',
+            executable='find_dock_entrances'
+        )
     ])
