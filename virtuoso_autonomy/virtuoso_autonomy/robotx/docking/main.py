@@ -75,8 +75,6 @@ class DockingNode(Node):
             self.target_offset = msg.data[2]
         else:
             self.target_offset = None
-
-        # check if we're close enough to midpoint to dock
         
         if self.target_offset and not self.translating:
             self.translate()
