@@ -44,7 +44,10 @@ def generate_launch_description():
             package='voxel_grid_nodes',
             executable='voxel_grid_node_exe',
             parameters=[LaunchConfiguration('voxel_grid_node_param_file')],
-            remappings=[('points_in', '/local_costmap/voxel_grid')]
+            remappings=[
+                ('points_in', '/local_costmap/voxel_grid'),
+                ('points_downsampled', '/processing/super_voxels')
+            ]
         ),
 
         Node(
