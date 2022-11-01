@@ -1,6 +1,5 @@
 import rclpy
 from rclpy.node import Node
-from virtuoso_msgs.msg import Task
 from geometry_msgs.msg import PoseStamped, Pose
 from geographic_msgs.msg import GeoPoseStamped
 from robot_localization.srv import FromLL

@@ -23,7 +23,7 @@ class TranslateActionServer(Node):
         self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success',
             self.nav_success_callback, 10)
 
-        self.set_path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.set_path_pub = self.create_publisher(Path, '/navigation/set_trans_path', 10)
         self.translate_success_pub = self.create_publisher(Point, '/navigation/translate_success',
             10)
         
@@ -31,6 +31,8 @@ class TranslateActionServer(Node):
         self.trans_goal = None
     
     def nav_success_callback(self, msg:PoseStamped):
+        if self.trans_goal is None:
+            return
         if msg.pose.position.x != self.trans_goal.pose.position.x:
             return
         if msg.pose.position.y != self.trans_goal.pose.position.y:
