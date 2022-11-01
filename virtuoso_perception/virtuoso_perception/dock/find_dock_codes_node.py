@@ -5,7 +5,7 @@ from sensor_msgs.msg import Image
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from nav_msgs.msg import Path
 from std_msgs.msg import Int8, Int32MultiArray
-from .find_docks import FindDocks
+from .find_dock_codes import FindDockCodes
 
 class FindDocksNode(Node):
 
@@ -30,7 +30,7 @@ class FindDocksNode(Node):
         self.search_requested = False
         # self.search_requested = True
 
-        self.find_docks = FindDocks() 
+        self.find_docks = FindDockCodes() 
 
         self.create_timer(.1, self.find)
         self.create_timer(1.0, self.send_ready)

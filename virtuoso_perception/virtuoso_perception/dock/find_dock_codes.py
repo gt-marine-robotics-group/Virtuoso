@@ -5,7 +5,7 @@ from ..utils.ColorFilter import ColorFilter
 import cv2
 import numpy as np
 
-class FindDocks:
+class FindDockCodes:
 
     code_loc_weights = {4: .4, 3: .3, 2: .15, 1: .1, 0: .05}
     code_colors = ['red', 'green', 'blue']
@@ -60,7 +60,7 @@ class FindDocks:
     
     def _format_x_offsets(self):
         arr = list(0 for _ in range(7))
-        for i, color in enumerate(FindDocks.code_colors):
+        for i, color in enumerate(FindDockCodes.code_colors):
             offset = self._code_x_offsets[color]
             if offset is None:
                 arr[i + 3] = 1
@@ -73,7 +73,7 @@ class FindDocks:
         if len(self._code_locations[color]) < 5:
             return None
         total = sum(
-            FindDocks.code_loc_weights[i] * (code[0][0] + (code[1][0]/2))
+            FindDockCodes.code_loc_weights[i] * (code[0][0] + (code[1][0]/2))
             for i, code in enumerate(self._code_locations[color])
         )
         return total
@@ -81,7 +81,7 @@ class FindDocks:
     def _find_code_x_offsets(self):
         mid_x = self._image_dimensions[1] / 2
 
-        for color in FindDocks.code_colors:
+        for color in FindDockCodes.code_colors:
             avg = self._find_weighted_x_avg(color)
             if avg is None:
                 self._code_x_offsets[color] = None

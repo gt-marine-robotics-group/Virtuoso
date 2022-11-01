@@ -14,6 +14,6 @@ def generate_launch_description():
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py'))),
         Node(
             package='virtuoso_perception',
-            executable='find_docks'
+            executable='find_dock_codes'
         ),
     ])
