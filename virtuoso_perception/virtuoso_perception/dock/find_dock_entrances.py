@@ -17,6 +17,11 @@ class FindDockEntrances:
 
         self.node:Node = None # for debugging
     
+    def debug(self, msg):
+        if self.node is None:
+            return
+        self.node.get_logger().info(msg)
+    
     def find_entrances(self, node:Node=None):
 
         if self.points is None:
@@ -33,7 +38,9 @@ class FindDockEntrances:
         if len(self._points_by_dist) < 2:
             return
         self._find_dock_in_front()
+        self.node.publish_first_two(self._curr_docks)
         self._find_remaining_docks()
+        self.node.publish_current(self._curr_docks)
 
         self.node.get_logger().info(f'current docks: {self._curr_docks}')
         if len(self._curr_docks) < 4:
@@ -62,7 +69,8 @@ class FindDockEntrances:
             if len(self._curr_docks) == 0:
                 self._curr_docks.append(point)
                 continue
-            if self.distance(self._curr_docks[0], point) < 1:
+            if (self.distance(self._curr_docks[0], point) < 2
+                or abs(self._curr_docks[0][1] - point[1]) < 1):
                 continue
             self._curr_docks.append(point)
             return
@@ -72,9 +80,12 @@ class FindDockEntrances:
             self._curr_docks[0][1] - self._curr_docks[1][1])
         change_doubled = tuple(2 * c for c in change)
         self.node.get_logger().info(f'change: {change}')
-        self.node.get_logger().info(f'curr_docks: {self._curr_docks[1]}')
-        possible_points = [self._curr_docks[0] + change, self._curr_docks[0] + change_doubled,
-         np.subtract(self._curr_docks[1], change), np.subtract(self._curr_docks[1], change_doubled)]
+        self.node.get_logger().info(f'curr_docks: {self._curr_docks}')
+        possible_points = [np.add(self._curr_docks[0], change),
+            np.add(self._curr_docks[0], change_doubled),
+            np.subtract(self._curr_docks[1], change), np.subtract(self._curr_docks[1], change_doubled)]
+        self.node.publish_possible(possible_points)
+        self.node.get_logger().info(f'possible_points: {possible_points}')
 
         closest_points = list((None, None, None) for _ in possible_points)
 
@@ -85,6 +96,8 @@ class FindDockEntrances:
                     closest_points[i] = (point, dist, i)
         
         closest_points.sort(key=lambda p: p[1])
+
+        self.node.get_logger().info(str(closest_points))
 
         if closest_points[0][2] < 2:
             self._curr_docks.insert(0, closest_points[0][0])

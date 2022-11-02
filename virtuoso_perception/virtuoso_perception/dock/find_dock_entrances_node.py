@@ -1,14 +1,22 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
+from geometry_msgs.msg import PointStamped, Point
 from std_msgs.msg import Int8
+from tf2_ros import TransformListener
+from tf2_ros.buffer import Buffer
+from rclpy.time import Time
 from .find_dock_entrances import FindDockEntrances
 from virtuoso_processing.utils.pointcloud import read_points, create_cloud_xyz32
+from virtuoso_perception.utils.geometry_msgs import do_transform_point
 
 class FindDockEntrancesNode(Node):
 
     def __init__(self):
         super().__init__('find_dock_entrances')
+
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.points_sub = self.create_subscription(PointCloud2, '/processing/super_voxels', 
             self.points_callback, 10)
@@ -16,6 +24,10 @@ class FindDockEntrancesNode(Node):
             self.start_callback, 10)
         
         self.ready_pub = self.create_publisher(Int8, '/perception/find_dock_entrances/ready', 10)
+
+        self.first_two_pub = self.create_publisher(PointCloud2, '/processing/debug/first_two', 10)
+        self.possible_pub = self.create_publisher(PointCloud2, '/processing/debug/possible', 10)
+        self.curr_pub = self.create_publisher(PointCloud2, '/process/debug/current', 10)
         
         self.points = None
         self.search_requested = False
@@ -39,8 +51,31 @@ class FindDockEntrancesNode(Node):
     
     def get_points(self):
         self.find_docks.points = list()
+
+        trans = None
+        try:
+            trans = self.tf_buffer.lookup_transform('wamv/base_link', 'map', Time())
+        except Exception as e:
+            self.get_logger().info('Failed Transform')
+
         for point in read_points(self.points):
-            self.find_docks.points.append((point[0], point[1]))
+            p = PointStamped(point=Point(x=point[0], y=point[1]))
+            trans_point = do_transform_point(p, trans)
+            self.find_docks.points.append((trans_point.point.x, trans_point.point.y))
+    
+    def get_cloud(self, points):
+        msg = PointCloud2()
+        msg.header.frame_id = 'wamv/base_link'
+        return create_cloud_xyz32(msg.header, list((p[0], p[1], 0) for p in points))
+    
+    def publish_first_two(self, points):
+        self.first_two_pub.publish(self.get_cloud(points))
+
+    def publish_possible(self, points):
+        self.possible_pub.publish(self.get_cloud(points))
+    
+    def publish_current(self, points):
+        self.curr_pub.publish(self.get_cloud(points))
     
     def find(self):
         if not self.search_requested:
