@@ -115,8 +115,5 @@ class FindDockEntrances:
             else:
                 self._curr_docks.insert(2, closest_points[1][0])
     
-    # def distance(self, point):
-    #     return sqrt(point[0]**2 + point[1]**2)
-    
     def distance(self, p1, p2):
         return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
