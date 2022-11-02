@@ -40,7 +40,7 @@ class FindDockEntrancesNode(Node):
     def get_points(self):
         self.find_docks.points = list()
         for point in read_points(self.points):
-            self.find_docks.points.append(point)
+            self.find_docks.points.append((point[0], point[1]))
     
     def find(self):
         if not self.search_requested:
