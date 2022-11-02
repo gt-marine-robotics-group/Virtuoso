@@ -27,7 +27,7 @@ class FindDockEntrancesNode(Node):
 
         self.first_two_pub = self.create_publisher(PointCloud2, '/processing/debug/first_two', 10)
         self.possible_pub = self.create_publisher(PointCloud2, '/processing/debug/possible', 10)
-        self.curr_pub = self.create_publisher(PointCloud2, '/process/debug/current', 10)
+        self.curr_pub = self.create_publisher(PointCloud2, '/processing/debug/current', 10)
         
         self.points = None
         self.search_requested = False
