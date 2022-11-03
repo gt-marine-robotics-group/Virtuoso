@@ -44,10 +44,12 @@ class DockingNode(Node):
         self.color_docks = dict() # map of color => index
         self.entrances = list() # list of 4 points (x, y)
         self.translating = False
+        self.translate_complete = False
         self.entering = False
         self.at_entrance = False
 
         self.create_timer(1.0, self.send_find_docks_req)
+        self.create_timer(1.0, self.go_to_entrance)
     
     def odom_callback(self, msg):
         self.odom = msg
@@ -135,16 +137,25 @@ class DockingNode(Node):
         self.trans_pub.publish(Point(x=mid[0]-5, y=mid[1]))
 
     def trans_success_callback(self, msg):
+        self.translate_complete = True
         if self.entering and not self.at_entrance:
             self.enter_dock()
             return
 
+        self.entrances = list()
         if not self.entering:
-            time.sleep(2.0) 
-            self.go_to_entrance()
+            time.sleep(10.0) 
+            # self.go_to_entrance()
         # self.translating = False
     
     def go_to_entrance(self):
+        if self.entering:
+            return
+        if not self.translate_complete:
+            return
+        if len(self.entrances) < 4:
+            return
+
         self.entering = True
 
         mid = self.find_mid()
