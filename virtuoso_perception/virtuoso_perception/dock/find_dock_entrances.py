@@ -71,9 +71,9 @@ class FindDockEntrances:
         if len(self._points_by_dist) < 2:
             return
         self._find_dock_in_front()
-        self.node.publish_first_two(self._curr_docks)
+        # self.node.publish_first_two(self._curr_docks)
         self._find_remaining_docks()
-        self.node.publish_current(self._curr_docks)
+        # self.node.publish_current(self._curr_docks)
 
         # self.node.get_logger().info(f'current docks: {self._curr_docks}')
         
@@ -116,7 +116,7 @@ class FindDockEntrances:
         possible_points = [np.add(self._curr_docks[0], change),
             np.add(self._curr_docks[0], change_doubled),
             np.subtract(self._curr_docks[1], change), np.subtract(self._curr_docks[1], change_doubled)]
-        self.node.publish_possible(possible_points)
+        # self.node.publish_possible(possible_points)
         # self.node.get_logger().info(f'possible_points: {possible_points}')
 
         closest_points = list((None, None, None) for _ in possible_points)

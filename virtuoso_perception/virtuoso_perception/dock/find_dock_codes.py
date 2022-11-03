@@ -28,6 +28,8 @@ class FindDockCodes:
             'green': None
         }
 
+        self._prev_code_x_offsets = deque(maxlen=10)
+
         self.node = None # for debugging
     
     def _debug(self, msg):
@@ -56,7 +58,40 @@ class FindDockCodes:
         # self.node.get_logger().info(f'Map Offsets: {self.code_x_offsets}')
         self._debug(f'Map Offsets: {self._code_x_offsets}')
 
+        self._prev_code_x_offsets.append(self._code_x_offsets)
+
+        if len(self._prev_code_x_offsets) < 10:
+            return
+        
+        if not self._prev_offsets_consistent():
+            self._debug('Not consistent!')
+            return
+
         return self._format_x_offsets()
+    
+    def _prev_offsets_consistent(self):
+        offset_bounds = {
+            'red': [None, None],
+            'green': [None, None],
+            'blue': [None, None]
+        }
+
+        for offsets in self._prev_code_x_offsets:
+            for color in FindDockCodes.code_colors:
+                offset = offsets[color]
+                if offset is None:
+                    return False
+                if offset_bounds[color][0] is None or offset < offset_bounds[color][0]:
+                    offset_bounds[color][0] = offset
+                if offset_bounds[color][1] is None or offset > offset_bounds[color][1]:
+                    offset_bounds[color][1] = offset
+        
+        offset_range = self._image_dimensions[1] * 0.05
+        for color in FindDockCodes.code_colors:
+            if offset_bounds[color][1] - offset_bounds[color][0] > offset_range:
+                return False
+        
+        return True
     
     def _format_x_offsets(self):
         arr = list(0 for _ in range(7))

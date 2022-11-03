@@ -83,7 +83,7 @@ class FindDockEntrancesNode(Node):
         if not self.search_requested:
             return
         
-        entrances = self.find_docks.find_entrances(self)
+        entrances = self.find_docks.find_entrances()
 
         if entrances is None:
             return
