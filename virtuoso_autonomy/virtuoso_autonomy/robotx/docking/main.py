@@ -166,7 +166,7 @@ class DockingNode(Node):
         self.entering = True
 
         mid = ((self.ahead_entrance[0][0] + self.ahead_entrance[1][0]) / 2, 
-            (self.ahead_entrance[0][1] + self.ahead_entrance[1][1]))
+            (self.ahead_entrance[0][1] + self.ahead_entrance[1][1]) / 2)
 
         self.trans_pub.publish(Point(x=mid[0], y=mid[1]))
     

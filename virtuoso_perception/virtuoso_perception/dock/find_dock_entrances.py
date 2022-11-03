@@ -124,7 +124,8 @@ class FindDockEntrances:
             break
         
         self._curr_docks.sort(key=lambda p: p[1])
-        self._curr_ahead_entrance = self._curr_docks
+        self._curr_ahead_entrance = self._curr_docks.copy()
+        # self.node.publish_current(self._curr_ahead_entrance)
     
     def _find_remaining_docks(self):
         change = (self._curr_docks[0][0] - self._curr_docks[1][0],
