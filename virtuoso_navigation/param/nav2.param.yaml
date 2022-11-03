@@ -112,18 +112,60 @@ global_costmap:
       rolling_window: true
       height: 1000
       width: 1000
-      plugins: ["obstacle_layer"]
+      plugins: ["obstacle_layer", "stvl_layer", "inflation_layer"]
+      stvl_layer:
+        plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
+        enabled: true 
+        voxel_decay: 15.
+        decay_model: 0
+        voxel_size: 0.05
+        track_unknown_space: true
+        max_obstacle_height: 10.0
+        unknown_threshold: 15
+        mark_threshold: 0
+        update_footprint_enabled: true
+        combination_method: 1
+        origin_z: 0
+        publish_voxel_map: true
+        transform_tolerance: 0.2
+        mapping_mode: false
+        map_save_duration: 60.0
+        observation_sources: pointcloud
+        pointcloud:
+          data_type: PointCloud2
+          topic: /processing/points_shore_filtered 
+          marking: true
+          clearing: true
+          obstacle_range: 30.0
+          min_obstacle_height: 0.0
+          max_obstacle_height: 10.0
+          expected_update_rate: 0.0
+          observation_persistence: 0.0
+          inf_is_valid: false
+          voxel_filter: true
+          clear_after_reading: false 
+          max_z: 10.0
+          min_z: 0.0
+          vertical_fov_angle: 3.14
+          horizontal_fov_angle: 3.14
+          decay_acceleration: 15.0
+          model_type: 1
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
-        enabled: true 
+        enabled: false
         observation_sources: pointcloud 
         pointcloud:
           data_type: PointCloud2
-          topic: /processing/points_shore_filtered
-          obstacle_min_range: 5.0
+          topic: /global_costmap/voxel_grid
+          obstacle_min_range: 0.0
+          obstacle_max_range: 100.0
           max_obstacle_height: 10.0
           marking: True
           clearing: True
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 3.0
+        inflation_radius: 3.0
       global_costmap_client:
         ros__parameters:
           use_sim_time: True
@@ -157,7 +199,7 @@ planner_server:
       retrospective_penalty: 0.015
       lookup_table_size: 20.0             # Size of the dubin/reeds-sheep distance window to cache, in meters.
       cache_obstacle_heuristic: false     # Cache the obstacle map dynamic programming distance expansion heuristic between subsiquent replannings of the same goal location. Dramatically speeds up replanning performance (40x) if costmap is largely static.
-      smooth_path: True                   # If true, does a simple and quick smoothing post-processing to the path
+      smooth_path: False # If true, does a simple and quick smoothing post-processing to the path
 
       smoother:
         max_iterations: 1000

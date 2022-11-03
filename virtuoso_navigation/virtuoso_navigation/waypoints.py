@@ -7,6 +7,7 @@ from geometry_msgs.msg import PoseStamped
 from nav2_msgs.action import NavigateToPose, ComputePathToPose
 from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
+from std_msgs.msg import Bool
 
 class Waypoints(Node):
 
@@ -14,6 +15,8 @@ class Waypoints(Node):
         super().__init__('waypoint_nav')
 
         self.goal_sub = self.create_subscription(Path, '/virtuoso_navigation/set_path', self.set_path, 10)
+        self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_path', 
+            self.set_trans_path, 10)
         self.nav_action = ActionClient(self, ComputePathToPose, '/compute_path_to_pose')
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
 
@@ -22,6 +25,7 @@ class Waypoints(Node):
         self.success_pub = self.create_publisher(PoseStamped, '/virtuoso_navigation/success', 10)
         
         self.path_pub = self.create_publisher(Path, '/transformed_global_plan', 10)
+        self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.waypoints_completed = 0
         self.path = None
@@ -37,7 +41,7 @@ class Waypoints(Node):
     def distance(self, p1, p2):
         return sqrt((p1.position.x - p2.position.x)**2 + (p1.position.y - p2.position.y)**2)
     
-    def set_path(self, msg:Path):
+    def set_path(self, msg:Path, is_trans=False):
 
         self.get_logger().info('setting path')
 
@@ -47,6 +51,11 @@ class Waypoints(Node):
         self.nav2_path = None
         self.nav2_waypoints_completed = 0
         self.nav2_goal = None
+
+        self.is_trans_pub.publish(Bool(data=is_trans))
+
+    def set_trans_path(self, msg:Path):
+        self.set_path(msg, True) 
     
     def calc_nav2_path(self):
         self.get_logger().info('sending nav2 goal')

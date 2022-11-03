@@ -16,6 +16,8 @@
   <exec_depend>virtuoso_processing</exec_depend>
   <exec_depend>spatio_temporal_voxel_layer</exec_depend>
 
+  <depend>virtuoso_msgs</depend>
+
   <export>
     <build_type>ament_python</build_type>
   </export>

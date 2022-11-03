@@ -1,8 +1,7 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.conditions import UnlessCondition
 from launch.substitutions import LaunchConfiguration
-from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
@@ -41,7 +40,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config}.items()
         ),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py'))),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_docks.launch.py'))),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config}.items()
@@ -49,6 +48,6 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_autonomy',
-            executable='robotX_gymkhana'
+            executable='robotX_docking'
         )
     ])
