@@ -15,6 +15,9 @@ class FindDockEntrances:
         self._prev_entrances = deque(maxlen=20)
         self._points_by_dist = list()
 
+        self._prev_ahead_entrances = deque(maxlen=20)
+        self._curr_ahead_entrance = list()
+
         self.node:Node = None # for debugging
     
     def debug(self, msg):
@@ -22,11 +25,11 @@ class FindDockEntrances:
             return
         self.node.get_logger().info(msg)
     
-    def _prev_entrances_consistent(self):
-        min_xy = list([None, None] for _ in range(4))
-        max_xy = list([None, None] for _ in range(4))
+    def _prev_consistent(self, entrances):
+        min_xy = list([None, None] for _ in range(len(entrances[0])))
+        max_xy = list([None, None] for _ in range(len(entrances[0])))
 
-        for docks in self._prev_entrances:
+        for docks in entrances:
             for i, point in enumerate(docks):
                 for j in range(2):
                     if min_xy[i][j] is None or point[j] < min_xy[i][j]:
@@ -34,12 +37,26 @@ class FindDockEntrances:
                     if max_xy[i][j] is None or point[j] > max_xy[i][j]:
                         max_xy[i][j] = point[j]
         
-        for i in range(4):
+        for i in range(len(min_xy)):
             for j in range(2):
                 if max_xy[i][j] - min_xy[i][j] > 1:
                     return False
         
         return True
+    
+    def get_entrances(self):
+        if len(self._prev_entrances) < 20:
+            return None
+        if not self._prev_consistent(self._prev_entrances):
+            return None
+        return self._curr_docks
+    
+    def get_ahead_entrance(self):
+        if len(self._prev_ahead_entrances) < 20:
+            return None
+        if not self._prev_consistent(self._prev_ahead_entrances):
+            return None
+        return self._curr_ahead_entrance
     
     def find_entrances(self, node:Node=None):
 
@@ -54,15 +71,16 @@ class FindDockEntrances:
             return None
         
         self._prev_entrances.append(self._curr_docks)
+        self._prev_ahead_entrances.append(self._curr_ahead_entrance)
 
-        if len(self._prev_entrances) < 20:
-            return
+        # if len(self._prev_entrances) < 20:
+        #     return
         
-        if not self._prev_entrances_consistent():
-            self.debug('Previous not consistent')
-            return
+        # if not self._prev_entrances_consistent():
+        #     self.debug('Previous not consistent')
+        #     return
         
-        return self._curr_docks
+        # return self._curr_docks
 
     def _update_docks(self):
         self._curr_docks = list()
@@ -106,6 +124,7 @@ class FindDockEntrances:
             break
         
         self._curr_docks.sort(key=lambda p: p[1])
+        self._curr_ahead_entrance = self._curr_docks
     
     def _find_remaining_docks(self):
         change = (self._curr_docks[0][0] - self._curr_docks[1][0],

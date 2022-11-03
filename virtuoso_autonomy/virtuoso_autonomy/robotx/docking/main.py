@@ -29,6 +29,8 @@ class DockingNode(Node):
             '/perception/dock_code_offsets', self.offsets_callback, 10)
         self.dock_entrances_sub = self.create_subscription(PointCloud2, 
             '/perception/dock_entrances', self.entrances_callback, 10)
+        self.dock_ahead_entrace_sub = self.create_subscription(PointCloud2,
+            '/perception/dock_ahead_entrance', self.ahead_entrance_callback, 10)
         
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
         self.trans_success_sub = self.create_subscription(Point, '/navigation/translate_success',
@@ -43,6 +45,7 @@ class DockingNode(Node):
         # self.target_offset = 0
         self.color_docks = dict() # map of color => index
         self.entrances = list() # list of 4 points (x, y)
+        self.ahead_entrance = list() # 2 points
         self.translating = False
         self.translate_complete = False
         self.entering = False
@@ -116,6 +119,11 @@ class DockingNode(Node):
         for point in read_points(msg):
             self.entrances.append((point[0], point[1]))
     
+    def ahead_entrance_callback(self, msg:PointCloud2):
+        self.ahead_entrance = list()
+        for point in read_points(msg):
+            self.ahead_entrance.append((point[0], point[1]))
+    
     def find_mid(self):
         index = self.color_docks[self.target_dock_color] 
         p1 = self.entrances[index]
@@ -143,26 +151,27 @@ class DockingNode(Node):
             return
 
         self.entrances = list()
+        self.ahead_entrance = list()
         if not self.entering:
             time.sleep(10.0) 
-            # self.go_to_entrance()
-        # self.translating = False
     
     def go_to_entrance(self):
         if self.entering:
             return
         if not self.translate_complete:
             return
-        if len(self.entrances) < 4:
+        if len(self.ahead_entrance) < 2:
             return
 
         self.entering = True
 
-        mid = self.find_mid()
+        mid = ((self.ahead_entrance[0][0] + self.ahead_entrance[1][0]) / 2, 
+            (self.ahead_entrance[0][1] + self.ahead_entrance[1][1]))
 
         self.trans_pub.publish(Point(x=mid[0], y=mid[1]))
     
     def enter_dock(self):
+        self.at_entrance = True
         self.trans_pub.publish(Point(x=2.0)) 
 
 def main(args=None):
