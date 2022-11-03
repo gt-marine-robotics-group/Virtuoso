@@ -3,6 +3,9 @@ from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray
 from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import PoseStamped, Point
+from sensor_msgs.msg import PointCloud2
+from virtuoso_processing.utils.pointcloud import read_points
+import time
 
 class DockingNode(Node):
 
@@ -24,6 +27,8 @@ class DockingNode(Node):
 
         self.dock_offsets_sub = self.create_subscription(Int32MultiArray, 
             '/perception/dock_code_offsets', self.offsets_callback, 10)
+        self.dock_entrances_sub = self.create_subscription(PointCloud2, 
+            '/perception/dock_entrances', self.entrances_callback, 10)
         
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
         self.trans_success_sub = self.create_subscription(Point, '/navigation/translate_success',
@@ -35,8 +40,12 @@ class DockingNode(Node):
         self.station_keeping_enabled = False
         self.find_docks_req_sent = False
 
-        self.target_offset = 0
+        # self.target_offset = 0
+        self.color_docks = dict() # map of color => index
+        self.entrances = list() # list of 4 points (x, y)
         self.translating = False
+        self.entering = False
+        self.at_entrance = False
 
         self.create_timer(1.0, self.send_find_docks_req)
     
@@ -77,29 +86,73 @@ class DockingNode(Node):
         self.find_docks_req_pub.publish(Int8(data=1))
     
     def offsets_callback(self, msg:Int32MultiArray):
-        if self.target_dock_color == 'red' and msg.data[3] != 1:
-            self.target_offset = msg.data[0]
-        elif self.target_dock_color == 'green' and msg.data[4] != 1:
-            self.target_offset = msg.data[1]
-        elif self.target_dock_color == 'blue' and msg.data[5] != 1:
-            self.target_offset = msg.data[2]
-        else:
-            self.target_offset = None
+        if 1 in msg.data[3:6]:
+            return
+        if self.translating:
+            return
         
-        if self.target_offset and not self.translating:
+        self.get_logger().info(str(msg.data[0:3]))
+
+        offset_to_color = dict()
+        offset_to_color[msg.data[0]] = 'red'
+        offset_to_color[msg.data[1]] = 'green'
+        offset_to_color[msg.data[2]] = 'blue'
+
+        offsets = list(msg.data[0:3])
+        offsets.sort()
+
+        for i, offset in enumerate(offsets):
+            self.color_docks[offset_to_color[offset]] = i
+
+        self.get_logger().info(str(self.color_docks))
+
+        if not self.translating:
             self.translate()
     
+    def entrances_callback(self, msg:PointCloud2):
+        self.entrances = list()
+        for point in read_points(msg):
+            self.entrances.append((point[0], point[1]))
+    
+    def find_mid(self):
+        index = self.color_docks[self.target_dock_color] 
+        p1 = self.entrances[index]
+        p2 = self.entrances[index + 1]
+
+        return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+    
     def translate(self):
+        if not self.color_docks:
+            return
+        if len(self.entrances) == 0:
+            return
+        
+        self.get_logger().info(str(self.entrances))
         self.translating = True
-        msg = Point()
-        if self.target_offset > 0:
-            msg.y = 1.5
-        else:
-            msg.y = -1.5
-        self.trans_pub.publish(msg)
+
+        mid = self.find_mid()
+
+        self.trans_pub.publish(Point(x=mid[0]-5, y=mid[1]))
 
     def trans_success_callback(self, msg):
-        self.translating = False
+        if self.entering and not self.at_entrance:
+            self.enter_dock()
+            return
+
+        if not self.entering:
+            time.sleep(2.0) 
+            self.go_to_entrance()
+        # self.translating = False
+    
+    def go_to_entrance(self):
+        self.entering = True
+
+        mid = self.find_mid()
+
+        self.trans_pub.publish(Point(x=mid[0], y=mid[1]))
+    
+    def enter_dock(self):
+        self.trans_pub.publish(Point(x=2.0)) 
 
 def main(args=None):
     rclpy.init(args=args)

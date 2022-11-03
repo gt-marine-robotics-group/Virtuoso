@@ -25,9 +25,11 @@ class FindDockEntrancesNode(Node):
         
         self.ready_pub = self.create_publisher(Int8, '/perception/find_dock_entrances/ready', 10)
 
-        self.first_two_pub = self.create_publisher(PointCloud2, '/processing/debug/first_two', 10)
-        self.possible_pub = self.create_publisher(PointCloud2, '/processing/debug/possible', 10)
-        self.curr_pub = self.create_publisher(PointCloud2, '/processing/debug/current', 10)
+        self.first_two_pub = self.create_publisher(PointCloud2, '/perception/debug/first_two', 10)
+        self.possible_pub = self.create_publisher(PointCloud2, '/perception/debug/possible', 10)
+        self.curr_pub = self.create_publisher(PointCloud2, '/perception/debug/current', 10)
+
+        self.docks_pub = self.create_publisher(PointCloud2, '/perception/dock_entrances', 10)
         
         self.points = None
         self.search_requested = False
@@ -81,7 +83,13 @@ class FindDockEntrancesNode(Node):
         if not self.search_requested:
             return
         
-        self.find_docks.find_entrances(self)
+        entrances = self.find_docks.find_entrances(self)
+
+        if entrances is None:
+            return
+
+        self.docks_pub.publish(self.get_cloud(entrances))
+
 
 
 def main(args=None):
