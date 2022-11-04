@@ -65,6 +65,7 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_processing',
-            executable='shore_filter'
+            executable='shore_filter',
+            parameters=[processing_param_file]
         ),
     ])
