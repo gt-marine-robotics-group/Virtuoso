@@ -44,9 +44,8 @@ def find_code_coords_and_size(bgr, node):
 
     filter = ColorFilter(hsv, bgr)
 
-    white = filter.white_filter()
     # No other red objects in background to confuse filter
-    red_or_orange = filter.red_orange_filter(white)
+    red_or_orange = filter.red_orange_filter()
     # red_or_orange = filter.green_filter()
 
     image = CvBridge().cv2_to_imgmsg(red_or_orange, encoding='bgr8')
@@ -61,9 +60,7 @@ def read_curr_code(bgr, coord):
 
     filter = ColorFilter(hsv, bgr)
 
-    white = filter.white_filter()
-    black = filter.black_filter()
-    red_or_orange = filter.red_orange_filter(white)
+    red_or_orange = filter.red_orange_filter()
     green = filter.green_filter()
     blue = filter.blue_filter()
 

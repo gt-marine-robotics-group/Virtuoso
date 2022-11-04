@@ -7,9 +7,9 @@ class ColorFilter():
         self.hsv = hsv
         self.bgr = bgr
 
-    def black_filter(self):
-        lower = np.array([0, 0, 0])
-        upper = np.array([50, 50, 100])
+    def black_filter(self, lower=[0,0,0], upper=[50,50,100]):
+        lower = np.array(lower)
+        upper = np.array(upper)
 
         # Could apply a bitwise_not to the mask to make the cone
         # actually appear black instead of white when returned.
@@ -18,13 +18,13 @@ class ColorFilter():
 
         return cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
-    def white_filter(self):
-        lower = np.array([0, 0, 0])
-        upper = np.array([0, 0, 255])
+    def white_filter(self, lower=[0,0,0], upper=[0,0,255]):
+        lower = np.array(lower)
+        upper = np.array(upper)
 
         return self.filter(lower, upper)
 
-    def red_orange_filter(self, white_filtered):
+    def red_orange_filter(self):
         lower_red = np.array([0, 50, 50])
         upper_red = np.array([10, 255, 255])
 

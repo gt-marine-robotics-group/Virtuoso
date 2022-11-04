@@ -165,8 +165,7 @@ class FindDockCodes:
         return coord, coord_dimensions
     
     def _find_red_code(self, filter:ColorFilter):
-        white = filter.white_filter()
-        red_or_orange = filter.red_orange_filter(white)
+        red_or_orange = filter.red_orange_filter()
 
         return self._find_largest_rect_on_axis(red_or_orange)
     
