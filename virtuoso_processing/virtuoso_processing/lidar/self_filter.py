@@ -7,9 +7,13 @@ from ..utils.pointcloud import read_points, create_cloud_xyz32
 class SelfFilter(Node):
 
     def __init__(self):
-        super().__init__('self_filter')
+        super().__init__('processing_self_filter')
         self.lidar_sub = self.create_subscription(PointCloud2, '/points_nonground', self.callback, 10)
         self.publisher = self.create_publisher(PointCloud2, '/processing/points_self_filtered', 10)
+
+        self.declare_parameters(namespace='', parameters=[
+            ('radius', 0)
+        ])
 
     def callback(self, msg:PointCloud2):
 
@@ -17,7 +21,7 @@ class SelfFilter(Node):
 
         for i, point in enumerate(read_points(msg)):
             points.append([0, 0, 0])
-            if(math.sqrt((point[0]**2) + (point[1]**2)) < .9):
+            if(math.sqrt((point[0]**2) + (point[1]**2)) < self.get_parameter('radius').value):
                 points[i][0] = float("NaN")
                 points[i][1] = float("NaN")
                 points[i][2] = float("NaN")

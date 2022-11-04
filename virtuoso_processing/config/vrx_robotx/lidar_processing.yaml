@@ -1,0 +1,4 @@
+
+processing_self_filter:
+  ros__parameters:
+    radius: 0.9

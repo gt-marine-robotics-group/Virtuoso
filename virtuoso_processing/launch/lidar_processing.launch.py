@@ -34,6 +34,8 @@ def generate_launch_description():
         description='Path to config file for Voxel Grid Node'
     )
 
+    processing_param_file = (pkg_share, '/config/', usv_config, '/lidar_processing.yaml')
+
     return LaunchDescription([
         usv_arg,
         voxel_grid_node_param,
@@ -58,7 +60,8 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_processing',
-            executable='self_filter'
+            executable='self_filter',
+            parameters=[processing_param_file]
         ),
         Node(
             package='virtuoso_processing',
