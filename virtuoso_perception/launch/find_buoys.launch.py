@@ -13,6 +13,8 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
+    buoys_param_file = (pkg_share, '/config/', usv_config, '/buoys.yaml')
+
     # must have virtuoso_processing lidar_processing launched as well for euclidean clustering to do anything
     return LaunchDescription([
         usv_arg, 
@@ -23,6 +25,7 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_perception',
-            executable='find_buoys'
+            executable='find_buoys',
+            parameters=[buoys_param_file]
         ) 
     ])
