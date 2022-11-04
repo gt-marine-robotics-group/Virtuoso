@@ -12,6 +12,8 @@ def generate_launch_description():
 
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
+
+    dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
     
     return LaunchDescription([
         usv_arg,
@@ -22,7 +24,8 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_perception',
-            executable='find_dock_codes'
+            executable='find_dock_codes',
+            parameters=[dock_param_file]
         ),
         Node(
             package='virtuoso_perception',

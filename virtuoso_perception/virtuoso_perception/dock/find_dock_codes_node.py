@@ -10,14 +10,14 @@ from .find_dock_codes import FindDockCodes
 class FindDocksNode(Node):
 
     def __init__(self):
-        super().__init__('find_docks', namespace='perception')
+        super().__init__('perception_find_dock_codes')
 
         self.camera_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.image_callback, 10)
         self.start_sub = self.create_subscription(Int8, '/perception/start_find_docks', 
             self.start_callback, 10)
 
-        self.ready_pub = self.create_publisher(Int8, 'find_dock_codes/ready', 10)
+        self.ready_pub = self.create_publisher(Int8, '/perception/find_dock_codes/ready', 10)
         
         # [Red dock offset, Green dock offset, Blue dock offset, Red unknown, Green unknown, 
         #   Blue unknown, image width]
@@ -26,11 +26,37 @@ class FindDocksNode(Node):
         self.dock_info_pub = self.create_publisher(Int32MultiArray, 
             '/perception/dock_code_offsets', 10)
 
+        self.declare_parameters(namespace='', parameters=[
+            ('red.lower1', [0,0,0]),
+            ('red.upper1', [0,0,0]),
+            ('red.lower2', [0,0,0]),
+            ('red.upper2', [0,0,0]),
+            ('green.lower', [0,0,0]),
+            ('green.upper', [0,0,0]),
+            ('blue.lower', [0,0,0]),
+            ('blue.upper', [0,0,0])
+        ])
+
         self.image = None
         self.search_requested = False
         # self.search_requested = True
 
-        self.find_docks = FindDockCodes() 
+        self.find_docks = FindDockCodes(filter_bounds={
+            'red': {
+                'lower1': self.get_parameter('red.lower1').value,
+                'upper1': self.get_parameter('red.upper1').value,
+                'lower2': self.get_parameter('red.lower2').value,
+                'upper2': self.get_parameter('red.upper2').value
+            },
+            'green': {
+                'lower': self.get_parameter('green.lower').value,
+                'upper': self.get_parameter('green.upper').value
+            },
+            'blue': {
+                'lower': self.get_parameter('blue.lower').value,
+                'upper': self.get_parameter('blue.upper').value
+            }
+        })
 
         self.create_timer(.1, self.find)
         self.create_timer(1.0, self.send_ready)

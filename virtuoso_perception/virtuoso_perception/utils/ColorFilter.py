@@ -7,9 +7,9 @@ class ColorFilter():
         self.hsv = hsv
         self.bgr = bgr
 
-    def black_filter(self, lower=[0,0,0], upper=[50,50,100]):
-        lower = np.array(lower)
-        upper = np.array(upper)
+    def black_filter(self, hsv_lower=[0,0,0], hsv_upper=[50,50,100]):
+        lower = np.array(hsv_lower)
+        upper = np.array(hsv_upper)
 
         # Could apply a bitwise_not to the mask to make the cone
         # actually appear black instead of white when returned.
@@ -18,20 +18,21 @@ class ColorFilter():
 
         return cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
-    def white_filter(self, lower=[0,0,0], upper=[0,0,255]):
-        lower = np.array(lower)
-        upper = np.array(upper)
+    def white_filter(self, hsv_lower=[0,0,0], hsv_upper=[0,0,255]):
+        lower = np.array(hsv_lower)
+        upper = np.array(hsv_upper)
 
         return self.filter(lower, upper)
 
-    def red_orange_filter(self):
-        lower_red = np.array([0, 50, 50])
-        upper_red = np.array([10, 255, 255])
+    def red_orange_filter(self, hsv_lower1=[0,50,50], hsv_upper1=[10,255,255],
+        hsv_lower2=[170,100,100], hsv_upper2=[180,255,255]):
+        lower_red = np.array(hsv_lower1)
+        upper_red = np.array(hsv_upper1)
 
         # return self.filter(lower_red, upper_red)
 
-        lower_red2 = np.array([170, 100, 100])
-        upper_red2 = np.array([180, 255, 255])
+        lower_red2 = np.array(hsv_lower2)
+        upper_red2 = np.array(hsv_upper2)
 
         # return self.filter(lower_red2, upper_red2)
 
@@ -43,15 +44,15 @@ class ColorFilter():
 
         # return cv2.bitwise_xor(filtered, white_filtered)
 
-    def green_filter(self):
-        lower_green = np.array([50, 100, 50])
-        upper_green = np.array([86, 255, 255])
+    def green_filter(self, hsv_lower=[50,100,50], hsv_upper=[86,255,255]):
+        lower_green = np.array(hsv_lower)
+        upper_green = np.array(hsv_upper)
 
         return self.filter(lower_green, upper_green)
     
-    def blue_filter(self):
-        lower_blue = np.array([110, 50, 50])
-        upper_blue = np.array([130, 255, 255])
+    def blue_filter(self, hsv_lower=[110,50,50], hsv_upper=[130,255,255]):
+        lower_blue = np.array(hsv_lower)
+        upper_blue = np.array(hsv_upper)
 
         return self.filter(lower_blue, upper_blue)
     

@@ -128,6 +128,9 @@ class FindDockEntrances:
         # self.node.publish_current(self._curr_ahead_entrance)
     
     def _find_remaining_docks(self):
+        if len(self._curr_docks) < 2:
+            return
+
         change = (self._curr_docks[0][0] - self._curr_docks[1][0],
             self._curr_docks[0][1] - self._curr_docks[1][1])
         change_doubled = tuple(2 * c for c in change)
