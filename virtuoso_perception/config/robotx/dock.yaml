@@ -1,0 +1,16 @@
+
+perception_find_dock_codes:
+  ros__parameters:
+    red:
+      lower1: [0, 50, 50]
+      upper1: [10, 255, 255]
+      lower2: [170, 100, 100]
+      upper2: [180, 355, 255]
+    green:
+      lower: [50, 100, 50]
+      upper: [86, 255, 255]
+    blue:
+      lower: [110, 50, 50]
+      upper: [130, 255, 255]
+    
+    code_axis_range: 0.05
