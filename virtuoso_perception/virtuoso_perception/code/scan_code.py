@@ -1,69 +1,95 @@
-from math import sqrt
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import Image
-from std_msgs.msg import Int32MultiArray, Int8
-from cv_bridge import CvBridge
-import cv2
-from ..utils.scan_code import read_curr_code, find_code_coords_and_size
-import numpy as np
 from collections import deque
+import numpy as np
+import cv2
+from ..utils.ColorFilter import ColorFilter
+from ..utils.code_identification import find_contours
+from ..utils.math import distance
 
-class ScanCode(Node):
+class ScanCode:
 
-    def __init__(self):
-        super().__init__('perception_scan_code')
+    def __init__(self, filter_bounds, code_loc_noise):
 
-        # self.camera_sub = self.create_subscription(Image, '/downscaled_image', self.image_callback, 10)
-        self.camera_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', 
-            self.image_callback, 10)
-        self.get_code_sub = self.create_subscription(Int8, '/perception/get_code', 
-            self.start_scan, 10)
+        self.image:np.ndarray = None
 
-        self.ready_pub = self.create_publisher(Int8, '/perception/scan_code/ready', 10)
-        self.code_pub = self.create_publisher(Int32MultiArray, '/perception/code', 10)
+        self._filter_bounds = filter_bounds
+        self._code_loc_noise = code_loc_noise
 
-        self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
+        self.code_found = None
 
-        self.declare_parameters(namespace='', parameters=[
-            ('code_loc_noise', 0.0)
-        ])
+        self._codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
+        self._curr_raw_data = deque(maxlen=5)
+        self._curr_code_found = list()
 
-        self.image = None
-        self.scan_requested = False
-        # self.scan_requested = True
-
-        # scan twice (or more) to verify code is correct before publishing
-        self.codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
-        self.curr_raw_data = deque(maxlen=5)
-        self.curr_code_found = list()
-
-        self.code_published = False
-
-        self.code_coords = dict()
-        self.coord_sizes = dict()
-        self.code_coord = None
-        self.code_coord_iteration = 0
-        self.coord_largest_size = None
-
-        self.create_timer(.1, self.read_code)
-        self.create_timer(1.0, self.send_ready)
+        self._code_coords = dict()
+        self._coord_sizes = dict()
+        self._code_coord = None
+        self._code_coord_iteration = 0
+        self._coord_largest_size = None
     
-    def send_ready(self):
-        if self.scan_requested:
+    def read_code(self):
+
+        if self.image is None:
             return
-        msg = Int8()
-        msg.data = 1
-        self.ready_pub.publish(msg)
+        
+        coord = self._get_code_coord()
+
+        if coord is None:
+            return
+        
+        # self.get_logger().info(f'coord: {coord}')
+        
+        curr_code = self._read_curr_code(coord)
+
+        self._curr_raw_data.append(curr_code)
+
+        # self.get_logger().info(str(self.curr_raw_data))
+
+        if len(self._curr_raw_data) < 5:
+            return
+        
+        curr_code = self._find_mode()
+
+        self._add_curr_code(curr_code) 
+
+        # self.get_logger().info(str(self.curr_code_found))
+
+        if len(self._curr_code_found) == 4:
+            self._update_codes()
     
-    def start_scan(self, msg):
-        self.get_logger().info('Received Scan Code Request')
-        self.scan_requested = True
+    def _update_codes(self):
+        self._codes.append(self._curr_code_found)
+        self._curr_code_found = list()
+        if len(self._codes) == 2:
+            self._check_for_finalized_code()
+
+    def _check_for_finalized_code(self):
+        if self._codes[0] != self._codes[1]:
+            return
+        self.code_found = self._codes[0][1:]
+        # self.code_published = True
+        # msg = Int32MultiArray()
+        # msg.data = self.codes[0][1:]
+        # self.code_pub.publish(msg)
+        # self.finalized_code = self.codes[0][1:-1]
+        # self.get_logger().info(f'FOUND CODE: {self.codes[0][1:]}')
     
-    def find_mode(self, data):
+    def _add_curr_code(self, code):
+        # make sure the first code we add is black
+        if len(self._curr_code_found) == 0 and code != -1:
+            return
+        
+        if code == -1 and len(self._curr_code_found) > 0:
+            return
+        
+        if len(self._curr_code_found) > 0 and code == self._curr_code_found[-1]:
+            return
+        
+        self._curr_code_found.append(code)
+    
+    def _find_mode(self):
         counts = dict()
         curr_mode = None
-        for d in data:
+        for d in self._curr_raw_data:
             if d in counts:
                 counts[d] += 1
             else:
@@ -71,131 +97,119 @@ class ScanCode(Node):
             if curr_mode is None or counts[d] > counts[curr_mode]:
                 curr_mode = d
         return curr_mode
-    
-    def add_curr_code(self, code):
-        # make sure the first code we add is black
-        if len(self.curr_code_found) == 0 and code != -1:
-            return
-        
-        if code == -1 and len(self.curr_code_found) > 0:
-            return
-        
-        if len(self.curr_code_found) > 0 and code == self.curr_code_found[-1]:
-            return
-        
-        self.curr_code_found.append(code)
-    
-    def update_codes(self):
-        self.codes.append(self.curr_code_found)
-        self.curr_code_found = list()
-        if len(self.codes) == 2:
-            self.check_for_finalized_code()
-    
-    def check_for_finalized_code(self):
-        if self.codes[0] != self.codes[1]:
-            return
-        self.code_published = True
-        msg = Int32MultiArray()
-        msg.data = self.codes[0][1:]
-        self.code_pub.publish(msg)
-        # self.finalized_code = self.codes[0][1:-1]
-        self.get_logger().info(f'FOUND CODE: {self.codes[0][1:]}')
 
-    def image_callback(self, msg:Image):
-        self.image = msg
-    
-    def get_code_coord(self, bgr):
-        if not self.code_coord is None:
-            return self.code_coord
-        
-        self.code_coord_iteration += 1
+    def _get_code_coord(self):
 
-        coord, size = find_code_coords_and_size(bgr, self)
+        if not self._code_coord is None:
+            return self._code_coord
+        
+        self._code_coord_iteration += 1
+
+        coord, size = self._find_code_coords_and_size()
 
         if coord is None or size is None:
             return None
 
-        self.get_logger().info(f'coord: {coord}')
-        for key, value in self.code_coords.items():
-            if self.distance(key, coord) < self.get_parameter('code_loc_noise').value: # PARAM 10
-                self.code_coords.pop(key)
-                prevSize = self.coord_sizes.pop(key)
-                newKey = self.calc_new_avg(key, value, coord)
-                self.code_coords[newKey] = value + 1
-                self.coord_sizes[newKey] = ((prevSize * value) + size) / (value + 1)
+        # self.get_logger().info(f'coord: {coord}')
+        for key, value in self._code_coords.items():
+            if distance(key, coord) < self._code_loc_noise: # PARAM 10
+                self._code_coords.pop(key)
+                prevSize = self._coord_sizes.pop(key)
+                newKey = self._calc_new_avg(key, value, coord)
+                self._code_coords[newKey] = value + 1
+                self._coord_sizes[newKey] = ((prevSize * value) + size) / (value + 1)
 
-                if ((self.coord_largest_size is None or 
-                    not self.coord_largest_size in self.coord_sizes or
-                    self.coord_sizes[newKey] > self.coord_sizes[self.coord_largest_size]) 
+                if ((self._coord_largest_size is None or 
+                    not self._coord_largest_size in self._coord_sizes or
+                    self._coord_sizes[newKey] > self._coord_sizes[self._coord_largest_size]) 
                     and (value + 1 > 4)):
-                    self.coord_largest_size = newKey
+                    self._coord_largest_size = newKey
                 # self.coord_sizes
                 # if value + 1 > 9:
                 #     self.code_coord = newKey
                 #     return self.code_coord
                 break
         else: # if we never break
-            self.code_coords[coord] = 1
-            self.coord_sizes[coord] = size
+            self._code_coords[coord] = 1
+            self._coord_sizes[coord] = size
         
-        if self.code_coord_iteration < 50:
+        if self._code_coord_iteration < 50:
             return None
         
-        self.code_coord = self.coord_largest_size
+        self.code_coord = self._coord_largest_size
         
         return self.code_coord
 
-    def read_code(self):
-        # self.get_logger().info(str(self.scan_requested))
+    def _find_code_coords_and_size(self):
+        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
 
-        if not self.scan_requested:
-            return
+        filter = ColorFilter(hsv, self.image)
 
-        if self.code_published:
-            return
+        # No other red objects in background to confuse filter
+        red_or_orange = filter.red_orange_filter()
 
-        if self.image is None:
-            return
+        # image = CvBridge().cv2_to_imgmsg(red_or_orange, encoding='bgr8')
+        # node.debug_pub.publish(image)
+        # node.get_logger().info('finding coord!')
 
-        bgr = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
+        return self._find_display_box(red_or_orange)
 
-        coord = self.get_code_coord(bgr)
+    def _find_display_box(self, bgr, targetCoord=None):
 
-        if coord is None:
-            return
-        
-        self.get_logger().info(f'coord: {coord}')
-        
-        curr_code = read_curr_code(bgr, coord)
+        contours = find_contours(bgr)
 
-        self.curr_raw_data.append(curr_code)
+        closestCoord = None
+        closestArea = None
 
-        self.get_logger().info(str(self.curr_raw_data))
+        for cnt in contours:
 
-        if len(self.curr_raw_data) < 5:
-            return
-        
-        curr_code = self.find_mode(self.curr_raw_data)
+            x, y, w, h = cv2.boundingRect(cnt)
 
-        self.add_curr_code(curr_code) 
+            # if not node is None:
+            #     node.get_logger().info(str((x, y)))
+            #     node.get_logger().info(str(w * h))
+            #     node.get_logger().info('----------')
 
-        self.get_logger().info(str(self.curr_code_found))
+            if targetCoord is None:
+                if closestArea is None or closestArea < w * h:
+                    closestCoord = (x, y)
+                    closestArea = w * h
+                continue
 
-        if len(self.curr_code_found) == 4:
-            self.update_codes()
+            if closestCoord is None or (distance((x, y), targetCoord) < 10 
+                and (w * h) > closestArea):
+                closestCoord = (x, y)
+                closestArea = w * h
 
-    def distance(self, a, b):
-        return sqrt((a[0] - b[0])**2 + (a[1] - b[1])**2)
+        return closestCoord, closestArea
     
-    def calc_new_avg(self, original, count, new):
+    def _read_curr_code(self, coord):
+
+        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+
+        filter = ColorFilter(hsv, self.image)
+
+        red_or_orange = filter.red_orange_filter()
+        green = filter.green_filter()
+        blue = filter.blue_filter()
+
+        boxes = [ # [r, g, b]
+            self._find_display_box(red_or_orange, coord),
+            self._find_display_box(green, coord),
+            self._find_display_box(blue, coord)
+        ]
+
+        curr_code = -1
+
+        for i, box in enumerate(boxes):
+            if box[0] is None or box[1] is None:
+                continue
+            if box[1] < 500 or distance(box[0], coord) > 30:
+                continue
+            if curr_code == -1 or distance(box[0], coord) < distance(boxes[curr_code][0], coord):
+                curr_code = i
+
+        return curr_code
+
+    def _calc_new_avg(self, original, count, new):
         return (((original[0] * count) + new[0]) / (count + 1), ((original[1] * count) + new[1]) / (count + 1))
-
-def main(args=None):
-    rclpy.init(args=args)
-    node = ScanCode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
-
-if __name__ == '__main__':
-    main()
