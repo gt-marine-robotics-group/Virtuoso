@@ -35,7 +35,7 @@ class FindBuoys(Node):
         for box in msg.boxes:
             if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
 
-            if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
+            # if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
 
             if box.centroid.z - 0.2 > 0: 
                 box.value = 1.0
