@@ -10,12 +10,13 @@ class FindDockCodes:
     code_loc_weights = {4: .4, 3: .3, 2: .15, 1: .1, 0: .05}
     code_colors = ['red', 'green', 'blue']
 
-    def __init__(self, filter_bounds):
+    def __init__(self, filter_bounds, code_axis_range):
 
         self.image:np.ndarray = None
         self._image_dimensions = (0, 0) # (height, width)
 
         self._filter_bounds = filter_bounds
+        self._code_axis_range = code_axis_range
 
         self._code_locations = {
             'red': deque(maxlen=5),

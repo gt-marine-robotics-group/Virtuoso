@@ -34,7 +34,9 @@ class FindDocksNode(Node):
             ('green.lower', [0,0,0]),
             ('green.upper', [0,0,0]),
             ('blue.lower', [0,0,0]),
-            ('blue.upper', [0,0,0])
+            ('blue.upper', [0,0,0]),
+            
+            ('code_axis_range', 0.0)
         ])
 
         self.image = None
@@ -56,7 +58,7 @@ class FindDocksNode(Node):
                 'lower': self.get_parameter('blue.lower').value,
                 'upper': self.get_parameter('blue.upper').value
             }
-        })
+        }, code_axis_range=self.get_parameter('code_axis_range').value)
 
         self.create_timer(.1, self.find)
         self.create_timer(1.0, self.send_ready)

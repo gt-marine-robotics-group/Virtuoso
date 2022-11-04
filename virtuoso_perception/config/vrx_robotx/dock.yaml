@@ -12,3 +12,5 @@ perception_find_dock_codes:
     blue:
       lower: [110, 50, 50]
       upper: [130, 255, 255]
+    
+    code_axis_range: 0.05
