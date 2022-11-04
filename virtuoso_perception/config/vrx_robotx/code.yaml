@@ -1,0 +1,4 @@
+
+perception_scan_code:
+  ros__parameters:
+    code_loc_noise: 10.0

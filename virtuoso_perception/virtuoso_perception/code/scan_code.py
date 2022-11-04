@@ -12,7 +12,7 @@ from collections import deque
 class ScanCode(Node):
 
     def __init__(self):
-        super().__init__('scan_code')
+        super().__init__('perception_scan_code')
 
         # self.camera_sub = self.create_subscription(Image, '/downscaled_image', self.image_callback, 10)
         self.camera_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', 
@@ -24,6 +24,10 @@ class ScanCode(Node):
         self.code_pub = self.create_publisher(Int32MultiArray, '/perception/code', 10)
 
         self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
+
+        self.declare_parameters(namespace='', parameters=[
+            ('code_loc_noise', 0.0)
+        ])
 
         self.image = None
         self.scan_requested = False
@@ -113,7 +117,7 @@ class ScanCode(Node):
 
         self.get_logger().info(f'coord: {coord}')
         for key, value in self.code_coords.items():
-            if self.distance(key, coord) < 10:
+            if self.distance(key, coord) < self.get_parameter('code_loc_noise').value: # PARAM 10
                 self.code_coords.pop(key)
                 prevSize = self.coord_sizes.pop(key)
                 newKey = self.calc_new_avg(key, value, coord)
