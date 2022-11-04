@@ -49,7 +49,6 @@ class Waypoints(Node):
         self.waypoints_completed = 0
 
         self.nav2_path = None
-        self.nav2_waypoints_completed = 0
         self.nav2_goal = None
 
         self.is_trans_pub.publish(Bool(data=is_trans))
@@ -103,7 +102,6 @@ class Waypoints(Node):
             self.nav2_goal = None
             return
         
-        self.send_waypoint(self.nav2_path.poses[self.nav2_waypoints_completed].pose)
         self.path_pub.publish(self.nav2_path)
     
     def send_waypoint(self, pose):
