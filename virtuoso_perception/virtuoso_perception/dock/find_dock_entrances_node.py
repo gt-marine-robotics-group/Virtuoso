@@ -60,7 +60,8 @@ class FindDockEntrancesNode(Node):
             trans = self.tf_buffer.lookup_transform('wamv/base_link', 'map', Time())
         except Exception as e:
             self.get_logger().info('Failed Transform')
-
+            return
+        
         for point in read_points(self.points):
             p = PointStamped(point=Point(x=point[0], y=point[1]))
             trans_point = do_transform_point(p, trans)
