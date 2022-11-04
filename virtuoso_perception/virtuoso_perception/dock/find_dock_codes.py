@@ -57,7 +57,6 @@ class FindDockCodes:
             return None
         
         self._find_code_x_offsets()
-        # self.node.get_logger().info(f'Map Offsets: {self.code_x_offsets}')
         self._debug(f'Map Offsets: {self._code_x_offsets}')
 
         self._prev_code_x_offsets.append(self._code_x_offsets)
@@ -189,7 +188,6 @@ class FindDockCodes:
     
     def _update_code_locations(self, filter:ColorFilter):
         red_coord, red_dimensions = self._find_red_code(filter)
-        # self.node.get_logger().info(f'Red coord: {red_coord}, area: {self.area(red_dimensions)}')
         self._debug(f'Red coord: {red_coord}, area: {self._area(red_dimensions)}')
 
         if red_coord is None: return
@@ -200,8 +198,6 @@ class FindDockCodes:
         green_coord, green_dimensions = self._find_green_code(filter, axis,
             self._area(red_dimensions))
 
-        # self.node.get_logger().info(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
-        # self.node.get_logger().info(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
         self._debug(f'Blue coord: {blue_coord}, area: {self._area(blue_dimensions)}')
         self._debug(f'Green coord: {green_coord}, area: {self._area(green_dimensions)}')
 
