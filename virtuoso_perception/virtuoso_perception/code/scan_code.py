@@ -4,17 +4,19 @@ import cv2
 from ..utils.ColorFilter import ColorFilter
 from ..utils.code_identification import find_contours
 from ..utils.math import distance
+from rclpy.node import Node
 
 class ScanCode:
 
     def __init__(self, filter_bounds, code_loc_noise):
 
         self.image:np.ndarray = None
+        self.node:Node = None
 
         self._filter_bounds = filter_bounds
         self._code_loc_noise = code_loc_noise
 
-        self.code_found = None
+        self.code = None
 
         self._codes = deque(maxlen=2) # [['red', 'green', 'blue], ['red', 'green', 'blue']]
         self._curr_raw_data = deque(maxlen=5)
@@ -26,6 +28,11 @@ class ScanCode:
         self._code_coord_iteration = 0
         self._coord_largest_size = None
     
+    def _debug(self, msg):
+        if self.node is None:
+            return
+        self.node.get_logger().info(msg)
+    
     def read_code(self):
 
         if self.image is None:
@@ -36,13 +43,13 @@ class ScanCode:
         if coord is None:
             return
         
-        # self.get_logger().info(f'coord: {coord}')
+        self._debug(f'coord: {coord}')
         
         curr_code = self._read_curr_code(coord)
 
         self._curr_raw_data.append(curr_code)
 
-        # self.get_logger().info(str(self.curr_raw_data))
+        self._debug(str(self._curr_raw_data))
 
         if len(self._curr_raw_data) < 5:
             return
@@ -51,7 +58,7 @@ class ScanCode:
 
         self._add_curr_code(curr_code) 
 
-        # self.get_logger().info(str(self.curr_code_found))
+        self._debug(str(self._curr_code_found))
 
         if len(self._curr_code_found) == 4:
             self._update_codes()
@@ -65,13 +72,7 @@ class ScanCode:
     def _check_for_finalized_code(self):
         if self._codes[0] != self._codes[1]:
             return
-        self.code_found = self._codes[0][1:]
-        # self.code_published = True
-        # msg = Int32MultiArray()
-        # msg.data = self.codes[0][1:]
-        # self.code_pub.publish(msg)
-        # self.finalized_code = self.codes[0][1:-1]
-        # self.get_logger().info(f'FOUND CODE: {self.codes[0][1:]}')
+        self.code = self._codes[0][1:]
     
     def _add_curr_code(self, code):
         # make sure the first code we add is black
@@ -110,9 +111,10 @@ class ScanCode:
         if coord is None or size is None:
             return None
 
-        # self.get_logger().info(f'coord: {coord}')
+        self._debug(str(self._code_coord_iteration))
+        self._debug(f'coord: {coord}')
         for key, value in self._code_coords.items():
-            if distance(key, coord) < self._code_loc_noise: # PARAM 10
+            if distance(key, coord) < self._code_loc_noise:
                 self._code_coords.pop(key)
                 prevSize = self._coord_sizes.pop(key)
                 newKey = self._calc_new_avg(key, value, coord)
@@ -124,10 +126,6 @@ class ScanCode:
                     self._coord_sizes[newKey] > self._coord_sizes[self._coord_largest_size]) 
                     and (value + 1 > 4)):
                     self._coord_largest_size = newKey
-                # self.coord_sizes
-                # if value + 1 > 9:
-                #     self.code_coord = newKey
-                #     return self.code_coord
                 break
         else: # if we never break
             self._code_coords[coord] = 1
@@ -136,9 +134,10 @@ class ScanCode:
         if self._code_coord_iteration < 50:
             return None
         
-        self.code_coord = self._coord_largest_size
+        self._debug(f'largest size: {self._coord_largest_size}')
+        self._code_coord = self._coord_largest_size
         
-        return self.code_coord
+        return self._code_coord
 
     def _find_code_coords_and_size(self):
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
@@ -164,11 +163,6 @@ class ScanCode:
         for cnt in contours:
 
             x, y, w, h = cv2.boundingRect(cnt)
-
-            # if not node is None:
-            #     node.get_logger().info(str((x, y)))
-            #     node.get_logger().info(str(w * h))
-            #     node.get_logger().info('----------')
 
             if targetCoord is None:
                 if closestArea is None or closestArea < w * h:
