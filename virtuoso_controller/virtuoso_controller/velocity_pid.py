@@ -21,6 +21,10 @@ class velocityPID(Node):
 
     def __init__(self):
         super().__init__('velocity_PID')
+
+        self.declare_parameter('velocity_kp', 1.0)
+        self.declare_parameter('velocity_kd', 1.0)
+        self.declare_parameter('velocity_ki', 1.0)
         
         self.stateEstimate = Odometry()
         self.targetTwist = Twist()
@@ -112,9 +116,14 @@ class velocityPID(Node):
              self.xIntegral = 0.0
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + (targetVel[0]- currentVelX)*0.01
-        self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01       
-        targetForceY = (targetVel[1]*1.5 - currentVelY)*0.5 + self.yIntegral*0.01 
-        targetForceX = (targetVel[0]*1.5 - currentVelX)*0.5 + self.xIntegral*0.01
+        self.yIntegral = self.yIntegral + (targetVel[1] - currentVelY)*0.01  
+
+        kp_factor = self.get_parameter('velocity_kp').value
+        kd_factor = self.get_parameter('velocity_kd').value
+        ki_factor = self.get_parameter('velocity_ki').value
+             
+        targetForceY = (targetVel[1]*1.5*kp_factor - currentVelY*kd_factor)*0.5 + self.yIntegral*0.01*ki_factor 
+        targetForceX = (targetVel[0]*1.5*kp_factor - currentVelX*kd_factor)*0.5 + self.xIntegral*0.01*ki_factor
         #self.get_logger().info('targetForceX: ' + str(targetForceX))  
         #self.get_logger().info('targetForceY: ' + str(targetForceY))    
         
