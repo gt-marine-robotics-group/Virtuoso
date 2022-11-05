@@ -8,12 +8,10 @@ import os
 
 def generate_launch_description():
     
-    sim_time = DeclareLaunchArgument('sim_time', default_value='False')
-    sim_path = DeclareLaunchArgument('sim_path', default_value='')
-    usv = DeclareLaunchArgument('usv')
+    sim_time_arg = DeclareLaunchArgument('sim_time', default_value='False')
+    usv_arg = DeclareLaunchArgument('usv')
 
     sim_time_config = LaunchConfiguration('sim_time', default='False')
-    sim_path_config = LaunchConfiguration('sim_path', default='')
     usv_config = LaunchConfiguration('usv')
 
     processing = get_package_share_directory('virtuoso_processing')
@@ -23,9 +21,8 @@ def generate_launch_description():
     controller = get_package_share_directory('virtuoso_controller')
 
     return LaunchDescription([
-        sim_time,
-        sim_path,
-        usv,
+        sim_time_arg,
+        usv_arg,
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py')),
@@ -33,8 +30,7 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py')),
-            launch_arguments= {'sim_time': sim_time_config, 'sim_path': sim_path_config,
-                'usv': usv_config}.items()
+            launch_arguments= {'sim_time': sim_time_config, 'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
