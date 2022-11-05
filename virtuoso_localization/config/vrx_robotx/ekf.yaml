@@ -1,3 +1,7 @@
+navsat_transform_node:
+    ros__parameters:
+        magnetic_declination_radians: 0.00 
+    
 ### ekf config file ###
 ekf_filter_node:
     ros__parameters:
