@@ -20,8 +20,6 @@ class Waypoints(Node):
         self.nav_action = ActionClient(self, ComputePathToPose, '/compute_path_to_pose')
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
 
-        self.waypoint_pub = self.create_publisher(Odometry, '/waypoint_manual', 10)
-
         self.success_pub = self.create_publisher(PoseStamped, '/virtuoso_navigation/success', 10)
         
         self.path_pub = self.create_publisher(Path, '/transformed_global_plan', 10)
@@ -103,14 +101,6 @@ class Waypoints(Node):
             return
         
         self.path_pub.publish(self.nav2_path)
-    
-    def send_waypoint(self, pose):
-        msg = Odometry()
-        msg.header.frame_id = 'map'
-        msg.pose.pose = pose
-        msg.pose.pose.orientation = self.path.poses[self.waypoints_completed].pose.orientation
-
-        self.waypoint_pub.publish(msg)
 
 
 def main(args=None):
