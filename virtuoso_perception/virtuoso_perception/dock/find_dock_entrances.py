@@ -20,10 +20,15 @@ class FindDockEntrances:
 
         self.node:Node = None # for debugging
     
-    def debug(self, msg):
+    def _debug(self, msg):
         if self.node is None:
             return
         self.node.get_logger().info(msg)
+    
+    def _debug_func(self, debug_key, msg):
+        if self.node is None:
+            return
+        self.node.debugs[debug_key](msg)
     
     def _prev_consistent(self, entrances):
         min_xy = list([None, None] for _ in range(len(entrances[0])))
@@ -58,13 +63,11 @@ class FindDockEntrances:
             return None
         return self._curr_ahead_entrance
     
-    def find_entrances(self, node:Node=None):
+    def find_entrances(self):
 
         if self.points is None:
             return None
         
-        self.node = node
-
         self._update_docks()
 
         if len(self._curr_docks) != 4:
@@ -73,25 +76,16 @@ class FindDockEntrances:
         self._prev_entrances.append(self._curr_docks)
         self._prev_ahead_entrances.append(self._curr_ahead_entrance)
 
-        # if len(self._prev_entrances) < 20:
-        #     return
-        
-        # if not self._prev_entrances_consistent():
-        #     self.debug('Previous not consistent')
-        #     return
-        
-        # return self._curr_docks
-
     def _update_docks(self):
         self._curr_docks = list()
         self._update_points_by_dist()
-        # self.node.get_logger().info(str(self._points_by_dist))
+        self._debug(str(self._points_by_dist))
         if len(self._points_by_dist) < 2:
             return
         self._find_dock_in_front()
-        # self.node.publish_first_two(self._curr_docks)
+        self._debug_func('first_two', self._curr_docks)
         self._find_remaining_docks()
-        # self.node.publish_current(self._curr_docks)
+        self._debug_func('current', self._curr_docks)
 
         # self.node.get_logger().info(f'current docks: {self._curr_docks}')
         
@@ -125,7 +119,6 @@ class FindDockEntrances:
         
         self._curr_docks.sort(key=lambda p: p[1])
         self._curr_ahead_entrance = self._curr_docks.copy()
-        # self.node.publish_current(self._curr_ahead_entrance)
     
     def _find_remaining_docks(self):
         if len(self._curr_docks) < 2:
@@ -134,13 +127,11 @@ class FindDockEntrances:
         change = (self._curr_docks[0][0] - self._curr_docks[1][0],
             self._curr_docks[0][1] - self._curr_docks[1][1])
         change_doubled = tuple(2 * c for c in change)
-        # self.node.get_logger().info(f'change: {change}')
-        # self.node.get_logger().info(f'curr_docks: {self._curr_docks}')
         possible_points = [np.add(self._curr_docks[0], change),
             np.add(self._curr_docks[0], change_doubled),
             np.subtract(self._curr_docks[1], change), np.subtract(self._curr_docks[1], change_doubled)]
-        # self.node.publish_possible(possible_points)
-        # self.node.get_logger().info(f'possible_points: {possible_points}')
+        self._debug_func('possible', possible_points)
+        self._debug(f'possible_points: {possible_points}')
 
         closest_points = list((None, None, None) for _ in possible_points)
 
@@ -152,7 +143,7 @@ class FindDockEntrances:
         
         closest_points.sort(key=lambda p: p[1])
 
-        # self.node.get_logger().info(str(closest_points))
+        self._debug(str(closest_points))
 
         if closest_points[0][2] < 2:
             self._curr_docks.insert(0, closest_points[0][0])

@@ -16,3 +16,7 @@ perception_find_dock_codes:
       upper: [130, 255, 255]
     
     code_axis_range: 0.05
+
+perception_find_dock_entrances:
+  ros__parameters:
+    debug: True
