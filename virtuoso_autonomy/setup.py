@@ -13,7 +13,8 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py'))),
-        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', 'robotx', '*.launch.py')))
+        (os.path.join('share', package_name, 'launch', 'robotx'), glob(os.path.join('launch', 'robotx', '*.launch.py'))),
+        (os.path.join('share', package_name, 'launch', 'vrx'), glob(os.path.join('launch', 'vrx', '*.launch.py')))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
