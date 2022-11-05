@@ -1,9 +1,9 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch_ros.actions import Node
+from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from ament_index_python.packages import get_package_share_directory
+from launch.substitutions import LaunchConfiguration
 import os
 
 def generate_launch_description():
@@ -13,11 +13,10 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
-    buoys_param_file = (pkg_share, '/config/', usv_config, '/buoys.yaml')
-
-    # must have virtuoso_processing lidar_processing launched as well for euclidean clustering to do anything
+    dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
+    
     return LaunchDescription([
-        usv_arg, 
+        usv_arg,
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py')),
@@ -25,7 +24,12 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_perception',
-            executable='find_buoys',
-            parameters=[buoys_param_file]
-        ) 
+            executable='find_dock_codes',
+            parameters=[dock_param_file]
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='find_dock_entrances',
+            parameters=[dock_param_file]
+        )
     ])

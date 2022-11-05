@@ -11,11 +11,17 @@ from ..utils.geometry_msgs import do_transform_pose_stamped
 class FindBuoys(Node):
 
     def __init__(self):
-        super().__init__('find_buoys')
+        super().__init__('perception_find_buoys')
         self.boxes_sub = self.create_subscription(BoundingBoxArray, 'lidar_bounding_boxes', self.find_buoys, 10)
         self.boxes_pub = self.create_publisher(BoundingBoxArray, '/buoys/bounding_boxes', 10)
 
         self.buoy_counts = []
+
+        self.declare_parameters(namespace='', parameters=[
+            ('buoy_max_side_length', 0.0),
+            ('tall_buoy_centroid_z', 0.0),
+            ('buoy_loc_noise', 0.0)
+        ])
     
     def to_pose_stamped(p:Point32):
         ps = PoseStamped()
@@ -33,11 +39,14 @@ class FindBuoys(Node):
 
         counter = 0
         for box in msg.boxes:
-            if math.sqrt((box.corners[1].x - box.corners[2].x)**2 + (box.corners[1].y - box.corners[2].y)**2) > 1: continue
+            if (math.sqrt((box.corners[1].x - box.corners[2].x)**2 
+                + (box.corners[1].y - box.corners[2].y)**2) 
+                > self.get_parameter('buoy_max_side_length').value): 
+                continue
 
-            if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
+            # if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
 
-            if box.centroid.z - 0.2 > 0: 
+            if box.centroid.z > self.get_parameter('tall_buoy_centroid_z').value: 
                 box.value = 1.0
             else:
                 box.value = 0.5
@@ -61,7 +70,8 @@ class FindBuoys(Node):
             for i, box in enumerate(filtered_boxes.boxes):
                 if (filteredBoxesPrevFound.get(i)):
                     continue
-                if math.sqrt((prevBox.centroid.x - box.centroid.x)**2 + (prevBox.centroid.y - box.centroid.y)**2) < 3:
+                if (math.sqrt((prevBox.centroid.x - box.centroid.x)**2 
+                    + (prevBox.centroid.y - box.centroid.y)**2) < self.get_parameter('buoy_loc_noise').value):
                     filteredBoxesPrevFound.update({i: True})
                     count.get('box').centroid.x = self.find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
                     count.get('box').centroid.y = self.find_avg(prevBox.centroid.y, prevCount, box.centroid.y)

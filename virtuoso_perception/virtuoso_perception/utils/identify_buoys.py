@@ -45,7 +45,7 @@ def find_buoys(bgr):
 
     white = filter.white_filter()
     black = filter.black_filter()
-    red_or_orange = filter.red_orange_filter(white)
+    red_or_orange = filter.red_orange_filter()
     green = filter.green_filter()
 
     white_buoys = find_buoys_for_color(white, 'white')

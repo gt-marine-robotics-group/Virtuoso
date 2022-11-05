@@ -13,7 +13,12 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*.launch.py'))),
-        (os.path.join('share', package_name, 'param'), glob(os.path.join('param', '*.yaml')))
+
+        (os.path.join('share', package_name, 'config/vrx_robotx'), 
+            glob(os.path.join('config', 'vrx_robotx', '*.yaml'))),
+
+        (os.path.join('share', package_name, 'config/robotx'),
+            glob(os.path.join('config', 'robotx', '*.yaml'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,6 +31,7 @@ setup(
         'console_scripts': [
             'set_goal = virtuoso_navigation.set_goal:main',
             'waypoints = virtuoso_navigation.waypoints:main',
+            'translate = virtuoso_navigation.translate_node:main',
             'choose_PID = virtuoso_navigation.choose_PID:main',
 
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',
@@ -34,6 +40,7 @@ setup(
             'test_controller = virtuoso_navigation.testing.controller:main',
             'test_forward = virtuoso_navigation.testing.forward:main',
             'test_backward = virtuoso_navigation.testing.backward:main',
+            'test_translate = virtuoso_navigation.testing.translate_node:main',
             'test_diamond = virtuoso_navigation.testing.diamond:main',
             'test_station_keeping = virtuoso_navigation.testing.station_keeping:main',
             'test_circle = virtuoso_navigation.testing.circle:main'
