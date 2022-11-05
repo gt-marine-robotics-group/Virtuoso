@@ -10,18 +10,23 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    sim_time = DeclareLaunchArgument('sim_time')
+    sim_time_arg = DeclareLaunchArgument('sim_time')
     sim_time_config = LaunchConfiguration('sim_time', default='False')
+
+    usv_arg = DeclareLaunchArgument('usv')
+    usv_config = LaunchConfiguration('usv')
 
     pkg_share = get_package_share_directory('virtuoso_navigation')
 
     # the launch file which we pass stvl in as a plugin an the params file
     bringup_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'navigation_launch.py')
     rviz_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'rviz_launch.py')
-    nav2_params_file = os.path.join(pkg_share, 'param', 'nav2.param.yaml')
+    nav2_params_file = (pkg_share, '/config/', usv_config, '/nav2.yaml')
 
     return LaunchDescription([
-        sim_time,
+        sim_time_arg,
+        usv_arg,
+
         DeclareLaunchArgument(
             name='sim_time',
             default_value='False'

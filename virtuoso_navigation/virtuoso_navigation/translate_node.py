@@ -9,7 +9,7 @@ from tf2_ros.transform_listener import TransformListener
 import time
 from virtuoso_perception.utils.geometry_msgs import do_transform_pose_stamped
 
-class TranslateActionServer(Node):
+class TranslateNode(Node):
 
     def __init__(self):
         super().__init__('navigation_translate') # using namespace interferes with tf listener
@@ -72,9 +72,9 @@ class TranslateActionServer(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    translate_action_server = TranslateActionServer()
+    translate_node = TranslateNode()
 
-    rclpy.spin(translate_action_server)
+    rclpy.spin(translate_node)
 
 if __name__ == '__main__':
     main()
