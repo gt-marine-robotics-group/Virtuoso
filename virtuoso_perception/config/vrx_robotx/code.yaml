@@ -1,6 +1,8 @@
 
 perception_scan_code:
   ros__parameters:
+    debug: True
+
     red:
       lower1: [0, 50, 50]
       upper1: [10, 255, 255]

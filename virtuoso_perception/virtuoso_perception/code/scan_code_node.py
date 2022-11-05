@@ -19,9 +19,15 @@ class ScanCodeNode(Node):
         self.ready_pub = self.create_publisher(Int8, '/perception/scan_code/ready', 10)
         self.code_pub = self.create_publisher(Int32MultiArray, '/perception/code', 10)
 
-        self.debug_pub = self.create_publisher(Image, '/perception/debug', 10)
+        self.debug_find_code_coord_pub = self.create_publisher(Image, 
+            '/perception/debug/find_code_coord', 10)
+
+        self.debugs = {
+            'find_code_coord': self.debug_find_code_coord
+        }
 
         self.declare_parameters(namespace='', parameters=[
+            ('debug', False),
             ('code_loc_noise', 0.0),
 
             ('red.lower1', [0,0,0]),
@@ -55,7 +61,8 @@ class ScanCodeNode(Node):
                 'upper': self.get_parameter('blue.upper').value
             }
         }, code_loc_noise=10)
-        self.scan_code.node = self
+        if self.get_parameter('debug').value:
+            self.scan_code.node = self
 
         self.create_timer(.1, self.read_code)
         self.create_timer(1.0, self.send_ready)
@@ -97,6 +104,10 @@ class ScanCodeNode(Node):
         msg = Int32MultiArray()
         msg.data = self.scan_code.code
         self.code_pub.publish(msg)
+    
+    def debug_find_code_coord(self, cv_image):
+        image = CvBridge().cv2_to_imgmsg(cv_image, encoding='bgr8')
+        self.debug_find_code_coord_pub.publish(image)
 
 
 def main(args=None):

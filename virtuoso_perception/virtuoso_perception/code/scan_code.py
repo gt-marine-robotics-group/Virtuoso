@@ -33,6 +33,14 @@ class ScanCode:
             return
         self.node.get_logger().info(msg)
     
+    def _debug_func(self, debug_key, msg):
+        if self.node is None:
+            return
+        try:
+            self.node.debugs[debug_key](msg)
+        except:
+            self._debug(f'{debug_key} or message is invalid!')
+    
     def read_code(self):
 
         if self.image is None:
@@ -150,9 +158,7 @@ class ScanCode:
             hsv_lower2=self._filter_bounds['red']['lower2'],
             hsv_upper2=self._filter_bounds['red']['upper2'])
 
-        # image = CvBridge().cv2_to_imgmsg(red_or_orange, encoding='bgr8')
-        # node.debug_pub.publish(image)
-        # node.get_logger().info('finding coord!')
+        self._debug_func('find_code_coord', red_or_orange)
 
         return self._find_display_box(red_or_orange)
 
