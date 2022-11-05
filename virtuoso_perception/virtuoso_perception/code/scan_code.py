@@ -145,7 +145,10 @@ class ScanCode:
         filter = ColorFilter(hsv, self.image)
 
         # No other red objects in background to confuse filter
-        red_or_orange = filter.red_orange_filter()
+        red_or_orange = filter.red_orange_filter(hsv_lower1=self._filter_bounds['red']['lower1'],
+            hsv_upper1=self._filter_bounds['red']['upper1'], 
+            hsv_lower2=self._filter_bounds['red']['lower2'],
+            hsv_upper2=self._filter_bounds['red']['upper2'])
 
         # image = CvBridge().cv2_to_imgmsg(red_or_orange, encoding='bgr8')
         # node.debug_pub.publish(image)
@@ -183,9 +186,14 @@ class ScanCode:
 
         filter = ColorFilter(hsv, self.image)
 
-        red_or_orange = filter.red_orange_filter()
-        green = filter.green_filter()
-        blue = filter.blue_filter()
+        red_or_orange = filter.red_orange_filter(hsv_lower1=self._filter_bounds['red']['lower1'],
+            hsv_upper1=self._filter_bounds['red']['upper1'], 
+            hsv_lower2=self._filter_bounds['red']['lower2'],
+            hsv_upper2=self._filter_bounds['red']['upper2'])
+        green = filter.green_filter(hsv_lower=self._filter_bounds['green']['lower'],
+            hsv_upper=self._filter_bounds['green']['upper'])
+        blue = filter.blue_filter(hsv_lower=self._filter_bounds['blue']['lower'],
+            hsv_upper=self._filter_bounds['blue']['upper'])
 
         boxes = [ # [r, g, b]
             self._find_display_box(red_or_orange, coord),

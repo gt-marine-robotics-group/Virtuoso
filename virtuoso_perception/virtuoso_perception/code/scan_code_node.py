@@ -39,7 +39,22 @@ class ScanCodeNode(Node):
         # self.scan_requested = True
         self.code_published = False
 
-        self.scan_code = ScanCode(None, 10)
+        self.scan_code = ScanCode(filter_bounds={
+            'red': {
+                'lower1': self.get_parameter('red.lower1').value,
+                'upper1': self.get_parameter('red.upper1').value,
+                'lower2': self.get_parameter('red.lower2').value,
+                'upper2': self.get_parameter('red.upper2').value
+            },
+            'green': {
+                'lower': self.get_parameter('green.lower').value,
+                'upper': self.get_parameter('green.upper').value
+            },
+            'blue': {
+                'lower': self.get_parameter('blue.lower').value,
+                'upper': self.get_parameter('blue.upper').value
+            }
+        }, code_loc_noise=10)
         self.scan_code.node = self
 
         self.create_timer(.1, self.read_code)
