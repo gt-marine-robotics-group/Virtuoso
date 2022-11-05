@@ -7,13 +7,16 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 import os
 
-# Using ray_ground_classifier from Autoware.auto for ground filter
-
 def generate_launch_description(): 
 
     pkg_share = get_package_share_directory('virtuoso_processing')
 
-    ray_ground_classifier_param_file = os.path.join(pkg_share, 'param/ray_ground_classifier.param.yaml')
+    usv_arg = DeclareLaunchArgument('usv')
+    usv_config = LaunchConfiguration('usv')
+
+    # ray_ground_classifier_param_file = os.path.join(pkg_share, 'param/ray_ground_classifier.param.yaml')
+    ray_ground_classifier_param_file = (pkg_share, 
+        '/config/', usv_config, '/ray_ground_classifier.yaml')
 
     ray_ground_classifier_param = DeclareLaunchArgument(
         'ray_ground_classifier_param_file',
@@ -21,7 +24,9 @@ def generate_launch_description():
         description='Path to config file for Ray Ground Classifier'
     )
 
-    voxel_grid_node_param_file = os.path.join(pkg_share, 'param', 'voxel_grid_node.param.yaml')
+    # voxel_grid_node_param_file = os.path.join(pkg_share, 'param', 'voxel_grid_node.param.yaml')
+    voxel_grid_node_param_file = (pkg_share,
+        '/config/', usv_config, '/voxel_grid_node.yaml')
 
     voxel_grid_node_param = DeclareLaunchArgument(
         'voxel_grid_node_param_file',
@@ -29,7 +34,10 @@ def generate_launch_description():
         description='Path to config file for Voxel Grid Node'
     )
 
+    processing_param_file = (pkg_share, '/config/', usv_config, '/lidar_processing.yaml')
+
     return LaunchDescription([
+        usv_arg,
         voxel_grid_node_param,
         ray_ground_classifier_param,
 
@@ -52,10 +60,12 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_processing',
-            executable='self_filter'
+            executable='self_filter',
+            parameters=[processing_param_file]
         ),
         Node(
             package='virtuoso_processing',
-            executable='shore_filter'
+            executable='shore_filter',
+            parameters=[processing_param_file]
         ),
     ])

@@ -9,9 +9,14 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_perception')
 
-    euclidean_clustering_params_file = os.path.join(pkg_share, 'param', 'euclidean_clustering.param.yaml')
+    usv_arg = DeclareLaunchArgument('usv')
+    usv_config = LaunchConfiguration('usv')
+
+    euclidean_clustering_params_file = (pkg_share, '/config/', usv_config, 
+        '/euclidean_clustering.yaml')
 
     return LaunchDescription([
+        usv_arg,
         DeclareLaunchArgument(
             'euclidean_clustering_params_file',
             default_value=euclidean_clustering_params_file

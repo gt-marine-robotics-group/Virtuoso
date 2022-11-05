@@ -1,22 +1,21 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-import math
 from ..utils.pointcloud import read_points, create_cloud_xyz32
-from robot_localization.srv import FromLL
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-from visualization_msgs.msg import MarkerArray, Marker
-from rclpy.duration import Duration
-from rclpy.time import Time
 
 class ShoreFilterer(Node):
 
     def __init__(self):
-        super().__init__('shore_filter')
+        super().__init__('processing_shore_filter')
 
         self.lidar_sub = self.create_subscription(PointCloud2, '/processing/points_self_filtered', self.callback, 10)
         self.publisher = self.create_publisher(PointCloud2, '/processing/points_shore_filtered', 10)
+
+        self.declare_parameters(namespace='', parameters=[
+            ('x_min', 0.0),
+            ('y_min', -100.0),
+            ('y_max', 100.0)
+        ])
 
     def callback(self, msg:PointCloud2):
 
@@ -24,7 +23,9 @@ class ShoreFilterer(Node):
 
         for i, point in enumerate(read_points(msg)):
             points.append([0, 0, 0])
-            if point[0] <= 0 or point[1] > 15 or point[1] < -15:
+            if (point[0] <= self.get_parameter('x_min').value 
+                or point[1] > self.get_parameter('y_max').value 
+                or point[1] < self.get_parameter('y_min').value):
                 points[i][0] = float("NaN")
                 points[i][1] = float("NaN")
                 points[i][2] = float("NaN")

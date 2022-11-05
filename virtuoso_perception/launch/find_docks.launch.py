@@ -9,15 +9,27 @@ import os
 def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_perception')
+
+    usv_arg = DeclareLaunchArgument('usv')
+    usv_config = LaunchConfiguration('usv')
+
+    dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
     
     return LaunchDescription([
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py'))),
-        Node(
-            package='virtuoso_perception',
-            executable='find_dock_codes'
+        usv_arg,
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py')),
+            launch_arguments={'usv': usv_config}.items()
         ),
         Node(
             package='virtuoso_perception',
-            executable='find_dock_entrances'
+            executable='find_dock_codes',
+            parameters=[dock_param_file]
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='find_dock_entrances',
+            parameters=[dock_param_file]
         )
     ])

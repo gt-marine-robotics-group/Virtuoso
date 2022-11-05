@@ -10,10 +10,15 @@ class FindDockCodes:
     code_loc_weights = {4: .4, 3: .3, 2: .15, 1: .1, 0: .05}
     code_colors = ['red', 'green', 'blue']
 
-    def __init__(self):
+    def __init__(self, filter_bounds, code_axis_range):
 
         self.image:np.ndarray = None
         self._image_dimensions = (0, 0) # (height, width)
+
+        self.node = None
+
+        self._filter_bounds = filter_bounds
+        self._code_axis_range = code_axis_range
 
         self._code_locations = {
             'red': deque(maxlen=5),
@@ -36,12 +41,10 @@ class FindDockCodes:
         if self.node is None: return
         self.node.get_logger().info(msg)
     
-    def find_docks(self, node:Node=None):
+    def find_docks(self):
         
         if self.image is None:
             return None
-        
-        self.node = node
         
         # bgr = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
         self._image_dimensions = self.image.shape[:2]
@@ -55,7 +58,6 @@ class FindDockCodes:
             return None
         
         self._find_code_x_offsets()
-        # self.node.get_logger().info(f'Map Offsets: {self.code_x_offsets}')
         self._debug(f'Map Offsets: {self._code_x_offsets}')
 
         self._prev_code_x_offsets.append(self._code_x_offsets)
@@ -137,7 +139,7 @@ class FindDockCodes:
         coord = None
         coord_dimensions = (0, 0)
 
-        axis_range = self._find_axis_range(target, .05)
+        axis_range = self._find_axis_range(target, .05) # PARAM
 
         for cnt in contours:
             x, y, w, h = cv2.boundingRect(cnt)
@@ -165,17 +167,21 @@ class FindDockCodes:
         return coord, coord_dimensions
     
     def _find_red_code(self, filter:ColorFilter):
-        white = filter.white_filter()
-        red_or_orange = filter.red_orange_filter(white)
+        red_or_orange = filter.red_orange_filter(hsv_lower1=self._filter_bounds['red']['lower1'],
+            hsv_upper1=self._filter_bounds['red']['upper1'], 
+            hsv_lower2=self._filter_bounds['red']['lower2'],
+            hsv_upper2=self._filter_bounds['red']['upper2'])
 
         return self._find_largest_rect_on_axis(red_or_orange)
     
     def _find_blue_code(self, filter:ColorFilter, target, target_area):
-        blue = filter.blue_filter()
+        blue = filter.blue_filter(hsv_lower=self._filter_bounds['blue']['lower'],
+            hsv_upper=self._filter_bounds['blue']['upper'])
         return self._find_largest_rect_on_axis(blue, target, target_area)
     
     def _find_green_code(self, filter:ColorFilter, target, target_area):
-        green = filter.green_filter()
+        green = filter.green_filter(hsv_lower=self._filter_bounds['green']['lower'],
+            hsv_upper=self._filter_bounds['green']['upper'])
         return self._find_largest_rect_on_axis(green, target, target_area)
 
     def _area(self, dim):
@@ -183,7 +189,6 @@ class FindDockCodes:
     
     def _update_code_locations(self, filter:ColorFilter):
         red_coord, red_dimensions = self._find_red_code(filter)
-        # self.node.get_logger().info(f'Red coord: {red_coord}, area: {self.area(red_dimensions)}')
         self._debug(f'Red coord: {red_coord}, area: {self._area(red_dimensions)}')
 
         if red_coord is None: return
@@ -194,8 +199,6 @@ class FindDockCodes:
         green_coord, green_dimensions = self._find_green_code(filter, axis,
             self._area(red_dimensions))
 
-        # self.node.get_logger().info(f'Blue coord: {blue_coord}, area: {self.area(blue_dimensions)}')
-        # self.node.get_logger().info(f'Green coord: {green_coord}, area: {self.area(green_dimensions)}')
         self._debug(f'Blue coord: {blue_coord}, area: {self._area(blue_dimensions)}')
         self._debug(f'Green coord: {green_coord}, area: {self._area(green_dimensions)}')
 

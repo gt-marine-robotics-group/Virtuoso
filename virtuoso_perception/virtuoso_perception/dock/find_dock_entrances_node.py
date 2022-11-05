@@ -13,7 +13,7 @@ from virtuoso_perception.utils.geometry_msgs import do_transform_point
 class FindDockEntrancesNode(Node):
 
     def __init__(self):
-        super().__init__('find_dock_entrances')
+        super().__init__('perception_find_dock_entrances')
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -25,17 +25,31 @@ class FindDockEntrancesNode(Node):
         
         self.ready_pub = self.create_publisher(Int8, '/perception/find_dock_entrances/ready', 10)
 
-        self.first_two_pub = self.create_publisher(PointCloud2, '/perception/debug/first_two', 10)
-        self.possible_pub = self.create_publisher(PointCloud2, '/perception/debug/possible', 10)
-        self.curr_pub = self.create_publisher(PointCloud2, '/perception/debug/current', 10)
+        self.first_two_pub = self.create_publisher(PointCloud2,
+            '/perception/debug/first_two_entrances', 10)
+        self.possible_pub = self.create_publisher(PointCloud2, 
+            '/perception/debug/possible_entrances', 10)
+        self.curr_pub = self.create_publisher(PointCloud2, '/perception/debug/current_entrances', 10)
 
         self.docks_pub = self.create_publisher(PointCloud2, '/perception/dock_entrances', 10)
         self.dock_ahead_pub = self.create_publisher(PointCloud2, '/perception/dock_ahead_entrance', 10)
+
+        self.declare_parameters(namespace='', parameters=[
+            ('debug', False)
+        ])
+
+        self.debugs = {
+            'first_two': self.publish_first_two,
+            'possible': self.publish_possible,
+            'current': self.publish_current
+        }
         
         self.points = None
         self.search_requested = False
 
         self.find_docks = FindDockEntrances()
+        if self.get_parameter('debug').value:
+            self.find_docks.node = self
 
         self.create_timer(1.0, self.send_ready)
     
@@ -60,7 +74,8 @@ class FindDockEntrancesNode(Node):
             trans = self.tf_buffer.lookup_transform('wamv/base_link', 'map', Time())
         except Exception as e:
             self.get_logger().info('Failed Transform')
-
+            return
+        
         for point in read_points(self.points):
             p = PointStamped(point=Point(x=point[0], y=point[1]))
             trans_point = do_transform_point(p, trans)
