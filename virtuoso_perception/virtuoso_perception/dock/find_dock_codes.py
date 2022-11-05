@@ -15,6 +15,8 @@ class FindDockCodes:
         self.image:np.ndarray = None
         self._image_dimensions = (0, 0) # (height, width)
 
+        self.node = None
+
         self._filter_bounds = filter_bounds
         self._code_axis_range = code_axis_range
 
@@ -39,12 +41,10 @@ class FindDockCodes:
         if self.node is None: return
         self.node.get_logger().info(msg)
     
-    def find_docks(self, node:Node=None):
+    def find_docks(self):
         
         if self.image is None:
             return None
-        
-        self.node = node
         
         # bgr = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
         self._image_dimensions = self.image.shape[:2]
