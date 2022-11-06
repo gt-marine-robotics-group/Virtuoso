@@ -25,10 +25,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mission_interpreter = virtuoso_autonomy.mission_interpreter:main',
-            'perception = virtuoso_autonomy.tasks.perception.main:main',
-            'station_keeping = virtuoso_autonomy.tasks.station_keeping.main:main',
-            'wayfinding = virtuoso_autonomy.tasks.wayfinding.main:main',
+            'mission_interpreter = virtuoso_autonomy.vrx.mission_interpreter:main',
+            'perception = virtuoso_autonomy.vrx.perception.main:main',
+            'station_keeping = virtuoso_autonomy.vrx.station_keeping.main:main',
+            'wayfinding = virtuoso_autonomy.vrx.wayfinding.main:main',
             'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.main:main',
             'robotX_gymkhana = virtuoso_autonomy.robotx.gymkhana.main:main',
             'robotX_enter_exit = virtuoso_autonomy.robotx.enter_and_exit.main:main',
