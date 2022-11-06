@@ -2,10 +2,10 @@ import math
 from typing import List
 from geometry_msgs.msg import PoseStamped, Quaternion
 from nav_msgs.msg import Path
-from .LoopPoint import LoopPoint
+from .loop_point import LoopPoint
 import tf_transformations
 
-class MultiGates():
+class MultiGates:
 
     first_buoys = None
     buoy_range = 3.0
@@ -144,8 +144,8 @@ class MultiGates():
             path.poses.append(MultiGates.xy_to_pose_stamped(point.xy, rq_reverse))
             break
 
-        final = MultiGates.xy_to_pose_stamped((path.poses[0].pose.position.x, path.poses[0].pose.position.y), rq_reverse)
-        path.poses.append(final)
+        # final = MultiGates.xy_to_pose_stamped((path.poses[0].pose.position.x, path.poses[0].pose.position.y), rq_reverse)
+        # path.poses.append(final)
 
         # We can later remove this and have the robot choose a random gate to go through
         path.poses.append(loc)
