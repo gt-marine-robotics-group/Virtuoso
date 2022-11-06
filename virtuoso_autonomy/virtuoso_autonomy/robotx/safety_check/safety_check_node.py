@@ -23,6 +23,9 @@ class SafetyCheck(Node):
 
         self.robot_pose = None
 
+        self.station_keeping_enabled = False
+        self.station_keeping_complete = False
+
         self.channel_nav = ChannelNavigation()
         self.buoys = BoundingBoxArray()
 
@@ -30,6 +33,15 @@ class SafetyCheck(Node):
         ps = PoseStamped()
         ps.pose = msg.pose.pose
         self.robot_pose = ps
+        if not self.station_keeping_enabled:
+            self.enable_station_keeping()
+    
+    def enable_station_keeping(self):
+        path = Path()
+        path.poses.append(self.robot_pose)
+        self.path_pub.publish(path)
+        self.station_keeping_enabled = True
+        self.get_logger().info('Station Keeping Enabled')
     
     def update_buoys(self, msg:BoundingBoxArray):
         self.buoys = msg
@@ -41,6 +53,9 @@ class SafetyCheck(Node):
             return
 
         if self.robot_pose is None:
+            return
+        
+        if not self.station_keeping_complete:
             return
 
         # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
@@ -63,6 +78,9 @@ class SafetyCheck(Node):
         # For gymkhana, this number will be 5
         if len(self.channel_nav.channels) == 1:
             self.channel_nav.end_nav = True
+        
+        if not self.station_keeping_complete:
+            self.station_keeping_complete = True
 
         self.nav_to_next_midpoint()
 
