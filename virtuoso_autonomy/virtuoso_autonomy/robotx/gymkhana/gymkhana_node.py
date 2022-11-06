@@ -13,7 +13,7 @@ import tf_transformations
 class Gymkhana(Node):
 
     def __init__(self):
-        super().__init__('gymkhana')
+        super().__init__('autonomy_gymkhana')
 
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 

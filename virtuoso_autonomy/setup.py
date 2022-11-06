@@ -31,11 +31,11 @@ setup(
             'vrx_wayfinding = virtuoso_autonomy.vrx.wayfinding.main:main',
 
             'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.safety_check_node:main',
-            'robotX_gymkhana = virtuoso_autonomy.robotx.gymkhana.main:main',
-            'robotX_enter_exit = virtuoso_autonomy.robotx.enter_and_exit.main:main',
+            'robotX_gymkhana = virtuoso_autonomy.robotx.gymkhana.gymkhana_node:main',
+            'robotX_enter_exit = virtuoso_autonomy.robotx.enter_and_exit.enter_exit_node:main',
             'robotX_heartbeat = virtuoso_autonomy.robotx.heartbeat.main:main',
-            'robotX_scan_code = virtuoso_autonomy.robotx.scan_code.main:main',
-            'robotX_docking = virtuoso_autonomy.robotx.docking.main:main'
+            'robotX_scan_code = virtuoso_autonomy.robotx.scan_code.scan_code_node:main',
+            'robotX_docking = virtuoso_autonomy.robotx.docking.docking_node:main'
         ],
     },
 )

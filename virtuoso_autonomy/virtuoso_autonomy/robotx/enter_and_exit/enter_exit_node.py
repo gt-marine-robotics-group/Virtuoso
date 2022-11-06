@@ -74,7 +74,7 @@ class EnterAndExit(Node):
         if self.robot_pose is None:
             return
         
-        buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
+        buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
 
         looping_buoy = self.multi_gates.find_looping_buoy(buoyPoses, self.robot_pose)
 
