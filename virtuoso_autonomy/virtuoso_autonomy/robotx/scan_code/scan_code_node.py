@@ -31,10 +31,8 @@ class ScanCode(Node):
         self.ready = True
     
     def odom_callback(self, msg):
-        # self.get_logger().info('GOT ODOM')
         if self.odom is not None:
             return
-        self.get_logger().info('GETTING ODOM')
         self.odom = msg
         self.enable_station_keeping(msg)
 
@@ -48,10 +46,6 @@ class ScanCode(Node):
         self.get_logger().info('Station Keeping Enabled')
     
     def send_req(self):
-        # self.get_logger().info('HELLO WORLD')
-        # self.get_logger().info(str(self.odom))
-        # self.get_logger().info(str(self.station_keeping_enabled))
-        # self.get_logger().info(str(self.req_sent))
         if not self.station_keeping_enabled:
             return
 
@@ -67,6 +61,7 @@ class ScanCode(Node):
     
     def code_callback(self, msg):
         self.get_logger().info('Autonomy Received Code')
+        self.get_logger().info(str(msg))
 
 def main(args=None):
     rclpy.init(args=args)
