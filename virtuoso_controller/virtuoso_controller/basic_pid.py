@@ -9,8 +9,6 @@ from std_msgs.msg import Float32
 from std_msgs.msg import Bool
 import tf_transformations
 
-
-
 #import pyproj
 import numpy
 
@@ -28,6 +26,15 @@ class basicPID(Node):
         self.previousTargetWaypoint = Odometry()
         self.receivedWaypoint = False
         self.navigateToPoint = False
+        
+        self.declare_parameter('basic_kp', 1.0)
+        self.declare_parameter('basic_kd', 1.0)
+        self.declare_parameter('basic_ki', 1.0)
+        
+        self.declare_parameter('basic_rotate_kp', 1.0)
+        self.declare_parameter('basic_rotate_kd', 1.0)
+        self.declare_parameter('basic_rotate_ki', 1.0)
+                   
         '''
         self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
         self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
@@ -107,19 +114,24 @@ class basicPID(Node):
         
         #self.get_logger().info('targetx: ' + str(targetVel[0]))         
         #self.get_logger().info('targety: ' + str(targetVel[1])) 
-                
+        
+        kp_factor = self.get_parameter('basic_kp').value
+        kd_factor = self.get_parameter('basic_kd').value
+        ki_factor = self.get_parameter('basic_ki').value
+                                
         if(self.previousTargetWaypoint != self.targetWaypoint):
              self.xIntegral = 0.0
              self.yIntegral = 0.0
         self.xIntegral = self.xIntegral + targetVel[0]*0.01
         self.yIntegral = self.yIntegral + targetVel[1]*0.01       
-        targetForceY = (targetVel[1]*0.15 - currentVelY*0.9*0.7) + self.yIntegral*0.000
+
+        targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.9*0.7*kd_factor) + self.yIntegral*0.000*ki_factor
         #self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0]*0.11 - currentVelX*0.333*0.7) + self.xIntegral*0.000
-	
+        targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.333*0.7*kd_factor) + self.xIntegral*0.000*ki_factor
+
         if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
-             targetForceY = (targetVel[1]*0.15 - currentVelY*0.15) + self.yIntegral*0.000
-             targetForceX = (targetVel[0]*0.11 - currentVelX*0.11) + self.xIntegral*0.000
+             targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.15*kd_factor) + self.yIntegral*0.000*ki_factor
+             targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.11*kd_factor) + self.xIntegral*0.000*ki_factor
         targetForceX = targetForceX * (5/3) * 4
         targetForceY = targetForceY * (5/3) * 4
         if(abs(targetForceY) < 0.2):
@@ -155,7 +167,11 @@ class basicPID(Node):
         self.yawIntegral = self.yawIntegral + theta_targetHeading*0.01
         #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
         
-        targetTorque = (theta_targetHeading*0.76 - omega[2]*1.2 + 0.001*self.yawIntegral)
+        kp_rotate_factor = self.get_parameter('basic_rotate_kp').value
+        kd_rotate_factor = self.get_parameter('basic_rotate_kd').value
+        ki_rotate_factor = self.get_parameter('basic_rotate_ki').value       
+        
+        targetTorque = (theta_targetHeading*0.76*kp_rotate_factor - omega[2]*1.2*kd_rotate_factor + 0.001*self.yawIntegral*ki_rotate_factor)
         #self.get_logger().info('targetTorque: ' + str(targetTorque))  
         
         targetXToSend = Float32()
