@@ -4,7 +4,7 @@ from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
 from nav_msgs.msg import Odometry
-from ...utils.channel_nav import ChannelNavigation
+from ...utils.channel_nav import channel_nav
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from rclpy.time import Time
 import tf_transformations
@@ -22,7 +22,7 @@ class Gymkhana(Node):
 
         self.robot_pose = None
 
-        self.channel_nav = ChannelNavigation.ChannelNavigation()
+        self.channel_nav = channel_nav.ChannelNavigation()
         self.buoys = BoundingBoxArray()
 
     def update_robot_pose(self, msg:Odometry):

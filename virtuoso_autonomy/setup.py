@@ -30,7 +30,7 @@ setup(
             'vrx_station_keeping = virtuoso_autonomy.vrx.station_keeping.main:main',
             'vrx_wayfinding = virtuoso_autonomy.vrx.wayfinding.main:main',
 
-            'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.main:main',
+            'robotX_safetyCheck = virtuoso_autonomy.robotx.safety_check.safety_check_node:main',
             'robotX_gymkhana = virtuoso_autonomy.robotx.gymkhana.main:main',
             'robotX_enter_exit = virtuoso_autonomy.robotx.enter_and_exit.main:main',
             'robotX_heartbeat = virtuoso_autonomy.robotx.heartbeat.main:main',
