@@ -10,9 +10,13 @@ import time
 class DockingNode(Node):
 
     def __init__(self):
-        super().__init__('autonomy_docking', namespace='autonomy')
+        super().__init__('autonomy_docking')
 
-        self.target_dock_color = 'red'
+        self.declare_parameters(namespace='', parameters=[
+            ('target_dock_color', 'red')
+        ])
+
+        self.target_dock_color = self.get_parameter('target_dock_color').value
 
         self.find_docks_req_pub = self.create_publisher(Int8, '/perception/start_find_docks', 10)
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
@@ -59,8 +63,6 @@ class DockingNode(Node):
         if not self.station_keeping_enabled:
             self.enable_station_keeping()
     
-    # def find_docks_ready_callback(self, msg):
-    #     self.find_docks_ready = True
     def find_dock_codes_ready_callback(self, msg):
         self.find_dock_codes_ready = True
     
@@ -96,7 +98,7 @@ class DockingNode(Node):
         if self.translating:
             return
         
-        self.get_logger().info(str(msg.data[0:3]))
+        # self.get_logger().info(str(msg.data[0:3]))
 
         offset_to_color = dict()
         offset_to_color[msg.data[0]] = 'red'
@@ -109,7 +111,7 @@ class DockingNode(Node):
         for i, offset in enumerate(offsets):
             self.color_docks[offset_to_color[offset]] = i
 
-        self.get_logger().info(str(self.color_docks))
+        # self.get_logger().info(str(self.color_docks))
 
         if not self.translating:
             self.translate()
@@ -137,7 +139,7 @@ class DockingNode(Node):
         if len(self.entrances) == 0:
             return
         
-        self.get_logger().info(str(self.entrances))
+        # self.get_logger().info(str(self.entrances))
         self.translating = True
 
         mid = self.find_mid()
@@ -153,7 +155,7 @@ class DockingNode(Node):
         self.entrances = list()
         self.ahead_entrance = list()
         if not self.entering:
-            time.sleep(10.0) 
+            time.sleep(3.0) 
     
     def go_to_entrance(self):
         if self.entering:

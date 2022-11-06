@@ -1,0 +1,4 @@
+
+autonomy_docking:
+  ros__parameters:
+    target_dock_color: "blue"
