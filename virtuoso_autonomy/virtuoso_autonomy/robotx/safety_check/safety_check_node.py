@@ -5,7 +5,7 @@ from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
 from nav_msgs.msg import Odometry
 from ...utils.channel_nav.channel_nav import ChannelNavigation
-from ...utils.geometry_conversions import point32ToPoseStamped
+from ...utils.geometry_conversions import point32_to_pose_stamped
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from rclpy.time import Time
 import tf_transformations
@@ -44,7 +44,7 @@ class SafetyCheck(Node):
             return
 
         # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
-        buoyPoses = list(point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
+        buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
         # self.get_logger().info(str(len(buoyPoses)))
         channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
         if channel is None:

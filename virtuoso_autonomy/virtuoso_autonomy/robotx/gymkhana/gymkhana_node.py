@@ -4,7 +4,8 @@ from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
 from nav_msgs.msg import Odometry
-from ...utils.channel_nav import channel_nav
+from ...utils.channel_nav.channel_nav import ChannelNavigation
+from ...utils.geometry_conversions import point32_to_pose_stamped
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from rclpy.time import Time
 import tf_transformations
@@ -22,7 +23,7 @@ class Gymkhana(Node):
 
         self.robot_pose = None
 
-        self.channel_nav = channel_nav.ChannelNavigation()
+        self.channel_nav = ChannelNavigation()
         self.buoys = BoundingBoxArray()
 
     def update_robot_pose(self, msg:Odometry):
@@ -34,51 +35,6 @@ class Gymkhana(Node):
         self.buoys = msg
         if (not self.channel_nav.curr_channel):
             self.nav_to_next_midpoint()
-
-    def point32ToPoseStamped(p:Point32):
-        ps = PoseStamped()
-        ps.pose.position.x = p.x
-        ps.pose.position.y = p.y
-        ps.pose.position.z = p.z
-        return ps
-    
-    
-    def midpoint(self, p1:PoseStamped, p2:PoseStamped):
-        ps = PoseStamped()
-        ps.header.frame_id = "map"
-        ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
-        ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
-
-        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
-
-        # self.get_logger().info(f'first angle: {ang}')
-
-        while ang < 0:
-            ang += (2 * math.pi)
-
-        # self.get_logger().info(f'negative check: {ang}')
-
-        rq = self.robot_pose.pose.orientation
-        robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
-
-        # self.get_logger().info(f'robot angle: {robot_euler[2]}')
-
-        if ang > math.pi * 2:
-            ang = ang % (math.pi * 2)
-
-        # self.get_logger().info(f'check if > 360: {ang}')
-
-        if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
-            ang += math.pi
-
-        # self.get_logger().info(f'check relative to robot angle: {ang}')
-        
-        quat = tf_transformations.quaternion_from_euler(0, 0, ang)
-        ps.pose.orientation.x = quat[0]
-        ps.pose.orientation.y = quat[1]
-        ps.pose.orientation.z = quat[2]
-        ps.pose.orientation.w = quat[3]
-        return ps
     
     def nav_to_next_midpoint(self):
         if self.channel_nav.end_nav:
@@ -88,13 +44,13 @@ class Gymkhana(Node):
             return
 
         # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
-        buoyPoses = list(Gymkhana.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
+        buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
         # self.get_logger().info(str(len(buoyPoses)))
         channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
         if channel is None:
             return
 
-        mid = self.midpoint(channel[0], channel[1])
+        mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
 
         path = Path()
         path.poses.append(mid)
