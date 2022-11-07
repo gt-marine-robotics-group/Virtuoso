@@ -19,7 +19,7 @@ class FindBuoys(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('buoy_max_side_length', 0.0),
-            ('tall_buoy_centroid_z', 0.0),
+            ('tall_buoy_min_z', 0.0),
             ('buoy_loc_noise', 0.0)
         ])
     
@@ -46,7 +46,9 @@ class FindBuoys(Node):
 
             # if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
 
-            if box.centroid.z > self.get_parameter('tall_buoy_centroid_z').value: 
+            highest_point = max(c.z for c in box.corners)
+            self.get_logger().info(f'highest: {highest_point}')
+            if highest_point >= self.get_parameter('tall_buoy_min_z').value: 
                 box.value = 1.0
             else:
                 box.value = 0.5
@@ -57,6 +59,7 @@ class FindBuoys(Node):
                 filteredBoxesPrevFound.update({counter: False})
 
             counter += 1
+        self.get_logger().info('------------')
         
 
         if len(self.buoy_counts) == 0:
