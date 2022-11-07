@@ -15,10 +15,12 @@ class DockingNode(Node):
         super().__init__('autonomy_docking')
 
         self.declare_parameters(namespace='', parameters=[
-            ('target_dock_color', 'red')
+            ('target_dock_color', 'red'),
+            ('dock_approach_dist', 0.0)
         ])
 
         self.target_dock_color = self.get_parameter('target_dock_color').value
+        self.dock_approach_dist = self.get_parameter('dock_approach_dist').value
 
         self.find_docks_req_pub = self.create_publisher(Int8, '/perception/start_find_docks', 10)
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
@@ -117,7 +119,7 @@ class DockingNode(Node):
         mid = ((self.ahead_entrance[0][0] + self.ahead_entrance[1][0]) / 2, 
             (self.ahead_entrance[0][1] + self.ahead_entrance[1][1]) / 2)
         
-        self.trans_pub.publish(Point(x=mid[0]-5, y=mid[1]))
+        self.trans_pub.publish(Point(x=mid[0]-self.dock_approach_dist, y=mid[1]))
     
     def send_find_docks_req(self):
         
@@ -190,7 +192,7 @@ class DockingNode(Node):
         mid = self.find_mid(p1, p2)
 
 
-        self.trans_pub.publish(Point(x=mid[0]-5, y=mid[1]))
+        self.trans_pub.publish(Point(x=mid[0]-self.dock_approach_dist, y=mid[1]))
 
     def trans_success_callback(self, msg):
         self.state = State(self.state.value + 1)

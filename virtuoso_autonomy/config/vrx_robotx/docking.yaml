@@ -1,4 +1,5 @@
 
 autonomy_docking:
   ros__parameters:
-    target_dock_color: "blue"
+    target_dock_color: "green"
+    dock_approach_dist: 5.0
