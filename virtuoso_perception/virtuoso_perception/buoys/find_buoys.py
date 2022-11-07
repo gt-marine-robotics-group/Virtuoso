@@ -47,7 +47,7 @@ class FindBuoys(Node):
             # if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
 
             highest_point = max(c.z for c in box.corners)
-            self.get_logger().info(f'highest: {highest_point}')
+            # self.get_logger().info(f'highest: {highest_point}')
             if highest_point >= self.get_parameter('tall_buoy_min_z').value: 
                 box.value = 1.0
             else:
