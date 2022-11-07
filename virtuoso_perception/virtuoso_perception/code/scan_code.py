@@ -27,6 +27,10 @@ class ScanCode:
         self._code_coord = None
         self._code_coord_iteration = 0
         self._coord_largest_size = None
+
+        self._filter_red = None
+        self._filter_blue = None
+        self._filter_green = None
     
     def _debug(self, msg):
         if self.node is None:
@@ -40,6 +44,29 @@ class ScanCode:
             self.node.debugs[debug_key](msg)
         except:
             self._debug(f'{debug_key} or message is invalid!')
+    
+    def filter_colors(self):
+
+        if self.image is None:
+            return
+
+        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
+
+        filter = ColorFilter(hsv, self.image)
+
+        self._filter_red = filter.red_orange_filter(hsv_lower1=self._filter_bounds['red']['lower1'],
+            hsv_upper1=self._filter_bounds['red']['upper1'], 
+            hsv_lower2=self._filter_bounds['red']['lower2'],
+            hsv_upper2=self._filter_bounds['red']['upper2'])
+        self._debug_func('code_red_filter', self._filter_red)
+
+        self._filter_green = filter.green_filter(hsv_lower=self._filter_bounds['green']['lower'],
+            hsv_upper=self._filter_bounds['green']['upper'])
+        self._debug_func('code_green_filter', self._filter_green)
+
+        self._filter_blue = filter.blue_filter(hsv_lower=self._filter_bounds['blue']['lower'],
+            hsv_upper=self._filter_bounds['blue']['upper'])
+        self._debug_func('code_blue_filter', self._filter_blue)
     
     def read_code(self):
 
@@ -148,19 +175,7 @@ class ScanCode:
         return self._code_coord
 
     def _find_code_coords_and_size(self):
-        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
-
-        filter = ColorFilter(hsv, self.image)
-
-        # No other red objects in background to confuse filter
-        red_or_orange = filter.red_orange_filter(hsv_lower1=self._filter_bounds['red']['lower1'],
-            hsv_upper1=self._filter_bounds['red']['upper1'], 
-            hsv_lower2=self._filter_bounds['red']['lower2'],
-            hsv_upper2=self._filter_bounds['red']['upper2'])
-
-        self._debug_func('find_code_coord', red_or_orange)
-
-        return self._find_display_box(red_or_orange)
+        return self._find_display_box(self._filter_red)
 
     def _find_display_box(self, bgr, targetCoord=None):
 
@@ -188,23 +203,10 @@ class ScanCode:
     
     def _read_curr_code(self, coord):
 
-        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
-
-        filter = ColorFilter(hsv, self.image)
-
-        red_or_orange = filter.red_orange_filter(hsv_lower1=self._filter_bounds['red']['lower1'],
-            hsv_upper1=self._filter_bounds['red']['upper1'], 
-            hsv_lower2=self._filter_bounds['red']['lower2'],
-            hsv_upper2=self._filter_bounds['red']['upper2'])
-        green = filter.green_filter(hsv_lower=self._filter_bounds['green']['lower'],
-            hsv_upper=self._filter_bounds['green']['upper'])
-        blue = filter.blue_filter(hsv_lower=self._filter_bounds['blue']['lower'],
-            hsv_upper=self._filter_bounds['blue']['upper'])
-
         boxes = [ # [r, g, b]
-            self._find_display_box(red_or_orange, coord),
-            self._find_display_box(green, coord),
-            self._find_display_box(blue, coord)
+            self._find_display_box(self._filter_red, coord),
+            self._find_display_box(self._filter_green, coord),
+            self._find_display_box(self._filter_blue, coord)
         ]
 
         curr_code = -1

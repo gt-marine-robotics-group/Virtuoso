@@ -21,9 +21,18 @@ class ScanCodeNode(Node):
 
         self.debug_find_code_coord_pub = self.create_publisher(Image, 
             '/perception/debug/find_code_coord', 10)
+        self.debug_red_filter_pub = self.create_publisher(Image,
+            '/perception/debug/code_red_filter', 10)
+        self.debug_green_filter_pub = self.create_publisher(Image,
+            '/perception/debug/code_green_filter', 10)
+        self.debug_blue_filter_pub = self.create_publisher(Image,
+            '/perception/debug/code_blue_filter', 10)
 
         self.debugs = {
-            'find_code_coord': self.debug_find_code_coord
+            'find_code_coord': self.debug_find_code_coord,
+            'code_red_filter': self.debug_code_red_filter,
+            'code_green_filter': self.debug_code_green_filter,
+            'code_blue_filter': self.debug_code_blue_filter
         }
 
         self.declare_parameters(namespace='', parameters=[
@@ -86,13 +95,15 @@ class ScanCodeNode(Node):
         if not self.scan_requested:
             return
 
-        if self.code_published:
-            return
-
         if self.image is None:
             return
 
         self.scan_code.image = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
+
+        self.scan_code.filter_colors()
+
+        if self.code_published:
+            return
 
         self.scan_code.read_code()
 
@@ -105,10 +116,20 @@ class ScanCodeNode(Node):
         msg.data = self.scan_code.code
         self.code_pub.publish(msg)
     
+    def cv_to_imgmsg(self, cv_image):
+        return CvBridge().cv2_to_imgmsg(cv_image, encoding='bgr8')
+    
     def debug_find_code_coord(self, cv_image):
-        image = CvBridge().cv2_to_imgmsg(cv_image, encoding='bgr8')
-        self.debug_find_code_coord_pub.publish(image)
+        self.debug_find_code_coord_pub.publish(self.cv_to_imgmsg(cv_image))
+    
+    def debug_code_red_filter(self, cv_image):
+        self.debug_red_filter_pub.publish(self.cv_to_imgmsg(cv_image))
+    
+    def debug_code_blue_filter(self, cv_image):
+        self.debug_blue_filter_pub.publish(self.cv_to_imgmsg(cv_image))
 
+    def debug_code_green_filter(self, cv_image):
+        self.debug_green_filter_pub.publish(self.cv_to_imgmsg(cv_image))
 
 def main(args=None):
     rclpy.init(args=args)
