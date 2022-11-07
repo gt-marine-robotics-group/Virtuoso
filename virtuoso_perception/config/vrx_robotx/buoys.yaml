@@ -2,5 +2,5 @@
 perception_find_buoys:
   ros__parameters:
     buoy_max_side_length: 1.0
-    tall_buoy_centroid_z: 0.1
+    tall_buoy_min_z: 0.2
     buoy_loc_noise: 3.0
