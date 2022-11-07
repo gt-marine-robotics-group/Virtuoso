@@ -2,19 +2,25 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.conditions import IfCondition
 import os
 
 def generate_launch_description():
 
-    sensors = get_package_share_directory('virtuoso_sensors')
+    pkg_share = get_package_share_directory('virtuoso_sensors')
 
-    config_file = os.path.join(sensors, 'config', 'vlp16.yml')
+    usv_arg = DeclareLaunchArgument('usv')
+    usv_config = LaunchConfiguration('usv')
+
+    vlp16_config_file = os.path.join(pkg_share, 'config', 'vlp16.yml')
 
     return LaunchDescription([
+        usv_arg,
+
         DeclareLaunchArgument(
             'vlp16_node_param_file',
-            default_value=config_file
+            default_value=vlp16_config_file
         ),
         Node(
             package='velodyne_nodes',
@@ -32,15 +38,17 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='lidar_to_baselink',
-            arguments=['0', '0', '0', '0', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link']
+            arguments=['0', '0', '1.245', '0', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link'],
+            condition=IfCondition(PythonExpression(["'", usv_config, "' == 'robotx'"]))
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='lidarfront_to_wamvlidar',
             # arguments=['0', '0', '0', '0', '-3.14159', '0', 'wamv/lidar_wamv_link', 'lidar_front']
-            arguments=['0', '0', '0', '0', '0', '0', 'wamv/lidar_wamv_link', 'lidar_front']
+            arguments=['0', '0', '0', '0', '0', '0', 'wamv/lidar_wamv_link', 'lidar_front'],
             # arguments=['0', '0', '0', '0', '0', '3.14159', 'wamv/base_link', 'wamv/lidar_wamv_link']
             # arguments=['0', '0', '0', '3.14149', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link']
+            condition=IfCondition(PythonExpression(["'", usv_config, "' == 'robotx'"]))
         )
     ])
