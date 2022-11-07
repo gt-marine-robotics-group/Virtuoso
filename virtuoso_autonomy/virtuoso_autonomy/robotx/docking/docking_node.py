@@ -6,6 +6,8 @@ from geometry_msgs.msg import PoseStamped, Point
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import read_points
 import time
+from .docking_states import State
+import numpy as np
 
 class DockingNode(Node):
 
@@ -46,22 +48,16 @@ class DockingNode(Node):
         self.station_keeping_enabled = False
         self.find_docks_req_sent = False
 
-        # self.target_offset = 0
         self.color_docks = dict() # map of color => index
         self.entrances = list() # list of 4 points (x, y)
         self.ahead_entrance = list() # 2 points
-        self.translating = False
-        self.translate_complete = False
-        self.entering = False
-        self.at_entrance = False
+        self.state = State.START
 
         self.create_timer(1.0, self.send_find_docks_req)
-        self.create_timer(1.0, self.go_to_entrance)
+        self.create_timer(1.0, self.execute)
     
     def odom_callback(self, msg):
         self.odom = msg
-        if not self.station_keeping_enabled:
-            self.enable_station_keeping()
     
     def find_dock_codes_ready_callback(self, msg):
         self.find_dock_codes_ready = True
@@ -69,18 +65,61 @@ class DockingNode(Node):
     def find_dock_entrances_ready_callback(self, msg):
         self.find_dock_entrances_ready = True
     
+    def execute(self):
+        self.get_logger().info(f'State: {self.state}')
+        if self.state == State.START:
+            self.enable_station_keeping()
+            return
+        if self.state == State.STATION_KEEPING_ENABLED:
+            self.approach()
+            return
+        if self.state == State.APPROACHING:
+            self.ahead_entrance = list()
+            return
+        if self.state == State.APPROACHING_COMPLETE:
+            self.translate_to_dock()
+            return
+        if self.state == State.TRANSLATING:
+            self.ahead_entrance = list()
+            return
+        if self.state == State.COMPLETED_TRANSLATION:
+            self.go_to_entrance()
+            return
+        if self.state == State.ENTERING_DOCK:
+            return
+        if self.state == State.AT_ENTERANCE:
+            self.enter_dock()
+            return
+        if self.state == State.ENTERING_FURTHER:
+            return
+        self.get_logger().info('COMPLETE') 
+
+    
     def enable_station_keeping(self):
+        if self.odom is None:
+            return
+        self.state = State(self.state.value + 1)
         path = Path()
         pose_stamped = PoseStamped()
         pose_stamped.pose = self.odom.pose.pose
         path.poses.append(pose_stamped)
         self.path_pub.publish(path)
-        self.station_keeping_enabled = True
         self.get_logger().info('Station Keeping Enabled')
     
-    def send_find_docks_req(self):
-        if not self.station_keeping_enabled:
+    def approach(self):
+        if len(self.ahead_entrance) < 2:
             return
+        
+        self.state = State(self.state.value + 1)
+
+        self.entering = True
+
+        mid = ((self.ahead_entrance[0][0] + self.ahead_entrance[1][0]) / 2, 
+            (self.ahead_entrance[0][1] + self.ahead_entrance[1][1]) / 2)
+        
+        self.trans_pub.publish(Point(x=mid[0]-5, y=mid[1]))
+    
+    def send_find_docks_req(self):
         
         if not self.find_dock_entrances_ready or not self.find_dock_codes_ready:
             return
@@ -93,12 +132,10 @@ class DockingNode(Node):
         self.find_docks_req_pub.publish(Int8(data=1))
     
     def offsets_callback(self, msg:Int32MultiArray):
+        if self.state != State.APPROACHING_COMPLETE:
+            return
         if 1 in msg.data[3:6]:
             return
-        if self.translating:
-            return
-        
-        # self.get_logger().info(str(msg.data[0:3]))
 
         offset_to_color = dict()
         offset_to_color[msg.data[0]] = 'red'
@@ -111,10 +148,6 @@ class DockingNode(Node):
         for i, offset in enumerate(offsets):
             self.color_docks[offset_to_color[offset]] = i
 
-        # self.get_logger().info(str(self.color_docks))
-
-        if not self.translating:
-            self.translate()
     
     def entrances_callback(self, msg:PointCloud2):
         self.entrances = list()
@@ -126,46 +159,47 @@ class DockingNode(Node):
         for point in read_points(msg):
             self.ahead_entrance.append((point[0], point[1]))
     
-    def find_mid(self):
-        index = self.color_docks[self.target_dock_color] 
-        p1 = self.entrances[index]
-        p2 = self.entrances[index + 1]
-
+    def find_mid(self, p1, p2):
         return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
     
-    def translate(self):
+    def translate_to_dock(self):
         if not self.color_docks:
             return
-        if len(self.entrances) == 0:
+        if len(self.ahead_entrance) < 2:
             return
         
-        # self.get_logger().info(str(self.entrances))
-        self.translating = True
+        self.state = State(self.state.value + 1)
 
-        mid = self.find_mid()
+        p1 = None
+        p2 = None
+        change = (
+            self.ahead_entrance[1][0] - self.ahead_entrance[0][0],
+            self.ahead_entrance[1][1] - self.ahead_entrance[0][1]
+        )
+        index = self.color_docks[self.target_dock_color] 
+        if index == 0:
+            p1 = self.ahead_entrance[0]
+            p2 = np.subtract(p1, change)
+        elif index == 1:
+            p1 = self.ahead_entrance[0]
+            p2 = self.ahead_entrance[1]
+        else:
+            p1 = self.ahead_entrance[1]
+            p2 = np.add(p1, change)
+        
+        mid = self.find_mid(p1, p2)
+
 
         self.trans_pub.publish(Point(x=mid[0]-5, y=mid[1]))
 
     def trans_success_callback(self, msg):
-        self.translate_complete = True
-        if self.entering and not self.at_entrance:
-            self.enter_dock()
-            return
-
-        self.entrances = list()
-        self.ahead_entrance = list()
-        if not self.entering:
-            time.sleep(3.0) 
+        self.state = State(self.state.value + 1)
     
     def go_to_entrance(self):
-        if self.entering:
-            return
-        if not self.translate_complete:
-            return
         if len(self.ahead_entrance) < 2:
             return
 
-        self.entering = True
+        self.state = State(self.state.value + 1)
 
         mid = ((self.ahead_entrance[0][0] + self.ahead_entrance[1][0]) / 2, 
             (self.ahead_entrance[0][1] + self.ahead_entrance[1][1]) / 2)
@@ -173,7 +207,7 @@ class DockingNode(Node):
         self.trans_pub.publish(Point(x=mid[0], y=mid[1]))
     
     def enter_dock(self):
-        self.at_entrance = True
+        self.state = State(self.state.value + 1)
         self.trans_pub.publish(Point(x=2.0)) 
 
 def main(args=None):
