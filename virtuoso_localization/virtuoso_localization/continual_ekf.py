@@ -82,7 +82,8 @@ class continualEKF(Node):
         self.state_estimation()
         
     def ekf_callback(self, msg):
-         self.get_logger().info(str(msg))
+        #  self.get_logger().info()str(msg)
+        pass
     
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def state_estimation(self):

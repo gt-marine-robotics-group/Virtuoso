@@ -21,18 +21,18 @@ def generate_launch_description():
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py'))),
         Node(
             package='virtuoso_autonomy',
-            executable='mission_interpreter'
+            executable='vrx_mission_interpreter'
         ),
         Node(
             package='virtuoso_autonomy',
-            executable='station_keeping'
+            executable='vrx_station_keeping'
         ),
         Node(
             package='virtuoso_autonomy',
-            executable='perception'
+            executable='vrx_perception'
         ),
         Node(
             package='virtuoso_autonomy',
-            executable='wayfinding'
+            executable='vrx_wayfinding'
         )
     ])

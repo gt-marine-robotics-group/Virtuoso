@@ -5,14 +5,16 @@ from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from nav_msgs.msg import Odometry
-from ...utils.multi_gates import MultiGates
+from ...utils.multi_gates.multi_gates import MultiGates
+from ...utils.channel_nav.channel_nav import ChannelNavigation
+from ...utils.geometry_conversions import point32_to_pose_stamped
 import random
 import tf_transformations
 
 class EnterAndExit(Node):
 
     def __init__(self):
-        super().__init__('enter_and_exit')
+        super().__init__('autonomy_enter_and_exit')
 
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 
@@ -20,7 +22,7 @@ class EnterAndExit(Node):
         self.buoys_sub = self.create_subscription(BoundingBoxArray, '/buoys/bounding_boxes', self.update_buoys, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_robot_pose, 10)
 
-        self.multi_gates = MultiGates.MultiGates()
+        self.multi_gates = MultiGates()
 
         self.robot_pose = None
         self.buoys = BoundingBoxArray()
@@ -42,46 +44,12 @@ class EnterAndExit(Node):
         if self.state == 'entering':
             self.state = 'finding_loop_cone'
 
-    def point32ToPoseStamped(p:Point32):
-        ps = PoseStamped()
-        ps.pose.position.x = p.x
-        ps.pose.position.y = p.y
-        ps.pose.position.z = p.z
-        return ps
-
-    def midpoint(self, p1:PoseStamped, p2:PoseStamped):
-        ps = PoseStamped()
-        ps.header.frame_id = "map"
-        ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
-        ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
-
-        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
-
-        while ang < 0:
-            ang += (2 * math.pi)
-
-        rq = self.robot_pose.pose.orientation
-        robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
-
-        if ang > math.pi * 2:
-            ang = ang % (math.pi * 2)
-
-        if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
-            ang += math.pi
-        
-        quat = tf_transformations.quaternion_from_euler(0, 0, ang)
-        ps.pose.orientation.x = quat[0]
-        ps.pose.orientation.y = quat[1]
-        ps.pose.orientation.z = quat[2]
-        ps.pose.orientation.w = quat[3]
-        return ps
-
     def navigate_to_enterance(self):
 
         if self.robot_pose is None:
             return
 
-        buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
+        buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
         
         gates = self.multi_gates.find_gates(buoyPoses, self.robot_pose)
 
@@ -94,7 +62,7 @@ class EnterAndExit(Node):
 
         randGate = gates[random.randint(0, 2)]
 
-        mid = self.midpoint(randGate[0], randGate[1])
+        mid = ChannelNavigation.find_midpoint(randGate[0], randGate[1], self.robot_pose)
 
         path = Path()
         path.poses.append(mid)
@@ -106,7 +74,7 @@ class EnterAndExit(Node):
         if self.robot_pose is None:
             return
         
-        buoyPoses = list(EnterAndExit.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes)
+        buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
 
         looping_buoy = self.multi_gates.find_looping_buoy(buoyPoses, self.robot_pose)
 

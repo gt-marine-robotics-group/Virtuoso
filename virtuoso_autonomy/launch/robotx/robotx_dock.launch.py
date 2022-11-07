@@ -9,6 +9,8 @@ import os
 
 def generate_launch_description():
 
+    pkg_share = get_package_share_directory('virtuoso_autonomy')
+
     sim_time = DeclareLaunchArgument('sim_time', default_value='False')
     usv = DeclareLaunchArgument('usv')
 
@@ -21,6 +23,8 @@ def generate_launch_description():
     perception = get_package_share_directory('virtuoso_perception')
     controller = get_package_share_directory('virtuoso_controller')
     sensors = get_package_share_directory('virtuoso_sensors')
+
+    docking_config_file = (pkg_share, '/config/', usv_config, '/docking.yaml')
 
     return LaunchDescription([
         sim_time,
@@ -54,6 +58,7 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_autonomy',
-            executable='robotX_docking'
+            executable='robotX_docking',
+            parameters=[docking_config_file]
         )
     ])

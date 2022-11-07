@@ -1,0 +1,5 @@
+
+autonomy_docking:
+  ros__parameters:
+    target_dock_color: "red"
+    dock_approach_dist: 5.0

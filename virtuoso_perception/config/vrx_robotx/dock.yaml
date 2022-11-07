@@ -1,7 +1,7 @@
 
 perception_find_dock_codes:
   ros__parameters:
-    debug: True
+    debug: False
 
     red:
       lower1: [0, 50, 50]
@@ -19,4 +19,4 @@ perception_find_dock_codes:
 
 perception_find_dock_entrances:
   ros__parameters:
-    debug: True
+    debug: False

@@ -4,15 +4,16 @@ from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
 from nav_msgs.msg import Odometry
-from ...utils.channel_nav import ChannelNavigation
+from ...utils.channel_nav.channel_nav import ChannelNavigation
+from ...utils.geometry_conversions import point32_to_pose_stamped
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from rclpy.time import Time
 import tf_transformations
 
-class Gymkhana(Node):
+class SafetyCheck(Node):
 
     def __init__(self):
-        super().__init__('gymkhana')
+        super().__init__('autonomy_safety_check')
 
         self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
 
@@ -22,63 +23,30 @@ class Gymkhana(Node):
 
         self.robot_pose = None
 
-        self.channel_nav = ChannelNavigation.ChannelNavigation()
+        self.station_keeping_enabled = False
+        self.station_keeping_complete = False
+
+        self.channel_nav = ChannelNavigation()
         self.buoys = BoundingBoxArray()
 
     def update_robot_pose(self, msg:Odometry):
         ps = PoseStamped()
         ps.pose = msg.pose.pose
         self.robot_pose = ps
+        if not self.station_keeping_enabled:
+            self.enable_station_keeping()
+    
+    def enable_station_keeping(self):
+        path = Path()
+        path.poses.append(self.robot_pose)
+        self.path_pub.publish(path)
+        self.station_keeping_enabled = True
+        self.get_logger().info('Station Keeping Enabled')
     
     def update_buoys(self, msg:BoundingBoxArray):
         self.buoys = msg
         if (not self.channel_nav.curr_channel):
             self.nav_to_next_midpoint()
-
-    def point32ToPoseStamped(p:Point32):
-        ps = PoseStamped()
-        ps.pose.position.x = p.x
-        ps.pose.position.y = p.y
-        ps.pose.position.z = p.z
-        return ps
-    
-    
-    def midpoint(self, p1:PoseStamped, p2:PoseStamped):
-        ps = PoseStamped()
-        ps.header.frame_id = "map"
-        ps.pose.position.x = (p1.pose.position.x + p2.pose.position.x) / 2
-        ps.pose.position.y = (p1.pose.position.y + p2.pose.position.y) / 2
-
-        ang = math.atan2((p1.pose.position.y - p2.pose.position.y), (p1.pose.position.x - p2.pose.position.x)) - (math.pi / 2)
-
-        # self.get_logger().info(f'first angle: {ang}')
-
-        while ang < 0:
-            ang += (2 * math.pi)
-
-        # self.get_logger().info(f'negative check: {ang}')
-
-        rq = self.robot_pose.pose.orientation
-        robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
-
-        # self.get_logger().info(f'robot angle: {robot_euler[2]}')
-
-        if ang > math.pi * 2:
-            ang = ang % (math.pi * 2)
-
-        # self.get_logger().info(f'check if > 360: {ang}')
-
-        if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
-            ang += math.pi
-
-        # self.get_logger().info(f'check relative to robot angle: {ang}')
-        
-        quat = tf_transformations.quaternion_from_euler(0, 0, ang)
-        ps.pose.orientation.x = quat[0]
-        ps.pose.orientation.y = quat[1]
-        ps.pose.orientation.z = quat[2]
-        ps.pose.orientation.w = quat[3]
-        return ps
     
     def nav_to_next_midpoint(self):
         if self.channel_nav.end_nav:
@@ -86,15 +54,19 @@ class Gymkhana(Node):
 
         if self.robot_pose is None:
             return
+        
+        if not self.station_keeping_complete:
+            return
 
         # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
-        buoyPoses = list(Gymkhana.point32ToPoseStamped(b.centroid) for b in self.buoys.boxes if b.value >= 1)
+        buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
         # self.get_logger().info(str(len(buoyPoses)))
         channel = self.channel_nav.find_channel(buoyPoses, self.robot_pose)
         if channel is None:
             return
 
-        mid = self.midpoint(channel[0], channel[1])
+        # mid = self.midpoint(channel[0], channel[1])
+        mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
 
         path = Path()
         path.poses.append(mid)
@@ -104,8 +76,11 @@ class Gymkhana(Node):
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
         # For gymkhana, this number will be 5
-        if len(self.channel_nav.channels) == 2:
+        if len(self.channel_nav.channels) == 1:
             self.channel_nav.end_nav = True
+        
+        if not self.station_keeping_complete:
+            self.station_keeping_complete = True
 
         self.nav_to_next_midpoint()
 
@@ -114,7 +89,7 @@ def main(args=None):
     
     rclpy.init(args=args)
 
-    node = Gymkhana()
+    node = SafetyCheck()
 
     rclpy.spin(node)
 
