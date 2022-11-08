@@ -8,6 +8,7 @@ from math import sqrt, pi
 import tf_transformations
 from ...utils.multi_gates.multi_gates import MultiGates
 from ...utils.multi_gates.loop_point import LoopPoint
+import time
 
 class WildlifeEncounterNode(Node):
 
@@ -30,11 +31,16 @@ class WildlifeEncounterNode(Node):
 
         self.robot_pose:Pose = None
         self.animals = dict()
+        self.first_call = True
 
         self.create_timer(1.0, self.execute)
     
     def execute(self):
+        if self.first_call:
+            self.first_call = False
+            time.sleep(3.0)
         self.get_logger().info(f'state: {self.state}')
+        self.get_logger().info(str(list(x[1] for x in self.animals.values())))
         if self.state == State.SEARCHING:
             if not self.search():
                 self.nav_search()
@@ -85,7 +91,7 @@ class WildlifeEncounterNode(Node):
     def buoys_callback(self, msg:BoundingBoxArray):
         for buoy in msg.boxes:
             if len(self.animals) > 2: return
-            for animal, data in self.animals:
+            for animal, data in self.animals.items():
                 if self.distance(data[0], (buoy.centroid.x, buoy.centroid.y)) > 3:
                     break
             else:
@@ -102,6 +108,7 @@ class WildlifeEncounterNode(Node):
             self.state = State.COMPLETE
             return
         self.state = State(self.state.value + 1)
+        time.sleep(3.0)
     
     def rotate(self):
         rq = self.robot_pose.orientation
@@ -113,7 +120,7 @@ class WildlifeEncounterNode(Node):
         else:
             euler[2] -= pi
         self.state = State(self.state.value + 1)
-        quat = tf_transformations.quaternion_from_euler(quat[0], quat[1], quat[2])
+        quat = tf_transformations.quaternion_from_euler(euler[0], euler[1], euler[2])
         path = Path()
         ps = PoseStamped()
         ps.pose.position = self.robot_pose.position
@@ -135,6 +142,8 @@ class WildlifeEncounterNode(Node):
         self.path_pub.publish(path)
 
     def find_path_around_animal(self, point:Point):
+
+        loc = PoseStamped(pose=self.robot_pose)
 
         path = Path()
 
@@ -193,7 +202,7 @@ class WildlifeEncounterNode(Node):
         # path.poses.append(final)
 
         # We can later remove this and have the robot choose a random gate to go through
-        path.poses.append(PoseStamped(pose=Pose(position=self.robot_pose)))
+        path.poses.append(loc)
 
         return path
 
