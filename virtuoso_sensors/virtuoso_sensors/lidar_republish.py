@@ -7,7 +7,7 @@ class LidarRepublish(Node):
     def __init__(self):
         super().__init__('lidar_republish')
 
-        self.sub = self.create_subscription(PointCloud2, '/lidar_front/points_xyzi', self.republish, 10)
+        self.sub = self.create_subscription(PointCloud2, '/velodyne_points', self.republish, 10)
 
         self.pub = self.create_publisher(PointCloud2, 'wamv/sensors/lidars/lidar_wamv/points', 10)
     
