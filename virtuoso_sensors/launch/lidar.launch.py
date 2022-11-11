@@ -33,10 +33,10 @@ def generate_launch_description():
         #     remappings=[("topic", "points_xyzi")],
         #     arguments=["--model", "vlp16"]
         # ),
-        # Node(
-        #     package='virtuoso_sensors',
-        #     executable='lidar_republish'
-        # ),
+        Node(
+            package='virtuoso_sensors',
+            executable='lidar_republish'
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(velodyne_share, 'launch', 'velodyne-all-nodes-VLP16-launch.py')
