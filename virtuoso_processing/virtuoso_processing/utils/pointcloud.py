@@ -138,9 +138,9 @@ def create_cloud_xyz32(header, points):
 
 
 def create_cloud(
-    header: Header,
-    fields: Iterable[PointField],
-    points: Iterable) -> PointCloud2:
+    header,
+    fields,
+    points) -> PointCloud2:
     """
     Create a sensor_msgs.msg.PointCloud2 message.
     :param header: The point cloud header. (Type: std_msgs.msg.Header)

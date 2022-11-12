@@ -46,7 +46,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='lidar_to_baselink',
-            arguments=['0', '0', '1.245', '0', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link'],
+            arguments=['1.17', '-0.31', '1.245', '0', '0', '0', 'wamv/base_link', 'wamv/lidar_wamv_link'],
             condition=IfCondition(PythonExpression(["'", usv_config, "' == 'robotx'"]))
         ),
         Node(

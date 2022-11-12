@@ -28,7 +28,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='leftcam_to_baselink',
-            arguments=['0', '0', '1.245', '0', '0', '0', 'wamv/base_link', 'wamv/front_left_camera_link_optical'],
+            arguments=['1.17', '-0.18', '1.245', '0', '0', '0', 'wamv/base_link', 'wamv/front_left_camera_link_optical'],
             condition=IfCondition(PythonExpression(["'", usv_config, "' == 'robotx'"]))
         )
     ])
