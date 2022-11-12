@@ -15,7 +15,10 @@ def generate_launch_description():
 
         Node(
             package='usb_cam',
-            executable='usb_cam_node_exe'
+            executable='usb_cam_node_exe',
+            parameters=[
+                {'video_device': '/dev/video2'}
+            ]
         ),
         Node(
             package='virtuoso_sensors',
