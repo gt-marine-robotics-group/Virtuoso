@@ -7,6 +7,7 @@ from std_msgs.msg import String
 from std_msgs.msg import Int8
 from sensor_msgs.msg import NavSatFix
 import datetime
+import socket
 
 class Heartbeat(Node):
 
@@ -44,10 +45,13 @@ class Heartbeat(Node):
 
     
     def send_heartbeat(self):
+        self.gps_ready = True
+        self.lat = 0.0
+        self.lon = 0.0
         if(self.gps_ready):
              msg = String()
              msg.data = "$RXHRB"
-             teamid = "ROBOT"
+             teamid = "GTCH"
              checksum = "11"
              crlf = "\r\n"
              lat_str = str(round(self.lat,5)) + ",N"
@@ -63,6 +67,12 @@ class Heartbeat(Node):
              msg.data = msg.data + "," + aedt_date + "," + aedt_time + "," + lat_str + "," + lon_str + "," + teamid + "," + system_mode + "," + uav_status + "*" + checksum +  crlf
              self.get_logger().info(msg.data)
              self.heartbeat_pub.publish(msg)
+             
+             HOST = "127.0.0.1"
+             PORT = 65432
+             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                  s.connect((HOST, PORT))
+                  s.sendall(msg.data)
 
 
 def main(args=None):
