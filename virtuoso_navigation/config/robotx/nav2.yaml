@@ -5,7 +5,7 @@ local_costmap:
       publish_frequency: 2.0
       global_frame: map 
       robot_base_frame: wamv/base_link 
-      use_sim_time: True
+      use_sim_time: False
       rolling_window: true
       width: 50 
       height: 50
@@ -15,7 +15,7 @@ local_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true 
-        voxel_decay: 15.
+        voxel_decay: 2.0
         decay_model: 0
         voxel_size: 0.05
         track_unknown_space: true
@@ -55,14 +55,14 @@ local_costmap:
         always_send_full_costmap: True
   local_costmap_client:
     ros__parameters:
-      use_sim_time: True
+      use_sim_time: False
   local_costmap_rclcpp_node:
     ros__parameters:
-      use_sim_time: True
+      use_sim_time: False
 
 bt_navigator:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     global_frame: map 
     robot_base_frame: wamv/base_link
     odom_topic: /localization/odometry
@@ -105,7 +105,7 @@ global_costmap:
       publish_frequency: 1.0
       global_frame: map
       robot_base_frame: wamv/base_link 
-      use_sim_time: True
+      use_sim_time: False
       robot_radius: 2.0
       resolution: 1.0
       track_unknown_space: true
@@ -116,7 +116,7 @@ global_costmap:
       stvl_layer:
         plugin: "spatio_temporal_voxel_layer/SpatioTemporalVoxelLayer"
         enabled: true 
-        voxel_decay: 15.
+        voxel_decay: 2.0
         decay_model: 0
         voxel_size: 0.05
         track_unknown_space: true
@@ -168,15 +168,15 @@ global_costmap:
         inflation_radius: 3.0
       global_costmap_client:
         ros__parameters:
-          use_sim_time: True
+          use_sim_time: False
       global_costmap_rclcpp_node:
         ros__parameters:
-          use_sim_time: True
+          use_sim_time: False
           
 planner_server:
   ros__parameters:
     planner_plugins: ["GridBased"]
-    use_sim_time: True
+    use_sim_time: False
 
     GridBased:
       plugin: "smac_planner/SmacPlanner"
@@ -227,7 +227,7 @@ lifecycle_manager:
 
 controller_server:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
     controller_frequency: 20.0
     min_x_velocity_threshold: 0.001
     min_y_velocity_threshold: 0.001
@@ -306,7 +306,7 @@ controller_server:
 
 controller_server_rclcpp_node:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: false
     
 recoveries_server:
   ros__parameters:
@@ -331,7 +331,7 @@ recoveries_server:
 planner_server:
   ros__parameters:
     expected_planner_frequency: 20.0
-    use_sim_time: True
+    use_sim_time: False
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -341,4 +341,4 @@ planner_server:
 
 planner_server_rclcpp_node:
   ros__parameters:
-    use_sim_time: True
+    use_sim_time: False
