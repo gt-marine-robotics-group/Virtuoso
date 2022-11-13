@@ -125,13 +125,13 @@ class basicPID(Node):
         self.xIntegral = self.xIntegral + targetVel[0]*0.01
         self.yIntegral = self.yIntegral + targetVel[1]*0.01       
 
-        targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.9*0.7*kd_factor) + self.yIntegral*0.000*ki_factor
+        targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.9*0.7*kd_factor) + self.yIntegral*0.001*ki_factor
         #self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.333*0.7*kd_factor) + self.xIntegral*0.000*ki_factor
+        targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.333*0.7*kd_factor) + self.xIntegral*0.001*ki_factor
 
-        if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
-             targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.15*kd_factor) + self.yIntegral*0.000*ki_factor
-             targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.11*kd_factor) + self.xIntegral*0.000*ki_factor
+        #if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
+        #     targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.15*kd_factor) + self.yIntegral*0.000*ki_factor
+        #     targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.11*kd_factor) + self.xIntegral*0.000*ki_factor
         targetForceX = targetForceX * (5/3) * 4
         targetForceY = targetForceY * (5/3) * 4
         if(abs(targetForceY) < 0.2):
