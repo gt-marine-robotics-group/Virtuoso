@@ -6,5 +6,5 @@ processing_self_filter:
 processing_shore_filter:
   ros__parameters:
     x_min: 0.0
-    y_min: -15.0
-    y_max: 15.0
+    y_min: -10.0
+    y_max: 10.0
