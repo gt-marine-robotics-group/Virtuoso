@@ -5,6 +5,7 @@ from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point32
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Empty
 from ...utils.multi_gates.multi_gates import MultiGates
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point32_to_pose_stamped
@@ -17,6 +18,7 @@ class EnterAndExit(Node):
         super().__init__('autonomy_enter_and_exit')
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
             self.nav_success, 10)
@@ -27,6 +29,8 @@ class EnterAndExit(Node):
 
         self.multi_gates = MultiGates()
 
+        self.station_keeping_enabled = False
+
         self.robot_pose = None
         self.buoys = BoundingBoxArray()
         self.state = 'finding_enterance' # other states are 'entering', 'finding_loop_cone', 'looping'
@@ -35,6 +39,13 @@ class EnterAndExit(Node):
         ps = PoseStamped()
         ps.pose = msg.pose.pose
         self.robot_pose = ps
+        if not self.station_keeping_enabled:
+            self.enable_station_keeping()
+    
+    def enable_station_keeping(self):
+        self.get_logger().info('ENABLING STATION KEEPING')
+        self.station_keeping_pub.publish(Empty())
+        self.station_keeping_enabled = True
 
     def update_buoys(self, msg:BoundingBoxArray):
         self.buoys = msg
@@ -50,6 +61,9 @@ class EnterAndExit(Node):
     def navigate_to_enterance(self):
 
         if self.robot_pose is None:
+            return
+        
+        if not self.station_keeping_enabled:
             return
 
         buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
