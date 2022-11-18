@@ -17,14 +17,12 @@ class TranslateNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # self._action_server = ActionServer(self, Translate, '/navigation/translate', self.execute_callback)
         self.translate_sub = self.create_subscription(Point, '/navigation/translate', 
             self.execute_callback, 10)
-        self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success',
+        self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success',
             self.nav_success_callback, 10)
 
-        # self.set_path_pub = self.create_publisher(Path, '/navigation/set_trans_path', 10)
-        self.set_path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.set_path_pub = self.create_publisher(Path, '/navigation/set_trans_path', 10)
         self.translate_success_pub = self.create_publisher(Point, '/navigation/translate_success',
             10)
         
