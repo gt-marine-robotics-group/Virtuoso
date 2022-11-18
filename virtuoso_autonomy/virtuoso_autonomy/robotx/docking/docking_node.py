@@ -23,7 +23,7 @@ class DockingNode(Node):
         self.dock_approach_dist = self.get_parameter('dock_approach_dist').value
 
         self.find_docks_req_pub = self.create_publisher(Int8, '/perception/start_find_docks', 10)
-        self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
 
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)

@@ -15,7 +15,7 @@ class Gymkhana(Node):
     def __init__(self):
         super().__init__('autonomy_gymkhana')
 
-        self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success', self.nav_success, 10)
         self.buoys_sub = self.create_subscription(BoundingBoxArray, '/buoys/bounding_boxes', self.update_buoys, 10)

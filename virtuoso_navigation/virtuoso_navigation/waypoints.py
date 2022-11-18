@@ -12,9 +12,9 @@ from std_msgs.msg import Bool
 class Waypoints(Node):
 
     def __init__(self):
-        super().__init__('waypoint_nav')
+        super().__init__('navigation_waypoints')
 
-        self.goal_sub = self.create_subscription(Path, '/virtuoso_navigation/set_path', self.set_path, 10)
+        self.goal_sub = self.create_subscription(Path, '/navigation/set_path', self.set_path, 10)
         self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_path', 
             self.set_trans_path, 10)
         self.nav_action = ActionClient(self, ComputePathToPose, '/compute_path_to_pose')

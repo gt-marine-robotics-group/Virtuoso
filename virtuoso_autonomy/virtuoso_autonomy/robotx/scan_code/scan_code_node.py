@@ -10,7 +10,7 @@ class ScanCode(Node):
         super().__init__('autonomy_scan_code')
 
         self.scan_req_pub = self.create_publisher(Int8, '/perception/get_code', 10)
-        self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
 
         self.scan_ready_sub = self.create_subscription(Int8, '/perception/scan_code/ready', 
             self.scan_ready, 10)

@@ -17,7 +17,7 @@ class WildlifeEncounterNode(Node):
     def __init__(self):
         super().__init__('autonomy_wildlife_encounter')
 
-        self.path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success',
