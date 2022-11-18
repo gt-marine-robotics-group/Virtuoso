@@ -20,7 +20,7 @@ class WildlifeEncounterNode(Node):
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
 
-        self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success',
+        self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success',
             self.nav_success_callback, 10)
         self.buoys_sub = self.create_subscription(BoundingBoxArray, '/buoys/bounding_boxes', 
             self.buoys_callback, 10)

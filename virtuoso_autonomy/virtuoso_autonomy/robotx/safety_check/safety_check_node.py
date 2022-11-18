@@ -17,9 +17,12 @@ class SafetyCheck(Node):
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
 
-        self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success', self.nav_success, 10)
-        self.buoys_sub = self.create_subscription(BoundingBoxArray, '/buoys/bounding_boxes', self.update_buoys, 10)
-        self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_robot_pose, 10)
+        self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
+            self.nav_success, 10)
+        self.buoys_sub = self.create_subscription(BoundingBoxArray, '/buoys/bounding_boxes', 
+            self.update_buoys, 10)
+        self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
+            self.update_robot_pose, 10)
 
         self.robot_pose = None
 
