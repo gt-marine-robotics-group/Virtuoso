@@ -29,16 +29,15 @@ class ScanCode(Node):
         self.ready = True
     
     def enable_station_keeping(self):
-        # path = Path()
-        # pose_stamped = PoseStamped()
-        # pose_stamped.pose = self.odom.pose.pose
-        # path.poses.append(pose_stamped)
-        # self.path_pub.publish(path)
-        # self.station_keeping_enabled = True
-        # self.get_logger().info('Station Keeping Enabled')
+        self.station_keeping_enabled = True
         self.station_keeping_pub.publish(Empty())
     
     def send_req(self):
+        
+        if not self.station_keeping_enabled:
+            self.enable_station_keeping()
+            return
+
         if not self.station_keeping_enabled:
             return
 
