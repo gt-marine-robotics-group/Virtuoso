@@ -3,6 +3,7 @@ from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray, Empty
 from nav_msgs.msg import Path, Odometry
 from geometry_msgs.msg import PoseStamped
+from .scan_code_states import State
 
 class ScanCode(Node):
 
@@ -17,43 +18,47 @@ class ScanCode(Node):
             self.scan_ready, 10)
         self.scan_res_sub = self.create_subscription(Int32MultiArray, '/perception/code',
             self.code_callback, 10)
-
-        self.req_sent = False
-        self.station_keeping_enabled = False
+        
+        self.state = State.START
 
         self.ready = False
 
-        self.create_timer(1.0, self.send_req)
+        self.create_timer(1.0, self.execute)
+
+    def execute(self):
+        self.get_logger().info(str(self.state))
+        if self.state == State.START:
+            self.enable_station_keeping()
+            return
+        if self.state == State.STATION_KEEPING_ENABLED:
+            self.state = State.WAITING_FOR_SCAN_NODE
+            return
+        if self.state == State.WAITING_FOR_SCAN_NODE:
+            if self.ready:
+                self.state = State.SENDING_SCAN_REQUEST
+            return
+        if self.state == State.SENDING_SCAN_REQUEST:
+            self.send_req()
+            return
+        if self.state == State.SCANNING:
+            return
 
     def scan_ready(self, msg):
         self.ready = True
     
     def enable_station_keeping(self):
-        self.station_keeping_enabled = True
+        self.state = State.STATION_KEEPING_ENABLED
         self.station_keeping_pub.publish(Empty())
     
     def send_req(self):
-        
-        if not self.station_keeping_enabled:
-            self.enable_station_keeping()
-            return
-
-        if not self.station_keeping_enabled:
-            return
-
-        if not self.ready:
-            return
-
-        if self.req_sent:
-            return
-
         self.get_logger().info('Sending Scan Code Request')
-        self.req_sent = True
+        self.state = State.SCANNING
         self.scan_req_pub.publish(Int8(data=1))
     
     def code_callback(self, msg):
         self.get_logger().info('Autonomy Received Code')
         self.get_logger().info(str(msg))
+        self.state = State.COMPLETE
 
 def main(args=None):
     rclpy.init(args=args)
