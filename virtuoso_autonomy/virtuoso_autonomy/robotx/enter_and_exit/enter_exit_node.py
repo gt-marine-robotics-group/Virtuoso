@@ -1,19 +1,17 @@
-import math
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped, Point32
+from geometry_msgs.msg import PoseStamped
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Empty
-from ...utils.multi_gates.multi_gates import MultiGates
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point32_to_pose_stamped
 from .enter_exit_states import State
 import random
-import tf_transformations
+from .enter_exit import EnterExit
 
-class EnterAndExit(Node):
+class EnterAndExitNode(Node):
 
     def __init__(self):
         super().__init__('autonomy_enter_and_exit')
@@ -30,10 +28,10 @@ class EnterAndExit(Node):
         
         self.state = State.START
 
-        self.multi_gates = MultiGates()
-
         self.robot_pose = None
         self.buoys = BoundingBoxArray()
+
+        self.enter_exit = EnterExit()
 
         self.create_timer(1.0, self.execute)
 
@@ -60,6 +58,7 @@ class EnterAndExit(Node):
         ps = PoseStamped()
         ps.pose = msg.pose.pose
         self.robot_pose = ps
+        self.enter_exit.robot_pose = self.robot_pose
     
     def enable_station_keeping(self):
         self.station_keeping_pub.publish(Empty())
@@ -78,7 +77,7 @@ class EnterAndExit(Node):
 
         buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
         
-        gates = self.multi_gates.find_gates(buoyPoses, self.robot_pose)
+        gates = self.enter_exit.find_gates(buoyPoses)
 
         self.get_logger().info(str(gates))
 
@@ -103,20 +102,21 @@ class EnterAndExit(Node):
         
         buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
 
-        looping_buoy = self.multi_gates.find_looping_buoy(buoyPoses, self.robot_pose)
+        looping_buoy = self.enter_exit.find_looping_buoy(buoyPoses)
 
         if looping_buoy is None:
             return
 
         self.state = State.NAVIGATING_AROUND_BUOY
 
-        path = self.multi_gates.find_path_around_buoy(looping_buoy, self.robot_pose)
+        path = self.enter_exit.find_path_around_buoy(looping_buoy)
         self.path_pub.publish(path)
-
+    
+    
 def main(args=None):
     rclpy.init(args=args)
 
-    node = EnterAndExit()
+    node = EnterAndExitNode()
 
     rclpy.spin(node)
 

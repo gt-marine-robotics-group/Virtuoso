@@ -1,6 +1,5 @@
 from typing import Tuple
 
-
 class LoopPoint:
 
     def __init__(self, change:str, point:Tuple[float, float], dist:float):
