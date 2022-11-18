@@ -2,6 +2,7 @@ import math
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
+from std_msgs.msg import Empty
 from geometry_msgs.msg import PoseStamped, Point32
 from nav_msgs.msg import Odometry
 from ...utils.channel_nav.channel_nav import ChannelNavigation
@@ -16,6 +17,7 @@ class SafetyCheck(Node):
         super().__init__('autonomy_safety_check')
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
             self.nav_success, 10)
@@ -40,11 +42,8 @@ class SafetyCheck(Node):
             self.enable_station_keeping()
     
     def enable_station_keeping(self):
-        path = Path()
-        path.poses.append(self.robot_pose)
-        self.path_pub.publish(path)
+        self.station_keeping_pub.publish(Empty())
         self.station_keeping_enabled = True
-        self.get_logger().info('Station Keeping Enabled')
     
     def update_buoys(self, msg:BoundingBoxArray):
         self.buoys = msg
@@ -58,7 +57,7 @@ class SafetyCheck(Node):
         if self.robot_pose is None:
             return
         
-        if not self.station_keeping_complete:
+        if not self.station_keeping_enabled:
             return
 
         # self.get_logger().info(str(list(map(lambda b: b.value, self.buoys.boxes))))
@@ -81,9 +80,6 @@ class SafetyCheck(Node):
         # For gymkhana, this number will be 5
         if len(self.channel_nav.channels) == 1:
             self.channel_nav.end_nav = True
-        
-        if not self.station_keeping_complete:
-            self.station_keeping_complete = True
 
         self.nav_to_next_midpoint()
 
