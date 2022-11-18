@@ -10,7 +10,6 @@ from .loop_point import LoopPoint
 
 class EnterExit:
 
-    first_buoys = None
     buoy_range = 3.0
 
     def __init__(self, node=None):
@@ -18,6 +17,8 @@ class EnterExit:
         self.node:Node = node
 
         self.robot_pose:PoseStamped = None
+
+        self.first_buoys = None
     
     def _debug(self, msg):
         if self.node is None:
