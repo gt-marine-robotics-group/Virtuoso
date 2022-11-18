@@ -9,6 +9,7 @@ from std_msgs.msg import Empty
 from ...utils.multi_gates.multi_gates import MultiGates
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point32_to_pose_stamped
+from .enter_exit_states import State
 import random
 import tf_transformations
 
@@ -26,44 +27,53 @@ class EnterAndExit(Node):
             self.update_buoys, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.update_robot_pose, 10)
+        
+        self.state = State.START
 
         self.multi_gates = MultiGates()
 
-        self.station_keeping_enabled = False
-
         self.robot_pose = None
         self.buoys = BoundingBoxArray()
-        self.state = 'finding_enterance' # other states are 'entering', 'finding_loop_cone', 'looping'
+
+        self.create_timer(1.0, self.execute)
+
+    def execute(self):
+        self.get_logger().info(str(self.state))
+        if self.state == State.START:
+            self.enable_station_keeping()
+            return
+        if self.state == State.STATION_KEEPING_ENABLED:
+            self.state = State.FINDING_ENTRANCE
+            return
+        if self.state == State.FINDING_ENTRANCE:
+            self.navigate_to_enterance()
+            return
+        if self.state == State.NAVIGATING_TO_ENTRANCE:
+            return
+        if self.state == State.FINDING_LOOP_BUOY:
+            self.loop_around_cone() 
+            return
+        if self.state == State.NAVIGATING_AROUND_BUOY:
+            return
 
     def update_robot_pose(self, msg:Odometry):
         ps = PoseStamped()
         ps.pose = msg.pose.pose
         self.robot_pose = ps
-        if not self.station_keeping_enabled:
-            self.enable_station_keeping()
     
     def enable_station_keeping(self):
-        self.get_logger().info('ENABLING STATION KEEPING')
         self.station_keeping_pub.publish(Empty())
-        self.station_keeping_enabled = True
+        self.state = State.STATION_KEEPING_ENABLED
 
     def update_buoys(self, msg:BoundingBoxArray):
         self.buoys = msg
-        if (self.state == 'finding_enterance'):
-            self.navigate_to_enterance()
-        if (self.state == 'finding_loop_cone'):
-            self.loop_around_cone()
 
     def nav_success(self, msg:PoseStamped):
-        if self.state == 'entering':
-            self.state = 'finding_loop_cone'
+        self.state = State(self.state.value + 1)
 
     def navigate_to_enterance(self):
 
         if self.robot_pose is None:
-            return
-        
-        if not self.station_keeping_enabled:
             return
 
         buoyPoses = list(point32_to_pose_stamped(b.centroid) for b in self.buoys.boxes)
@@ -75,7 +85,7 @@ class EnterAndExit(Node):
         if gates is None:
             return
 
-        self.state = 'entering'
+        self.state = State.NAVIGATING_TO_ENTRANCE
 
         randGate = gates[random.randint(0, 2)]
 
@@ -98,15 +108,10 @@ class EnterAndExit(Node):
         if looping_buoy is None:
             return
 
-        # Just go to the looping buoy for now to test
-        
-        self.state = 'looping'
-        # path = Path()
-        # path.poses.append(looping_buoy)
+        self.state = State.NAVIGATING_AROUND_BUOY
+
         path = self.multi_gates.find_path_around_buoy(looping_buoy, self.robot_pose)
         self.path_pub.publish(path)
-
-        pass
 
 def main(args=None):
     rclpy.init(args=args)
