@@ -26,7 +26,7 @@ class cmdVelGenerator(Node):
         
         self.path_subscriber = self.create_subscription(
             Path,
-            '/transformed_global_plan',
+            '/navigation/plan',
             self.path_callback,
             10)  
         self.odom_subscriber = self.create_subscription(

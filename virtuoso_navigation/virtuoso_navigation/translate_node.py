@@ -25,7 +25,6 @@ class TranslateNode(Node):
 
         # self.set_path_pub = self.create_publisher(Path, '/navigation/set_trans_path', 10)
         self.set_path_pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
-        # self.set_path_pub = self.create_publisher(Path, '/transformed_global_plan', 10)
         self.translate_success_pub = self.create_publisher(Point, '/navigation/translate_success',
             10)
         

@@ -22,7 +22,7 @@ class Waypoints(Node):
 
         self.success_pub = self.create_publisher(PoseStamped, '/navigation/success', 10)
         
-        self.path_pub = self.create_publisher(Path, '/transformed_global_plan', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/plan', 10)
         self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.waypoints_completed = 0
