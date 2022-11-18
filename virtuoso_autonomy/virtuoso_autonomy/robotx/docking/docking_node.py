@@ -5,6 +5,7 @@ from nav_msgs.msg import Odometry, Path
 from geometry_msgs.msg import PoseStamped, Point
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import read_points
+from std_msgs.msg import Empty
 import time
 from .docking_states import State
 import numpy as np
@@ -24,6 +25,7 @@ class DockingNode(Node):
 
         self.find_docks_req_pub = self.create_publisher(Int8, '/perception/start_find_docks', 10)
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
@@ -47,7 +49,6 @@ class DockingNode(Node):
         self.odom:Odometry = None
         self.find_dock_codes_ready = False
         self.find_dock_entrances_ready = False
-        self.station_keeping_enabled = False
         self.find_docks_req_sent = False
 
         self.color_docks = dict() # map of color => index
@@ -101,12 +102,13 @@ class DockingNode(Node):
         if self.odom is None:
             return
         self.state = State(self.state.value + 1)
-        path = Path()
-        pose_stamped = PoseStamped()
-        pose_stamped.pose = self.odom.pose.pose
-        path.poses.append(pose_stamped)
-        self.path_pub.publish(path)
-        self.get_logger().info('Station Keeping Enabled')
+        # path = Path()
+        # pose_stamped = PoseStamped()
+        # pose_stamped.pose = self.odom.pose.pose
+        # path.poses.append(pose_stamped)
+        # self.path_pub.publish(path)
+        # self.get_logger().info('Station Keeping Enabled')
+        self.station_keeping_pub.publish(Empty())
     
     def approach(self):
         if len(self.ahead_entrance) < 2:
