@@ -79,8 +79,6 @@ class EnterAndExitNode(Node):
         
         gates = self.enter_exit.find_gates(buoyPoses)
 
-        self.get_logger().info(str(gates))
-
         if gates is None:
             return
 
