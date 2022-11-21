@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray
-from nav_msgs.msg import Odometry, Path
+from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import read_points
@@ -25,13 +25,8 @@ class DockingNode(Node):
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
-        self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
-            self.odom_callback, 10)
-
         self.find_docks_ready_sub = self.create_subscription(Int8, '/perception/find_dock_codes/ready',
             self.find_dock_codes_ready_callback, 10)
-        self.find_dock_entrances_ready_sub = self.create_subscription(Int8, 
-            '/perception/find_dock_entrances/ready', self.find_dock_entrances_ready_callback, 10)
 
         self.dock_offsets_sub = self.create_subscription(Int32MultiArray, 
             '/perception/dock_code_offsets', self.offsets_callback, 10)
@@ -44,7 +39,6 @@ class DockingNode(Node):
         self.trans_success_sub = self.create_subscription(Point, '/navigation/translate_success',
             self.trans_success_callback, 10)
         
-        self.odom:Odometry = None
         self.find_dock_codes_ready = False
         self.find_dock_entrances_ready = False
         self.find_docks_req_sent = False
@@ -54,20 +48,10 @@ class DockingNode(Node):
 
         self.state = State.START
 
-        self.create_timer(1.0, self.send_find_docks_req)
         self.create_timer(1.0, self.execute)
-    
-    def odom_callback(self, msg:Odometry):
-        ps = PoseStamped()
-        ps.pose = msg.pose.pose
-        self.odom = msg
-        self.docking.robot_pose = ps
     
     def find_dock_codes_ready_callback(self, msg):
         self.find_dock_codes_ready = True
-    
-    def find_dock_entrances_ready_callback(self, msg):
-        self.find_dock_entrances_ready = True
     
     def execute(self):
         self.get_logger().info(f'State: {self.state}')
@@ -75,6 +59,9 @@ class DockingNode(Node):
             self.enable_station_keeping()
             return
         if self.state == State.STATION_KEEPING_ENABLED:
+            self.send_find_docks_req()
+            return
+        if self.state == State.FINDING_DOCKS:
             self.approach()
             return
         if self.state == State.APPROACHING:
@@ -100,8 +87,6 @@ class DockingNode(Node):
 
     
     def enable_station_keeping(self):
-        if self.odom is None:
-            return
         self.state = State(self.state.value + 1)
         self.station_keeping_pub.publish(Empty())
     
@@ -118,14 +103,8 @@ class DockingNode(Node):
     
     def send_find_docks_req(self):
         
-        if not self.find_dock_entrances_ready or not self.find_dock_codes_ready:
-            return
-        
-        if self.find_docks_req_sent:
-            return
-        
         self.get_logger().info('Sending Find Docks Request')
-        self.find_docks_req_sent = True
+        self.state = State(self.state.value + 1)
         self.find_docks_req_pub.publish(Int8(data=1))
     
     def offsets_callback(self, msg:Int32MultiArray):
