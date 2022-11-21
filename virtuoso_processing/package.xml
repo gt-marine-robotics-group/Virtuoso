@@ -7,15 +7,25 @@
   <maintainer email="gtmrg@todo.todo">gtmrg</maintainer>
   <license>TODO: License declaration</license>
 
+  <!-- ROS2 packages -->
   <exec_depend>rclpy</exec_depend>
-  <exec_depend>python-skimage</exec_depend>
-  <exec_depend>python-numpy</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+
+  <!-- Python Dependencies -->
+  <exec_depend>python3-skimage</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+
+  <!-- AutowareAuto packages -->
   <exec_depend>ray_ground_classifier_nodes</exec_depend>
   <exec_depend>voxel_grid_nodes</exec_depend>
-  <exec_depend>virtuoso_sensors</exec_depend>
 
+  <!-- Virtuoso packages -->
   <exec_depend>virtuoso_sensors</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
