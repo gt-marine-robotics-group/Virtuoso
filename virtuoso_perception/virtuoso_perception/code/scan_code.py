@@ -115,6 +115,7 @@ class ScanCode:
             return
         
         if code == -1 and len(self._curr_code_found) > 0:
+            self._curr_code_found = [-1]
             return
         
         if len(self._curr_code_found) > 0 and code == self._curr_code_found[-1]:

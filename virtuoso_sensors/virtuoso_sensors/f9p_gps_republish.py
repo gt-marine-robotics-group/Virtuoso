@@ -1,11 +1,7 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import Vector3Stamped
 from geometry_msgs.msg import TwistWithCovarianceStamped
-from geometry_msgs.msg import Quaternion
-from nav_msgs.msg import Odometry
 from ublox_ubx_msgs.msg import UBXNavHPPosLLH, UBXNavVelNED
 from ublox_ubx_msgs.msg import UBXNavCov
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
@@ -67,18 +63,13 @@ class f9pGPSRepublish(Node):
         self.broadcaster = TransformBroadcaster(self)     
            
     def gps_fix_callback(self, msg):
-        #msg2 = Imu()
-        # self.get_logger().info('gps msg received ') 
         self.gps_fix = msg
         if((not msg.invalid_lat) and (not msg.invalid_lon)):
              self.GPS_ready = True
         self.publish_gps()
              
     def gps_cov_callback(self, msg):
-        #msg2 = Imu()
-        # self.get_logger().info('gps cov received ') 
         self.gps_cov = msg
-        #if(not msg.pos_cor_valid):
         self.GPS_Cov_ready = True
         self.publish_gps()
         
@@ -89,7 +80,6 @@ class f9pGPSRepublish(Node):
                  
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def publish_gps(self):
-        # self.get_logger().info('checking ') 
         if(self.GPS_ready and self.GPS_Cov_ready and self.GPS_vel_ready):
              navsatmsg = NavSatFix()
              
@@ -106,7 +96,6 @@ class f9pGPSRepublish(Node):
              navsatmsg.position_covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
              
              navsatmsg.position_covariance_type = 3
-            #  self.get_logger().info('publishing ') 
              self.gpsPublisher.publish(navsatmsg)
              self.GPS_ready = False
              self.GPS_Cov_ready = False
@@ -135,7 +124,6 @@ class f9pGPSRepublish(Node):
                        'utm',
                        'wamv/base_link',
                        now)
-                  #self.get_logger().info('transform success')
              except TransformException as ex:
                   self.get_logger().info(
                        f'Could not transform base link to utm: {ex}')

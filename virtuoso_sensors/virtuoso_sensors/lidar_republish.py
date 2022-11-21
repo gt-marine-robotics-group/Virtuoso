@@ -1,21 +1,32 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
+from virtuoso_processing.utils.pointcloud import read_points, create_cloud
 
 class LidarRepublish(Node):
 
     def __init__(self):
         super().__init__('lidar_republish')
 
-        self.sub = self.create_subscription(PointCloud2, '/lidar_front/points_xyzi', self.republish, 10)
+        self.sub = self.create_subscription(PointCloud2, '/velodyne_points', self.republish, 10)
 
         self.pub = self.create_publisher(PointCloud2, 'wamv/sensors/lidars/lidar_wamv/points', 10)
     
     def republish(self, msg:PointCloud2):
-
+        
         newMsg = msg
+        points = list()
+
+        for i, point in enumerate(read_points(msg)):
+            points.append([0, 0, 0, 0])
+            points[i][0] = point[0] 
+            points[i][1] = point[1]
+            points[i][2] = point[2] 
+        
         newMsg.header.frame_id = 'wamv/lidar_wamv_link'
 
+        newMsg = create_cloud(newMsg.header, newMsg.fields[0:4], points)
+            
         self.pub.publish(newMsg)
 
 def main(args=None):

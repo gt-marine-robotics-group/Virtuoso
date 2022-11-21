@@ -51,8 +51,6 @@ class FindDockEntrancesNode(Node):
         if self.get_parameter('debug').value:
             self.find_docks.node = self
 
-        self.create_timer(1.0, self.send_ready)
-    
     def points_callback(self, msg):
         self.points = msg
         self.get_points()
@@ -60,11 +58,6 @@ class FindDockEntrancesNode(Node):
     
     def start_callback(self, msg):
         self.search_requested = True
-    
-    def send_ready(self):
-        if self.search_requested:
-            return
-        self.ready_pub.publish(Int8(data=1))
     
     def get_points(self):
         self.find_docks.points = list()

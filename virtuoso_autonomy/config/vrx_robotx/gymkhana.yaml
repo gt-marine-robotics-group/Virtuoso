@@ -1,0 +1,4 @@
+
+autonomy_gymkhana:
+  ros__parameters:
+    num_channels: 3

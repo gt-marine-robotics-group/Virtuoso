@@ -30,8 +30,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'find_buoys = virtuoso_perception.buoys.find_buoys:main',
-            'classify_buoys = virtuoso_perception.buoys.classify_buoys:main',
+            'find_buoys = virtuoso_perception.buoys.find_buoys_node:main',
+            'classify_buoys = virtuoso_perception.buoys.classify_buoys_node:main',
             'scan_code = virtuoso_perception.code.scan_code_node:main',
             'find_dock_codes = virtuoso_perception.dock.find_dock_codes_node:main',
             'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main'

@@ -4,6 +4,7 @@ import math
 import ctypes
 from sensor_msgs.msg import PointCloud2
 import sys
+import numpy as np
 
 _DATATYPES = {}
 _DATATYPES[PointField.INT8]    = ('b', 1)
@@ -135,3 +136,5 @@ def create_cloud_xyz32(header, points):
         PointField(name='y', offset=4, datatype=PointField.FLOAT32, count=1),
         PointField(name='z', offset=8, datatype=PointField.FLOAT32, count=1)]
     return create_cloud(header, fields, points)
+
+

@@ -29,9 +29,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'set_goal = virtuoso_navigation.set_goal:main',
-            'waypoints = virtuoso_navigation.waypoints:main',
+            'waypoints = virtuoso_navigation.waypoints_node:main',
             'translate = virtuoso_navigation.translate_node:main',
+            'station_keeping = virtuoso_navigation.station_keeping_node:main',
             'choose_PID = virtuoso_navigation.choose_PID:main',
 
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',

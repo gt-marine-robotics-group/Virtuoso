@@ -18,7 +18,7 @@ class TestTranslate(Node):
         if self.sent: return
         self.get_logger().info('Sending Path')
         self.sent = True
-        self.pub.publish(Point(y=2.0))
+        self.pub.publish(Point(x=100.0))
 
 
 def main(args=None):

@@ -1,10 +1,9 @@
 import rclpy
-from rclpy.action import ActionServer
 from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Point
 from tf2_ros.buffer import Buffer
-from rclpy.time import Time, Duration
+from rclpy.time import Time
 from tf2_ros.transform_listener import TransformListener
 import time
 from virtuoso_perception.utils.geometry_msgs import do_transform_pose_stamped
@@ -17,10 +16,9 @@ class TranslateNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # self._action_server = ActionServer(self, Translate, '/navigation/translate', self.execute_callback)
         self.translate_sub = self.create_subscription(Point, '/navigation/translate', 
             self.execute_callback, 10)
-        self.nav_success_sub = self.create_subscription(PoseStamped, '/virtuoso_navigation/success',
+        self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success',
             self.nav_success_callback, 10)
 
         self.set_path_pub = self.create_publisher(Path, '/navigation/set_trans_path', 10)

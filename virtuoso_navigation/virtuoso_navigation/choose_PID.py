@@ -29,7 +29,7 @@ class choosePID(Node):
         
         self.path_subscriber = self.create_subscription(
             Path,
-            '/transformed_global_plan',
+            '/navigation/plan',
             self.path_callback,
             10)  
         self.odom_subscriber = self.create_subscription(
@@ -84,22 +84,22 @@ class choosePID(Node):
              if(distance < 2.0 or self.hold_final_orient):
                   targetWaypoint.pose.pose = self.destination
              else:
-     	          targetWaypoint.pose.pose.position = self.destination.position
-     	          theta_cmd_vel = numpy.arctan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
-     	          target_orient_body = [0, 0, numpy.sin(theta_cmd_vel/2), numpy.cos(theta_cmd_vel/2)]
-     	          
-     	          q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
-     	          
-     	          target_orient = tf_transformations.quaternion_multiply(q, target_orient_body)
-     	          
-     	          target_quat = Quaternion()
-     	          target_quat.x = target_orient[0]
-     	          target_quat.y = target_orient[1]
-     	          target_quat.z = target_orient[2]
-     	          target_quat.w = target_orient[3]
-     	           
-     	          targetWaypoint.pose.pose.orientation = target_quat
-     	          #targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
+                targetWaypoint.pose.pose.position = self.destination.position
+                theta_cmd_vel = numpy.arctan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
+                target_orient_body = [0, 0, numpy.sin(theta_cmd_vel/2), numpy.cos(theta_cmd_vel/2)]
+                
+                q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
+                
+                target_orient = tf_transformations.quaternion_multiply(q, target_orient_body)
+                
+                target_quat = Quaternion()
+                target_quat.x = target_orient[0]
+                target_quat.y = target_orient[1]
+                target_quat.z = target_orient[2]
+                target_quat.w = target_orient[3]
+                
+                targetWaypoint.pose.pose.orientation = target_quat
+                #targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
              self.waypointPub.publish(targetWaypoint)
   
     def odometry_callback(self, msg):

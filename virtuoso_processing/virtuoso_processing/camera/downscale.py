@@ -9,8 +9,8 @@ class DownScale(Node):
 
     def __init__(self):
         super().__init__('downscale')
-        self.subscription = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', self.listener_callback, 10) # subscribes to topic for raw camera data
-        self.publisher = self.create_publisher(Image, 'downscaled_image', 10)
+        # self.subscription = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', self.listener_callback, 10) # subscribes to topic for raw camera data
+        # self.publisher = self.create_publisher(Image, 'downscaled_image', 10)
     
     def listener_callback(self, msg:Image):
         data = CvBridge().imgmsg_to_cv2(msg, 'rgb8')

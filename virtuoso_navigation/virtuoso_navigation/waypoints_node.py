@@ -12,17 +12,17 @@ from std_msgs.msg import Bool
 class Waypoints(Node):
 
     def __init__(self):
-        super().__init__('waypoint_nav')
+        super().__init__('navigation_waypoints')
 
-        self.goal_sub = self.create_subscription(Path, '/virtuoso_navigation/set_path', self.set_path, 10)
+        self.goal_sub = self.create_subscription(Path, '/navigation/set_path', self.set_path, 10)
         self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_path', 
             self.set_trans_path, 10)
         self.nav_action = ActionClient(self, ComputePathToPose, '/compute_path_to_pose')
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
 
-        self.success_pub = self.create_publisher(PoseStamped, '/virtuoso_navigation/success', 10)
+        self.success_pub = self.create_publisher(PoseStamped, '/navigation/success', 10)
         
-        self.path_pub = self.create_publisher(Path, '/transformed_global_plan', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/plan', 10)
         self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.waypoints_completed = 0

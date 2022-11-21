@@ -42,7 +42,6 @@ class FindDocksNode(Node):
 
         self.image = None
         self.search_requested = False
-        # self.search_requested = True
 
         self.find_docks = FindDockCodes(filter_bounds={
             'red': {
@@ -64,7 +63,6 @@ class FindDocksNode(Node):
             self.find_docks.node = self
 
         self.create_timer(.1, self.find)
-        self.create_timer(1.0, self.send_ready)
     
     def image_callback(self, image):
         self.image = image
@@ -72,19 +70,12 @@ class FindDocksNode(Node):
     def start_callback(self, msg):
         self.search_requested = True
     
-    def send_ready(self):
-        if self.search_requested:
-            return
-        msg = Int8(data=1) 
-        self.ready_pub.publish(msg)
-    
     def find(self):
         if self.search_requested and self.image:
             self.find_docks.image = CvBridge().imgmsg_to_cv2(self.image, desired_encoding='bgr8')
         offsets = self.find_docks.find_docks()
         if offsets is None:
             return
-        # self.get_logger().info(f'Offsets: {offsets}')
         msg = Int32MultiArray()
         msg.data = list(int(offset) for offset in offsets)
         self.dock_info_pub.publish(msg)

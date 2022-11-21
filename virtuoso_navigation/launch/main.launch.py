@@ -1,4 +1,3 @@
-from struct import pack
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
@@ -18,7 +17,6 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_navigation')
 
-    # the launch file which we pass stvl in as a plugin an the params file
     bringup_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'navigation_launch.py')
     rviz_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'rviz_launch.py')
     nav2_params_file = (pkg_share, '/config/', usv_config, '/nav2.yaml')
@@ -33,10 +31,6 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_navigation',
-            executable='set_goal'
-        ),
-        Node(
-            package='virtuoso_navigation',
             executable='waypoints'
         ),
         Node(
@@ -45,15 +39,14 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_navigation',
+            executable='station_keeping'
+        ),
+        Node(
+            package='virtuoso_navigation',
             executable='choose_PID'
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
         'use_sim_time': sim_time_config}.items()),
-        # Node(
-        #     executable='controller_server',
-        #     package='nav2_controller',
-        #     parameters=[nav2_params_file]
-        # ),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(rviz_launch_file),

@@ -3,6 +3,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped, Pose, Quaternion
 from nav_msgs.msg import Path
 from nav_msgs.msg import Odometry
+from std_msgs.msg import Empty
 from tf2_ros.buffer import Buffer
 from rclpy.time import Time
 from tf2_ros.transform_listener import TransformListener
@@ -12,7 +13,7 @@ class StationKeeping(Node):
     def __init__(self):
         super().__init__('test_station_keeping')
 
-        self.pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
 
         self.path_sent = False
@@ -32,14 +33,8 @@ class StationKeeping(Node):
 
         self.path_sent = True
 
-        path = Path()
-
-        self.robot_pose.header.frame_id = 'map'
-
-        path.poses.append(self.robot_pose)
-
-        self.get_logger().info('PUBLISHING PATH')
-        self.pub.publish(path)
+        self.get_logger().info('Enabling Station Keeping')
+        self.pub.publish(Empty())
 
 
 def main(args=None):

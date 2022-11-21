@@ -128,8 +128,8 @@ class motorCMDGenerator(Node):
             leftFrontCmd.data = (-targetForceY + targetForceX - targetTorque)
 
             rightFrontCmd.data = (targetForceY + targetForceX + targetTorque)
-            leftRearCmd.data = (targetForceY*0.9 + targetForceX - targetTorque)
-            rightRearCmd.data = (-targetForceY*0.9 + targetForceX + targetTorque)
+            leftRearCmd.data = (targetForceY*0.6 + targetForceX - targetTorque)
+            rightRearCmd.data = (-targetForceY*0.6 + targetForceX + targetTorque)
             
             highestCommand = max(abs(leftFrontCmd.data), abs(rightFrontCmd.data), abs(leftRearCmd.data), abs(rightRearCmd.data))
             

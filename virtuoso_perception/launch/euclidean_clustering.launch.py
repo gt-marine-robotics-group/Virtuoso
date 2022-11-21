@@ -26,7 +26,5 @@ def generate_launch_description():
             executable='euclidean_cluster_node_exe',
             parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
             remappings=[('/points_in', '/local_costmap/voxel_grid')]
-            # remappings=[('/points_in', '/points_self_filtered')]
-            # remappings=[('/points_in', '/points_shore_filtered')]
         )
     ])
