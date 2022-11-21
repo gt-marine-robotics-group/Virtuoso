@@ -59,7 +59,6 @@ class FindBuoys(Node):
                 filteredBoxesPrevFound.update({counter: False})
 
             counter += 1
-        self.get_logger().info('------------')
         
 
         if len(self.buoy_counts) == 0:
