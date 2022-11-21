@@ -1,8 +1,5 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped, Pose
-from geographic_msgs.msg import GeoPoseStamped
-from robot_localization.srv import FromLL
 from std_msgs.msg import String
 from std_msgs.msg import Int8
 from sensor_msgs.msg import NavSatFix
@@ -13,10 +10,6 @@ class Heartbeat(Node):
 
     def __init__(self):
         super().__init__('heartbeat')
-        
-        #self.gps_ready = True
-        #self.lat = 99.111111111
-        #self.lon = 99.111111111
         
         self.gps_sub = self.create_subscription(NavSatFix, '/wamv/sensors/gps/gps/fix', self.gps_sub_callback, 10)
         self.system_mode_sub = self.create_subscription(Int8, '/wamv/nova/mode', self.system_mode_sub_callback, 10)

@@ -1,15 +1,12 @@
-import math
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
 from std_msgs.msg import Empty
-from geometry_msgs.msg import PoseStamped, Point32
+from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point32_to_pose_stamped
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
-from rclpy.time import Time
-import tf_transformations
 from .safety_check_states import State
 
 class SafetyCheck(Node):

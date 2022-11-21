@@ -2,14 +2,12 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int8, Int32MultiArray
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped, Point
+from geometry_msgs.msg import Point
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import read_points
 from std_msgs.msg import Empty
-import time
 from .docking_states import State
 from .docking import Docking
-import numpy as np
 
 class DockingNode(Node):
 

@@ -1,9 +1,7 @@
 from launch import LaunchDescription
-from launch.conditions import UnlessCondition
 from launch.actions import IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
-from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 import os
@@ -22,17 +20,11 @@ def generate_launch_description():
     navigation = get_package_share_directory('virtuoso_navigation')
     localization = get_package_share_directory('virtuoso_localization')
     controller = get_package_share_directory('virtuoso_controller')
-    sensors = get_package_share_directory('virtuoso_sensors')
 
     return LaunchDescription([
         sim_time,
         sim_path,
         usv,
-
-        # IncludeLaunchDescription(
-        #     PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'main.launch.py')),
-        #     condition=UnlessCondition(sim_time_config)
-        # ),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py')),
