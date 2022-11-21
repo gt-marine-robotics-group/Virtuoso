@@ -13,9 +13,6 @@ class LidarRepublish(Node):
         self.pub = self.create_publisher(PointCloud2, 'wamv/sensors/lidars/lidar_wamv/points', 10)
     
     def republish(self, msg:PointCloud2):
-
-        # newMsg = msg
-        # newMsg.header.frame_id = 'wamv/lidar_wamv_link'
         
         newMsg = msg
         points = list()
@@ -26,14 +23,10 @@ class LidarRepublish(Node):
             points[i][1] = point[1]
             points[i][2] = point[2] 
         
-        # newMsg = msg
         newMsg.header.frame_id = 'wamv/lidar_wamv_link'
-        # newMsg.fields = newMsg.fields[0:3]
 
         newMsg = create_cloud(newMsg.header, newMsg.fields[0:4], points)
             
-        # newMsg = (newMsg.header, points)
-
         self.pub.publish(newMsg)
 
 def main(args=None):

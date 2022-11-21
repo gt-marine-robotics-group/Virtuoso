@@ -2,13 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Imu
 from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import Vector3Stamped
-from geometry_msgs.msg import Quaternion
-from nav_msgs.msg import Odometry
-from ublox_ubx_msgs.msg import UBXNavHPPosLLH
-from ublox_ubx_msgs.msg import UBXNavCov
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
-
 
 class gx3Republish(Node):
 
@@ -32,12 +26,8 @@ class gx3Republish(Node):
             self.imu_callback,
             qos_profile=qos_profile)    
         self.imu_callback
-
-        #self.get_logger().info('intializing ') 
         
     def imu_callback(self, msg):
-        #msg2 = Imu()
-        #self.get_logger().info('imu msg received ') 
         self.imu_data = msg
         self.imuPublisher.publish(self.imu_data)
 
