@@ -29,6 +29,7 @@
 
   <!-- Virtuoso packages -->
   <exec_depend>virtuoso_processing</exec_depend>
+  <exec_depend>virtuoso_sensors</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
