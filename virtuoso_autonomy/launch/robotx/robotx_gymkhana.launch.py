@@ -10,6 +10,8 @@ import os
 
 def generate_launch_description():
 
+    pkg_share = get_package_share_directory('virtuoso_autonomy')
+
     sim_time_arg = DeclareLaunchArgument('sim_time', default_value='False')
     usv_arg = DeclareLaunchArgument('usv')
 
@@ -22,6 +24,8 @@ def generate_launch_description():
     perception = get_package_share_directory('virtuoso_perception')
     controller = get_package_share_directory('virtuoso_controller')
     sensors = get_package_share_directory('virtuoso_sensors')
+
+    gymkhana_config_file = (pkg_share, '/config/', usv_config, '/gymkhana.yaml')
 
     return LaunchDescription([
         sim_time_arg,
@@ -55,6 +59,7 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_autonomy',
-            executable='robotX_gymkhana'
+            executable='robotX_gymkhana',
+            parameters=[gymkhana_config_file]
         )
     ])

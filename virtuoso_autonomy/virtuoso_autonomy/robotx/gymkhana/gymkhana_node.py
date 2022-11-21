@@ -17,6 +17,10 @@ class Gymkhana(Node):
     def __init__(self):
         super().__init__('autonomy_gymkhana')
 
+        self.declare_parameters(namespace='', parameters=[
+            ('num_channels', 0)
+        ])
+
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
@@ -84,8 +88,7 @@ class Gymkhana(Node):
 
     def nav_success(self, msg:PoseStamped):
         # 1 less than number of channels needed to navigate
-        # For gymkhana, this number will be 5
-        if len(self.channel_nav.channels) == 2:
+        if len(self.channel_nav.channels) == self.get_parameter('num_channels').value - 1:
             self.state = State.COMPLETE
         else:
             self.state = State.FINDING_NEXT_GATE
