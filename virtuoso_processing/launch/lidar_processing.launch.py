@@ -2,10 +2,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
-from launch.actions import IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-import os
 
 def generate_launch_description(): 
 
@@ -14,7 +11,6 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
-    # ray_ground_classifier_param_file = os.path.join(pkg_share, 'param/ray_ground_classifier.param.yaml')
     ray_ground_classifier_param_file = (pkg_share, 
         '/config/', usv_config, '/ray_ground_classifier.yaml')
 
@@ -24,7 +20,6 @@ def generate_launch_description():
         description='Path to config file for Ray Ground Classifier'
     )
 
-    # voxel_grid_node_param_file = os.path.join(pkg_share, 'param', 'voxel_grid_node.param.yaml')
     voxel_grid_node_param_file = (pkg_share,
         '/config/', usv_config, '/voxel_grid_node.yaml')
 
@@ -41,12 +36,11 @@ def generate_launch_description():
         voxel_grid_node_param,
         ray_ground_classifier_param,
 
-        # running ground filter on raw LIDAR data
         Node(
             package='ray_ground_classifier_nodes',
             executable='ray_ground_classifier_cloud_node_exe',
             parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
-            remappings=[("points_in", "wamv/sensors/lidars/lidar_wamv/points")] # points_in comes from raw LIDAR data
+            remappings=[("points_in", "wamv/sensors/lidars/lidar_wamv/points")]
         ),
         Node(
             package='voxel_grid_nodes',
