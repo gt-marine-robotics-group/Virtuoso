@@ -7,16 +7,28 @@
   <maintainer email="gtmrg@todo.todo">gtmrg</maintainer>
   <license>TODO: License declaration</license>
 
+  <!-- ROS2 packages -->
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>tf_transformations</exec_depend>
+
+  <!-- Python Dependencies -->
+  <exec_depend>python3-numpy</exec_depend>
+
+  <!-- Virtuoso packages -->
+  <exec_depend>virtuoso_navigation</exec_depend>
+  <exec_depend>virtuoso_localization</exec_depend>
+
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>python3-pytest</test_depend>
-  
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>tf_transformations</exec_depend>
-  <exec_depend>python-numpy</exec_depend>
-  <exec_depend>python-math</exec_depend>
   
   <export>
     <build_type>ament_python</build_type>
