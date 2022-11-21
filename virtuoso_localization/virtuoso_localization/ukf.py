@@ -5,7 +5,6 @@ import numpy as np
 import time as time
 from random import seed
 from random import gauss
-from scipy.linalg import sqrtm
 
 #unscented kalman filter
 
