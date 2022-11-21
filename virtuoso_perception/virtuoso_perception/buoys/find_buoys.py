@@ -1,47 +1,35 @@
-import rclpy
-from rclpy.node import Node
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
 import math
-from geometry_msgs.msg import Point32, PoseStamped
+from autoware_auto_perception_msgs.msg import BoundingBoxArray
 
-class FindBuoys(Node):
+class FindBuoys:
 
-    def __init__(self):
-        super().__init__('perception_find_buoys')
-        self.boxes_sub = self.create_subscription(BoundingBoxArray, 'lidar_bounding_boxes', self.find_buoys, 10)
-        self.boxes_pub = self.create_publisher(BoundingBoxArray, '/buoys/bounding_boxes', 10)
+    def __init__(self, buoy_max_side_length, tall_buoy_min_z, buoy_loc_noise):
+        self.buoy_max_side_length = buoy_max_side_length
+        self.tall_buoy_min_z = tall_buoy_min_z
+        self.buoy_loc_noise = buoy_loc_noise
 
-        self.buoy_counts = []
+        self.lidar_bounding_boxes:BoundingBoxArray = None
 
-        self.declare_parameters(namespace='', parameters=[
-            ('buoy_max_side_length', 0.0),
-            ('tall_buoy_min_z', 0.0),
-            ('buoy_loc_noise', 0.0)
-        ])
+        self._buoy_counts = list()
     
-    def to_pose_stamped(p:Point32):
-        ps = PoseStamped()
-        ps.header.frame_id = "wamv/lidar_wamv_link"
-        ps.pose.position.x = p.x
-        ps.pose.position.y = p.y
-        ps.pose.position.z = p.z
-        return ps
+    def find_buoys(self):
 
-    def find_buoys(self, msg:BoundingBoxArray):
+        if self.lidar_bounding_boxes is None:
+            return BoundingBoxArray()
 
         filtered_boxes = BoundingBoxArray()
 
         filteredBoxesPrevFound = {}
 
         counter = 0
-        for box in msg.boxes:
+        for box in self.lidar_bounding_boxes.boxes:
             if (math.sqrt((box.corners[1].x - box.corners[2].x)**2 
                 + (box.corners[1].y - box.corners[2].y)**2) 
-                > self.get_parameter('buoy_max_side_length').value): 
+                > self.buoy_max_side_length): 
                 continue
 
             highest_point = max(c.z for c in box.corners)
-            if highest_point >= self.get_parameter('tall_buoy_min_z').value: 
+            if highest_point >= self.tall_buoy_min_z: 
                 box.value = 1.0
             else:
                 box.value = 0.5
@@ -54,11 +42,11 @@ class FindBuoys(Node):
             counter += 1
         
 
-        if len(self.buoy_counts) == 0:
+        if len(self._buoy_counts) == 0:
             for i, _ in enumerate(filtered_boxes.boxes):
                 filteredBoxesPrevFound.update({i: False})
 
-        for count in self.buoy_counts:
+        for count in self._buoy_counts:
             prevBox = count.get('box')
             prevCount = count.get('count')
 
@@ -66,10 +54,10 @@ class FindBuoys(Node):
                 if (filteredBoxesPrevFound.get(i)):
                     continue
                 if (math.sqrt((prevBox.centroid.x - box.centroid.x)**2 
-                    + (prevBox.centroid.y - box.centroid.y)**2) < self.get_parameter('buoy_loc_noise').value):
+                    + (prevBox.centroid.y - box.centroid.y)**2) < self.buoy_loc_noise):
                     filteredBoxesPrevFound.update({i: True})
-                    count.get('box').centroid.x = self.find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
-                    count.get('box').centroid.y = self.find_avg(prevBox.centroid.y, prevCount, box.centroid.y)
+                    count.get('box').centroid.x = self._find_avg(prevBox.centroid.x, prevCount, box.centroid.x)
+                    count.get('box').centroid.y = self._find_avg(prevBox.centroid.y, prevCount, box.centroid.y)
                     # count.get('box').value = box.value
                     if count.get('box').value < box.value:
                         count.get('box').value = count.get('box').value + 0.1
@@ -84,34 +72,21 @@ class FindBuoys(Node):
         for key, prevFound in filteredBoxesPrevFound.items():
             if not prevFound:
                 filtered_boxes.boxes[key].value = 0.5
-                self.buoy_counts.append({
+                self._buoy_counts.append({
                     'box': filtered_boxes.boxes[key],
                     'count': 1
                 })
         
 
-        confirmedBuoys = BoundingBoxArray()
+        confirmed_buoys = BoundingBoxArray()
 
-        confirmedBuoys.boxes = list(map(lambda b: b['box'], filter(lambda b: b['count'] > 90, self.buoy_counts)))
+        confirmed_buoys.boxes = list(
+            map(lambda b: b['box'], filter(lambda b: b['count'] > 90, self._buoy_counts))
+        )
 
-        self.boxes_pub.publish(confirmedBuoys)
+        # self.boxes_pub.publish(confirmedBuoys)
+        return confirmed_buoys
 
-    
-    def find_avg(self, curr:float, count:int, next:float):
+    def _find_avg(self, curr:float, count:int, next:float):
         sum = (curr * count) + next
         return sum / (count + 1)
-
-
-def main(args=None):
-    
-    rclpy.init(args=args)
-
-    node = FindBuoys()
-
-    rclpy.spin(node)
-
-    node.destroy_node()
-    rclpy.shutdown()
-
-if __name__ == '__main__':
-    main()
