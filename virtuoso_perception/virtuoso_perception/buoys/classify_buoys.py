@@ -3,9 +3,6 @@ from rclpy.node import Node
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import cv2
-import numpy as np
-from ..utils.ColorFilter import ColorFilter
 from ..utils.identify_buoys import find_buoys
 from ..utils.classify_buoys import classify_buoys
 

@@ -2,11 +2,7 @@ import rclpy
 from rclpy.node import Node
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 import math
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-from rclpy.time import Time
 from geometry_msgs.msg import Point32, PoseStamped
-from ..utils.geometry_msgs import do_transform_pose_stamped
 
 class FindBuoys(Node):
 
@@ -44,10 +40,7 @@ class FindBuoys(Node):
                 > self.get_parameter('buoy_max_side_length').value): 
                 continue
 
-            # if math.sqrt(box.centroid.x**2 + box.centroid.y**2) > 80: continue
-
             highest_point = max(c.z for c in box.corners)
-            # self.get_logger().info(f'highest: {highest_point}')
             if highest_point >= self.get_parameter('tall_buoy_min_z').value: 
                 box.value = 1.0
             else:

@@ -76,7 +76,6 @@ class FindDocksNode(Node):
         offsets = self.find_docks.find_docks()
         if offsets is None:
             return
-        # self.get_logger().info(f'Offsets: {offsets}')
         msg = Int32MultiArray()
         msg.data = list(int(offset) for offset in offsets)
         self.dock_info_pub.publish(msg)
