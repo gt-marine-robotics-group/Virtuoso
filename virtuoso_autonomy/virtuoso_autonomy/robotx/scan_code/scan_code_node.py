@@ -14,8 +14,6 @@ class ScanCode(Node):
         self.station_keeping_pub = self.create_publisher(Empty, 
             '/navigation/station_keep', 10)
 
-        self.scan_ready_sub = self.create_subscription(Int8, '/perception/scan_code/ready', 
-            self.scan_ready, 10)
         self.scan_res_sub = self.create_subscription(Int32MultiArray, '/perception/code',
             self.code_callback, 10)
         
@@ -31,20 +29,13 @@ class ScanCode(Node):
             self.enable_station_keeping()
             return
         if self.state == State.STATION_KEEPING_ENABLED:
-            self.state = State.WAITING_FOR_SCAN_NODE
-            return
-        if self.state == State.WAITING_FOR_SCAN_NODE:
-            if self.ready:
-                self.state = State.SENDING_SCAN_REQUEST
+            self.state = State.SENDING_SCAN_REQUEST
             return
         if self.state == State.SENDING_SCAN_REQUEST:
             self.send_req()
             return
         if self.state == State.SCANNING:
             return
-
-    def scan_ready(self, msg):
-        self.ready = True
     
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED

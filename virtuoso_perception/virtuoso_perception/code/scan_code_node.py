@@ -51,7 +51,6 @@ class ScanCodeNode(Node):
 
         self.image = None
         self.scan_requested = False
-        # self.scan_requested = True
         self.code_published = False
 
         self.scan_code = ScanCode(filter_bounds={
@@ -74,14 +73,6 @@ class ScanCodeNode(Node):
             self.scan_code.node = self
 
         self.create_timer(.1, self.read_code)
-        self.create_timer(1.0, self.send_ready)
-    
-    def send_ready(self):
-        if self.scan_requested:
-            return
-        msg = Int8()
-        msg.data = 1
-        self.ready_pub.publish(msg)
     
     def start_scan(self, msg):
         self.get_logger().info('Received Scan Code Request')
