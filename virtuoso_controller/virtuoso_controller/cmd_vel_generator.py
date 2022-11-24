@@ -5,23 +5,20 @@ from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Twist
-from geometry_msgs.msg import Quaternion
-from geometry_msgs.msg import PoseStamped
 import tf_transformations
-
 import numpy
 
-class cmdVelGenerator(Node):
+class CmdVelGenerator(Node):
 
     def __init__(self):
-        super().__init__('cmd_vel_generator')
+        super().__init__('controller_cmd_vel_generator')
         
-        self.stateEstimate = Odometry()
+        self.state_estimate = Odometry()
         self.destination = Pose()
-        self.receivedPath = False
-        self.nextWaypoint = Pose()
-        self.secondWaypoint = Pose()
-        self.nav2Path = Path()
+        self.received_path = False
+        self.next_waypoint = Pose()
+        self.second_waypoint = Pose()
+        self.nav2_path = Path()
         self.hold_final_orient = False
         
         self.path_subscriber = self.create_subscription(
@@ -38,175 +35,155 @@ class cmdVelGenerator(Node):
             Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
             
         self.cmd_vel_publisher = self.create_publisher(Twist, '/cmd_vel', 10)
+
         timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
         
-    def hold_final_orient_callback(self, msg):
+    def hold_final_orient_callback(self, msg:Bool):
         self.hold_final_orient = msg.data
         
-    def path_callback(self, msg):
+    def path_callback(self, msg:Path):
         self.destination = msg.poses[-1].pose 
-        #self.nextWaypoint = msg.poses[0].pose
-        #if(len(msg.poses) > 1):
-         #    self.secondWaypoint = msg.poses[1].pose
-        #else:
-         #    self.secondWaypoint = msg.poses[0].pose
-        self.nav2Path = msg
-        self.receivedPath = True
-        
-    
+        self.nav2_path = msg
+        self.received_path = True
        
     def timer_callback(self):
-        if(self.receivedPath):
-             destX = self.destination.position.x
-             destY = self.destination.position.y
+        if not self.received_path:
+            return
+
+        dest_x = self.destination.position.x
+        dest_y = self.destination.position.y
+
+        self_x = self.state_estimate.pose.pose.position.x
+        self_y = self.state_estimate.pose.pose.position.y
         
-             selfX = self.stateEstimate.pose.pose.position.x
-             selfY = self.stateEstimate.pose.pose.position.y
-             
-             distToTarget = ((selfX - destX)**2 + (selfY - destY)**2)**(1/2)
-             
-             minPoseDistance = 100000.0
-             closestPose = 0
-             for i in range(0,len(self.nav2Path.poses)):
-                  nextPoseDistance = ((self.nav2Path.poses[i].pose.position.x - selfX)**2 + (self.nav2Path.poses[i].pose.position.y - selfY)**2)**(1/2)
-                  if (nextPoseDistance < minPoseDistance):
-                      closestPose = i
-                      minPoseDistance = nextPoseDistance
-             #if(len(self.nav2Path.poses) > i+1):
-             #     closestPose = i + 1   
+        dist_to_target = ((self_x - dest_x)**2 + (self_y - dest_y)**2)**(1/2)
+        
+        min_pose_distance = 100000.0
+        closest_pose = 0
+        for i in range(0,len(self.nav2_path.poses)):
 
+            next_pose_distance = (
+                (self.nav2_path.poses[i].pose.position.x - self_x)**2 + 
+                (self.nav2_path.poses[i].pose.position.y - self_y)**2
+            )**(1/2)
 
-                               
-             nextX = self.nav2Path.poses[closestPose].pose.position.x
-             nextY = self.nav2Path.poses[closestPose].pose.position.y
-             if(len(self.nav2Path.poses) > closestPose+1):
-                  secondX = self.nav2Path.poses[closestPose + 1].pose.position.x
-                  secondY = self.nav2Path.poses[closestPose + 1].pose.position.y
-             else:
-                 secondX = nextX
-                 secondY = nextY
-                 
-             if(secondX != nextX or secondY != nextY):
-                 minPoseDistance = abs((secondX - nextX)*(nextY - selfY) - (nextX - selfX)*(secondY - nextY))/((secondX - nextX)**2 + (secondY - nextY)**2)**(1/2)    
-             #self.get_logger().info('minPoseDistance: ' + str(minPoseDistance))                          
-             q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
-             q_inv = q.copy()
-             q_inv[0] = -q_inv[0]
-             q_inv[1] = -q_inv[1]
-             q_inv[2] = -q_inv[2]  
-             
-             
-             vel_parallel = [float(secondX - nextX), float(secondY - nextY), 0.0, 0.0]
-
-             vel_parallel = tf_transformations.quaternion_multiply(q_inv, vel_parallel)
-             vel_parallel2 = tf_transformations.quaternion_multiply(vel_parallel, q)      
-             vel_parallel = [vel_parallel2[0], vel_parallel2[1], vel_parallel2[2], vel_parallel2[3]]       
-
-             
-             vel_angle = numpy.arctan2(vel_parallel[0], vel_parallel[1])
-             
-             vel_parallel_speed = 2.0
-             if(distToTarget < 6.0):
-                  vel_parallel_speed = distToTarget/3.0
-             if(vel_parallel_speed < 0.3):
-                  vel_parallel_speed = 0.3
-             
-             vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*minPoseDistance/3.0
-             
-             if(vel_parallel_speed < 0.3):
-                  vel_parallel_speed = 0.3
-             
-             vel_parallel_mag = vel_parallel_speed/((vel_parallel[0])**2 + (vel_parallel[1])**2)**(1/2)
-             
-             vel_parallel[0] = vel_parallel[0]*vel_parallel_mag
-             vel_parallel[1] = vel_parallel[1]*vel_parallel_mag
-             
-             if(numpy.isnan(vel_parallel[0])):
-                  vel_parallel[0] = 0.0
-             if(numpy.isnan(vel_parallel[1])):
-                  vel_parallel[1] = 0.0
-             
-             #self.get_logger().info('vel_parallel: ' + str(vel_parallel))              
-             
-             closestX = 0.0
-             closestY = 0.0
-             
-             if(secondX != nextX and secondY != nextY):
-                  m1 = (secondY - nextY)/(secondX - nextX)
-                  m2 = -1/m1
-                  closestX = (m2*selfX - m1*nextX + nextY - selfY)/(m2 - m1)
-                  closestY = m2*(closestX - selfX) + selfY
-             elif(secondX != nextX and secondY == nextY):
-                  closestY = secondY
-                  closestX = selfX
-             elif(secondX == nextX and secondY != nextY):
-                 closestX = secondX
-                 closestY = selfY
-             else:
-                  closestX = nextX
-                  closestY = nextY
-                  
-             
-
-             vel_towards = [float(closestX - selfX), float(closestY - selfY), 0.0, 0.0]
-             vel_towards = tf_transformations.quaternion_multiply(q_inv, vel_towards)
-             vel_towards2 = tf_transformations.quaternion_multiply(vel_towards, q)      
-             vel_towards = [vel_towards2[0], vel_towards2[1], vel_towards2[2], vel_towards2[3]]       
-           
-               
-             speed_towards = minPoseDistance/2.0
-             if(speed_towards > 2.0):
-                 speed_towards = 2.0
-             if(speed_towards < 0.05):
-                 speed_towards = 0.05
-                 
-             speed_towards_angle = numpy.arctan2(vel_towards[0], vel_towards[1])
-             
-             #speed_towards = speed_towards - speed_towards
-             if(speed_towards < 0.05):
-                  speed_towards = 0.05
-                            
-             vel_towards_mag = speed_towards/((vel_towards[0])**2 + (vel_towards[1])**2)**(1/2)
+            if (next_pose_distance < min_pose_distance):
+                closest_pose = i
+                min_pose_distance = next_pose_distance
                         
-             vel_towards[0] = vel_towards[0]*vel_towards_mag
-             vel_towards[1] = vel_towards[1]*vel_towards_mag      
-             #self.get_logger().info('vel_towards: ' + str(vel_towards))  
-                               
-             velToCommand = Twist()
-             velToCommand.linear.x = vel_parallel[0] + vel_towards[0];
-             velToCommand.linear.y = vel_parallel[1] + vel_towards[1];
-             
-             vel_angle = numpy.arctan2(velToCommand.linear.x, velToCommand.linear.y)
-             
-             if(not self.hold_final_orient):
-                  velToCommand.linear.x = velToCommand.linear.x - velToCommand.linear.x*abs(vel_angle)/numpy.pi/2
-                  velToCommand.linear.y = velToCommand.linear.y - velToCommand.linear.y*abs(vel_angle)/numpy.pi/2
-             
-             
-             '''
-             speed = 1.5 - 1.5*abs(vel_angle)/numpy.pi
-             
-             if(distToTarget < 6.0):
-                 speed = distToTarget/4.0
-                 if(speed < 0.3):
-                     speed = 0.3
-             
-             velToCommand_mag = speed/((velToCommand.linear.x)**2 + (velToCommand.linear.y)**2)**(1/2)
-             
-             velToCommand.linear.x = velToCommand.linear.x*velToCommand_mag
-             velToCommand.linear.y = velToCommand.linear.y*velToCommand_mag
-             '''
-             self.cmd_vel_publisher.publish(velToCommand)
+        next_x = self.nav2_path.poses[closest_pose].pose.position.x
+        next_y = self.nav2_path.poses[closest_pose].pose.position.y
+        if(len(self.nav2_path.poses) > closest_pose + 1):
+            second_x = self.nav2_path.poses[closest_pose + 1].pose.position.x
+            second_y = self.nav2_path.poses[closest_pose + 1].pose.position.y
+        else:
+            second_x = next_x
+            second_y = next_y
+            
+        if(second_x != next_x or second_y != next_y):
+            min_pose_distance = abs(
+                (second_x - next_x)*(next_y - self_y) - (next_x - self_x)*(second_y - next_y)
+            ) / ((second_x - next_x)**2 + (second_y - next_y)**2)**(1/2)    
+
+        q = [self.state_estimate.pose.pose.orientation.x, 
+            self.state_estimate.pose.pose.orientation.y, 
+            self.state_estimate.pose.pose.orientation.z, 
+            self.state_estimate.pose.pose.orientation.w]
+        q_inv = q.copy()
+        q_inv[0] = -q_inv[0]
+        q_inv[1] = -q_inv[1]
+        q_inv[2] = -q_inv[2]  
+        
+        
+        vel_parallel = [float(second_x - next_x), float(second_y - next_y), 0.0, 0.0]
+
+        vel_parallel = tf_transformations.quaternion_multiply(q_inv, vel_parallel)
+        vel_parallel2 = tf_transformations.quaternion_multiply(vel_parallel, q)      
+        vel_parallel = [vel_parallel2[0], vel_parallel2[1], vel_parallel2[2], vel_parallel2[3]]       
+
+        vel_angle = numpy.arctan2(vel_parallel[0], vel_parallel[1])
+        
+        vel_parallel_speed = 2.0
+        if(dist_to_target < 6.0):
+            vel_parallel_speed = dist_to_target/3.0
+        if(vel_parallel_speed < 0.3):
+            vel_parallel_speed = 0.3
+        
+        vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*min_pose_distance/3.0
+        
+        if(vel_parallel_speed < 0.3):
+            vel_parallel_speed = 0.3
+        
+        vel_parallel_mag = vel_parallel_speed/((vel_parallel[0])**2 + (vel_parallel[1])**2)**(1/2)
+        
+        vel_parallel[0] = vel_parallel[0]*vel_parallel_mag
+        vel_parallel[1] = vel_parallel[1]*vel_parallel_mag
+        
+        if(numpy.isnan(vel_parallel[0])):
+            vel_parallel[0] = 0.0
+        if(numpy.isnan(vel_parallel[1])):
+            vel_parallel[1] = 0.0
+        
+        closest_x = 0.0
+        closest_y = 0.0
+        
+        if(second_x != next_x and second_y != next_y):
+            m1 = (second_y - next_y)/(second_x - next_x)
+            m2 = -1/m1
+            closest_x = (m2*self_x - m1*next_x + next_y - self_y)/(m2 - m1)
+            closest_y = m2*(closest_x - self_x) + self_y
+        elif(second_x != next_x and second_y == next_y):
+            closest_y = second_y
+            closest_x = self_x
+        elif(second_x == next_x and second_y != next_x):
+            closest_x = second_x
+            closest_y = self_y
+        else:
+            closest_x = next_x
+            closest_y = next_y
+        
+        vel_towards = [float(closest_x - self_x), float(closest_y - self_y), 0.0, 0.0]
+        vel_towards = tf_transformations.quaternion_multiply(q_inv, vel_towards)
+        vel_towards2 = tf_transformations.quaternion_multiply(vel_towards, q)      
+        vel_towards = [vel_towards2[0], vel_towards2[1], vel_towards2[2], vel_towards2[3]]       
+        
+        speed_towards = min_pose_distance/2.0
+        if(speed_towards > 2.0):
+            speed_towards = 2.0
+        if(speed_towards < 0.05):
+            speed_towards = 0.05
+        
+        if(speed_towards < 0.05):
+            speed_towards = 0.05
+                    
+        vel_towards_mag = speed_towards/((vel_towards[0])**2 + (vel_towards[1])**2)**(1/2)
+                
+        vel_towards[0] = vel_towards[0]*vel_towards_mag
+        vel_towards[1] = vel_towards[1]*vel_towards_mag      
+                        
+        vel_to_command = Twist()
+        vel_to_command.linear.x = vel_parallel[0] + vel_towards[0]
+        vel_to_command.linear.y = vel_parallel[1] + vel_towards[1]
+        
+        vel_angle = numpy.arctan2(vel_to_command.linear.x, vel_to_command.linear.y)
+        
+        if(not self.hold_final_orient):
+            vel_to_command.linear.x = (vel_to_command.linear.x 
+                - vel_to_command.linear.x*abs(vel_angle)/numpy.pi/2)
+            vel_to_command.linear.y = (vel_to_command.linear.y 
+                - vel_to_command.linear.y*abs(vel_angle)/numpy.pi/2)
+        
+        self.cmd_vel_publisher.publish(vel_to_command)
   
-    def odometry_callback(self, msg):
-        self.stateEstimate = msg       
+    def odometry_callback(self, msg:Odometry):
+        self.state_estimate = msg       
 
         
 def main(args=None):
     rclpy.init(args=args)
 
-    cmd_vel_generator = cmdVelGenerator()
+    cmd_vel_generator = CmdVelGenerator()
 
     rclpy.spin(cmd_vel_generator)
 
