@@ -43,5 +43,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_controller',
             executable='cmd_vel_generator',
-       )
+       ),
+        Node(
+            package='virtuoso_controller',
+            executable='choose_PID'
+        ),
     ])

@@ -16,7 +16,7 @@ import numpy
 class choosePID(Node):
 
     def __init__(self):
-        super().__init__('choose_PID')
+        super().__init__('controller_choose_PID')
         
         self.stateEstimate = Odometry()
         self.destination = Pose()
@@ -46,7 +46,7 @@ class choosePID(Node):
         self.hold_final_orientation_sub = self.create_subscription(
             Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
 
-        self.navigateToPointPub = self.create_publisher(Bool, '/navigation/navigateToPoint', 10)
+        self.navigateToPointPub = self.create_publisher(Bool, '/oontroller/navigateToPoint', 10)
         self.waypointPub = self.create_publisher(Odometry, '/waypoint', 10)        
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -64,26 +64,26 @@ class choosePID(Node):
        
     def timer_callback(self):
         if(self.receivedPath):
-             destX = self.destination.position.x
-             destY = self.destination.position.y
-        
-             selfX = self.stateEstimate.pose.pose.position.x
-             selfY = self.stateEstimate.pose.pose.position.y
-        
-             distance = ((destX - selfX)**2 + (destY - selfY)**2)**(1/2)
-             #self.get_logger().info('distance: ' + str(distance)) 
-             if(distance < 2.0):
-                  self.navigateToPoint.data = True
-             else:
-                  self.navigateToPoint.data = False
-             self.navigateToPointPub.publish(self.navigateToPoint)
-        
-             targetWaypoint = Odometry()
-             #If we're within 2 m, point at the final heading. If greater than 2 m,
-             #point at the orientation corresponding to the cmd velocity
-             if(distance < 2.0 or self.hold_final_orient):
-                  targetWaypoint.pose.pose = self.destination
-             else:
+            destX = self.destination.position.x
+            destY = self.destination.position.y
+    
+            selfX = self.stateEstimate.pose.pose.position.x
+            selfY = self.stateEstimate.pose.pose.position.y
+    
+            distance = ((destX - selfX)**2 + (destY - selfY)**2)**(1/2)
+            #self.get_logger().info('distance: ' + str(distance)) 
+            if(distance < 2.0):
+                self.navigateToPoint.data = True
+            else:
+                self.navigateToPoint.data = False
+            self.navigateToPointPub.publish(self.navigateToPoint)
+    
+            targetWaypoint = Odometry()
+            #If we're within 2 m, point at the final heading. If greater than 2 m,
+            #point at the orientation corresponding to the cmd velocity
+            if(distance < 2.0 or self.hold_final_orient):
+                targetWaypoint.pose.pose = self.destination
+            else:
                 targetWaypoint.pose.pose.position = self.destination.position
                 theta_cmd_vel = numpy.arctan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
                 target_orient_body = [0, 0, numpy.sin(theta_cmd_vel/2), numpy.cos(theta_cmd_vel/2)]
@@ -100,7 +100,7 @@ class choosePID(Node):
                 
                 targetWaypoint.pose.pose.orientation = target_quat
                 #targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
-             self.waypointPub.publish(targetWaypoint)
+            self.waypointPub.publish(targetWaypoint)
   
     def odometry_callback(self, msg):
         self.stateEstimate = msg       

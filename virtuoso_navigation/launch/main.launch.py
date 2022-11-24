@@ -41,10 +41,6 @@ def generate_launch_description():
             package='virtuoso_navigation',
             executable='station_keeping'
         ),
-        Node(
-            package='virtuoso_navigation',
-            executable='choose_PID'
-        ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
         'use_sim_time': sim_time_config}.items()),
 

@@ -66,7 +66,7 @@ class basicPID(Node):
             10)     
         self.navigateToPoint_subscriber = self.create_subscription(
             Bool,
-            '/navigation/navigateToPoint',
+            '/controller/navigateToPoint',
             self.navigateToPoint_callback,
             10)       
         self.odom_subscriber

@@ -25,7 +25,7 @@ class motorCMDGenerator(Node):
         
         self.navigateToPoint_subscriber = self.create_subscription(
             Bool,
-            '/navigation/navigateToPoint',
+            '/controller/navigateToPoint',
             self.navigateToPoint_callback,
             10)           
         self.basicXSub = self.create_subscription(
