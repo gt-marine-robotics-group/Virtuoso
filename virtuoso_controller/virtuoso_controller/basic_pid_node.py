@@ -62,7 +62,7 @@ class BasicPIDNode(Node):
             self.navigate_to_point_callback,
             10)       
 
-        self.timer = self.create_timer(0.01, self.run_pid)
+        self.timer = self.create_timer(0.1, self.run_pid)
 
     def navigate_to_point_callback(self, msg:Bool):
         self.pid.navigate_to_point = msg.data

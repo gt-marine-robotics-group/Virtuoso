@@ -42,7 +42,7 @@ class VelocityPIDNode(Node):
             self.cmd_vel_callback,
             10)    
 
-        self.create_timer(0.01, self.run_pid)
+        self.create_timer(0.1, self.run_pid)
         
     def odometry_callback(self, msg:Odometry):
         self.pid.state_estimate = msg
