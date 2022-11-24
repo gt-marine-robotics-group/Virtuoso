@@ -30,7 +30,7 @@ setup(
     entry_points={
         'console_scripts': [
             'basic_pid = virtuoso_controller.basic_pid:main',   
-            'velocity_pid = virtuoso_controller.velocity_pid:main', 
+            'velocity_pid = virtuoso_controller.velocity_pid_node:main', 
             'choose_pid = virtuoso_controller.choose_pid:main',
             'motor_cmd_generator = virtuoso_controller.motor_cmd_generator:main',
             'cmd_vel_generator = virtuoso_controller.cmd_vel_generator:main',
