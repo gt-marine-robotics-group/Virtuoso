@@ -1,10 +1,8 @@
-import os
 from ament_index_python import get_package_share_directory
 from launch import LaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
@@ -44,24 +42,20 @@ def generate_launch_description():
             name='navsat_transform_node',
             respawn='true',
             remappings=[
-            ("/imu", "/navsat/imu"),
-            ("/gps/fix", "/navsat/gps"),
+            ('/imu', '/wamv/sensors/imu/imu/data'),
+            ('/gps/fix', '/wamv/sensors/gps/gps/fix'),
             ("/odometry/filtered", "/localization/odometry"),
             ("/odometry/gps", "/odometry/gps2")
             ],
-            #output='screen',
             parameters=[            
                 {"publish_filtered_gps": True},
                 {"wait_for_datum": False},
                 {"zero_altitude": False},
                 {"yaw_offset": 0.0},
                 {"use_odometry_yaw": True},
-                # {"magnetic_declination_radians": 0.33929201},
-                #{"magnetic_declination_radians": 0.222},
                 {"delay": 0.0},
                 {"frequency": 30.0},
                 {"broadcast_utm_transform": True},
-                # robot_localization_file_path
             ]
         )
     ])
