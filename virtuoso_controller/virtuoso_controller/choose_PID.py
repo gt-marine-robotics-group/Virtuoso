@@ -7,23 +7,21 @@ from geometry_msgs.msg import Pose
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import Quaternion
 from geometry_msgs.msg import PoseStamped
-#This node sends the appropriate waypoints to the basic PID, and also decides whether to use the 
-#velocity PID for translational movement or the basic PID
 import tf_transformations
-
 import numpy
 
-class choosePID(Node):
+#This node sends the appropriate waypoints to the basic PID, and also decides whether to use the 
+#velocity PID for translational movement or the basic PID
+class ChoosePID(Node):
 
     def __init__(self):
         super().__init__('controller_choose_PID')
         
-        self.stateEstimate = Odometry()
+        self.state_estimate = Odometry()
         self.destination = Pose()
-        self.navigateToPoint = Bool()
-        self.navigateToPoint.data = False
-        self.receivedPath = False
-        self.nextWaypoint = Pose()
+        self.navigate_to_point = Bool(data=False)
+        self.received_path = False
+        self.next_waypoint = Pose()
         self.cmd_vel = Twist()
         self.hold_final_orient = False
         
@@ -46,70 +44,75 @@ class choosePID(Node):
         self.hold_final_orientation_sub = self.create_subscription(
             Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
 
-        self.navigateToPointPub = self.create_publisher(Bool, '/oontroller/navigateToPoint', 10)
-        self.waypointPub = self.create_publisher(Odometry, '/waypoint', 10)        
+        self.navigate_to_point_pub = self.create_publisher(Bool, '/controller/navigateToPoint', 10)
+        self.waypoint_pub = self.create_publisher(Odometry, '/waypoint', 10)        
         timer_period = 0.05  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-    def path_callback(self, msg):
+    def path_callback(self, msg:Path):
         self.destination = msg.poses[-1].pose 
-        self.nextWaypoint = msg.poses[0].pose
-        self.receivedPath = True
+        self.next_waypoint = msg.poses[0].pose
+        self.received_path = True
         
-    def cmd_vel_callback(self, msg):
+    def cmd_vel_callback(self, msg:Twist):
         self.cmd_vel = msg
         
-    def hold_final_orient_callback(self, msg):
+    def hold_final_orient_callback(self, msg:Bool):
         self.hold_final_orient = msg.data
        
     def timer_callback(self):
-        if(self.receivedPath):
-            destX = self.destination.position.x
-            destY = self.destination.position.y
-    
-            selfX = self.stateEstimate.pose.pose.position.x
-            selfY = self.stateEstimate.pose.pose.position.y
-    
-            distance = ((destX - selfX)**2 + (destY - selfY)**2)**(1/2)
-            #self.get_logger().info('distance: ' + str(distance)) 
-            if(distance < 2.0):
-                self.navigateToPoint.data = True
-            else:
-                self.navigateToPoint.data = False
-            self.navigateToPointPub.publish(self.navigateToPoint)
-    
-            targetWaypoint = Odometry()
-            #If we're within 2 m, point at the final heading. If greater than 2 m,
-            #point at the orientation corresponding to the cmd velocity
-            if(distance < 2.0 or self.hold_final_orient):
-                targetWaypoint.pose.pose = self.destination
-            else:
-                targetWaypoint.pose.pose.position = self.destination.position
-                theta_cmd_vel = numpy.arctan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
-                target_orient_body = [0, 0, numpy.sin(theta_cmd_vel/2), numpy.cos(theta_cmd_vel/2)]
-                
-                q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
-                
-                target_orient = tf_transformations.quaternion_multiply(q, target_orient_body)
-                
-                target_quat = Quaternion()
-                target_quat.x = target_orient[0]
-                target_quat.y = target_orient[1]
-                target_quat.z = target_orient[2]
-                target_quat.w = target_orient[3]
-                
-                targetWaypoint.pose.pose.orientation = target_quat
-                #targetWaypoint.pose.pose.orientation = self.nextWaypoint.orientation
-            self.waypointPub.publish(targetWaypoint)
+        if not self.received_path:
+            return
+
+        dest_x = self.destination.position.x
+        dest_y = self.destination.position.y
+
+        self_x = self.state_estimate.pose.pose.position.x
+        self_y = self.state_estimate.pose.pose.position.y
+
+        distance = ((dest_x - self_x)**2 + (dest_y - self_y)**2)**(1/2)
+        #self.get_logger().info('distance: ' + str(distance)) 
+        if(distance < 2.0):
+            self.navigate_to_point.data = True
+        else:
+            self.navigate_to_point.data = False
+        self.navigate_to_point_pub.publish(self.navigate_to_point)
+
+        target_waypoint = Odometry()
+        #If we're within 2 m, point at the final heading. If greater than 2 m,
+        #point at the orientation corresponding to the cmd velocity
+        if(distance < 2.0 or self.hold_final_orient):
+            target_waypoint.pose.pose = self.destination
+        else:
+            target_waypoint.pose.pose.position = self.destination.position
+            theta_cmd_vel = numpy.arctan2(self.cmd_vel.linear.y, self.cmd_vel.linear.x)
+            target_orient_body = [0, 0, numpy.sin(theta_cmd_vel/2), numpy.cos(theta_cmd_vel/2)]
+            
+            q = [self.state_estimate.pose.pose.orientation.x, 
+                self.state_estimate.pose.pose.orientation.y, 
+                self.state_estimate.pose.pose.orientation.z, 
+                self.state_estimate.pose.pose.orientation.w]
+            
+            target_orient = tf_transformations.quaternion_multiply(q, target_orient_body)
+            
+            target_quat = Quaternion()
+            target_quat.x = target_orient[0]
+            target_quat.y = target_orient[1]
+            target_quat.z = target_orient[2]
+            target_quat.w = target_orient[3]
+            
+            target_waypoint.pose.pose.orientation = target_quat
+
+        self.waypoint_pub.publish(target_waypoint)
   
     def odometry_callback(self, msg):
-        self.stateEstimate = msg       
+        self.state_estimate = msg       
 
         
 def main(args=None):
     rclpy.init(args=args)
 
-    choose_PID = choosePID()
+    choose_PID = ChoosePID()
 
     rclpy.spin(choose_PID)
 
