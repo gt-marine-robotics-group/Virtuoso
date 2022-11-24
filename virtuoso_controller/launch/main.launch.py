@@ -46,6 +46,6 @@ def generate_launch_description():
        ),
         Node(
             package='virtuoso_controller',
-            executable='choose_PID'
+            executable='choose_pid'
         ),
     ])
