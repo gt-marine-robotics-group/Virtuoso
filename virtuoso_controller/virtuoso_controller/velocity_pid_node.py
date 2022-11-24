@@ -38,7 +38,7 @@ class VelocityPIDNode(Node):
         #subscribe to command velocity
         self.cmd_vel_subscriber = self.create_subscription(
             Twist,
-            '/cmd_vel',
+            '/controller/cmd_vel',
             self.cmd_vel_callback,
             10)    
 
