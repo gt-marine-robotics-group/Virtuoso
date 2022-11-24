@@ -61,6 +61,6 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='odom_to_map',
-            arguments=['0', '0', '0', '0', '0', '0', 'odom', 'map']
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
         )
     ])
