@@ -44,7 +44,7 @@ class BasicPIDNode(Node):
         #subscribe to waypoints
         self.waypoint_subscriber = self.create_subscription(
             Odometry,
-            '/waypoint',
+            '/controller/waypoint',
             self.waypoint_callback,
             10)     
         self.navigate_to_point_subscriber = self.create_subscription(
