@@ -1,31 +1,24 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Imu
-from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import Vector3Stamped
-from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
 from std_msgs.msg import Bool
 import tf_transformations
-
-#import pyproj
 import numpy
 
-
-class basicPID(Node):
+class BasicPID(Node):
 
     def __init__(self):
-        super().__init__('basic_PID')
+        super().__init__('controller_basic_PID')
         
-        self.stateEstimate = Odometry()
-        self.targetWaypoint = Odometry()
-        self.yawIntegral = 0.0
-        self.xIntegral = 0.0
-        self.yIntegral = 0.0
-        self.previousTargetWaypoint = Odometry()
-        self.receivedWaypoint = False
-        self.navigateToPoint = False
+        self.state_estimate = Odometry()
+        self.target_waypoint = Odometry()
+        self.yaw_integral = 0.0
+        self.x_intergral = 0.0
+        self.y_integral = 0.0
+        self.previous_target_waypoint = Odometry()
+        self.received_waypoint = False
+        self.navigate_to_point = False
         
         self.declare_parameter('basic_kp', 1.0)
         self.declare_parameter('basic_kd', 1.0)
@@ -35,21 +28,12 @@ class basicPID(Node):
         self.declare_parameter('basic_rotate_kd', 1.0)
         self.declare_parameter('basic_rotate_ki', 1.0)
                    
-        '''
-        self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
-        self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
-        self.leftRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_angle', 10)
-        self.rightRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_angle', 10)
-
-        self.leftFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_cmd', 10)
-        self.rightFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_cmd', 10)             
-        self.leftRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_cmd', 10)
-        self.rightRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_cmd', 10)    
-        '''
-        
-        self.targetForceXPub = self.create_publisher(Float32, '/controller/basic_pid/targetForceX', 10)
-        self.targetForceYPub = self.create_publisher(Float32, '/controller/basic_pid/targetForceY', 10)
-        self.targetTorquePub = self.create_publisher(Float32, '/controller/basic_pid/targetTorque', 10)
+        self.target_force_x_pub = self.create_publisher(Float32, 
+            '/controller/basic_pid/targetForceX', 10)
+        self.target_force_y_pub = self.create_publisher(Float32,
+            '/controller/basic_pid/targetForceY', 10)
+        self.target_torque_pub = self.create_publisher(Float32, 
+            '/controller/basic_pid/targetTorque', 10)
         
         #subscribe to odometry from localization
         self.odom_subscriber = self.create_subscription(
@@ -64,84 +48,78 @@ class basicPID(Node):
             '/waypoint',
             self.waypoint_callback,
             10)     
-        self.navigateToPoint_subscriber = self.create_subscription(
+        self.navigate_to_point_subscriber = self.create_subscription(
             Bool,
             '/controller/navigateToPoint',
-            self.navigateToPoint_callback,
+            self.navigate_to_point_callback,
             10)       
-        self.odom_subscriber
-        self.waypoint_subscriber 
-        self.timer2 = self.create_timer(0.01, self.run_pid)
 
-    def navigateToPoint_callback(self, msg):
-        self.navigateToPoint = msg.data
+        self.timer = self.create_timer(0.01, self.run_pid)
+
+    def navigate_to_point_callback(self, msg:Bool):
+        self.navigate_to_point = msg.data
         	
-    def odometry_callback(self, msg):
-        self.stateEstimate = msg
+    def odometry_callback(self, msg:Odometry):
+        self.state_estimate = msg
     
-    def waypoint_callback(self, msg):
-        self.targetWaypoint = msg        
-        #if(self.receivedWaypoint == False):
-             #self.timer = self.create_timer(0.1, self.run_pid())
-        self.receivedWaypoint = True
-        #self.run_pid()
-        #self.get_logger().info('got waypoint') 
+    def waypoint_callback(self, msg:Odometry):
+        self.target_waypoint = msg        
+        self.received_waypoint = True
 
     def run_pid(self):
-        targetX = self.targetWaypoint.pose.pose.position.x
-        targetY = self.targetWaypoint.pose.pose.position.y    
+        target_x = self.target_waypoint.pose.pose.position.x
+        target_y = self.target_waypoint.pose.pose.position.y    
         
-        currentVelX = self.stateEstimate.twist.twist.linear.x
-        currentVelY = self.stateEstimate.twist.twist.linear.y
+        current_vel_x = self.state_estimate.twist.twist.linear.x
+        current_vel_y = self.state_estimate.twist.twist.linear.y
     	
-        currentX = self.stateEstimate.pose.pose.position.x
-        currentY = self.stateEstimate.pose.pose.position.y
+        current_x = self.state_estimate.pose.pose.position.x
+        current_y = self.state_estimate.pose.pose.position.y
     	
-        velocityX = targetX - currentX
-        velocityY = targetY - currentY
-        #self.get_logger().info('Distance to target: ' + str(numpy.sqrt(velocityX**2 + velocityY**2))) 
+        velocity_x = target_x - current_x
+        velocity_y = target_y - current_y
 
-        targetVel = [velocityX, velocityY, 0.0, 0.0]
+        target_vel = [velocity_x, velocity_y, 0.0, 0.0]
         
-        q = [self.stateEstimate.pose.pose.orientation.x, self.stateEstimate.pose.pose.orientation.y, self.stateEstimate.pose.pose.orientation.z, self.stateEstimate.pose.pose.orientation.w]
+        q = [self.state_estimate.pose.pose.orientation.x, 
+            self.state_estimate.pose.pose.orientation.y, 
+            self.state_estimate.pose.pose.orientation.z, 
+            self.state_estimate.pose.pose.orientation.w]
         q_inv = q.copy()
         q_inv[0] = -q_inv[0]
         q_inv[1] = -q_inv[1]
         q_inv[2] = -q_inv[2]
 
-        targetVel = tf_transformations.quaternion_multiply(q_inv, targetVel)
-        targetVel = tf_transformations.quaternion_multiply(targetVel, q)
-        
-        #self.get_logger().info('targetx: ' + str(targetVel[0]))         
-        #self.get_logger().info('targety: ' + str(targetVel[1])) 
+        target_vel = tf_transformations.quaternion_multiply(q_inv, target_vel)
+        target_vel = tf_transformations.quaternion_multiply(target_vel, q)
         
         kp_factor = self.get_parameter('basic_kp').value
         kd_factor = self.get_parameter('basic_kd').value
         ki_factor = self.get_parameter('basic_ki').value
                                 
-        if(self.previousTargetWaypoint != self.targetWaypoint):
-             self.xIntegral = 0.0
-             self.yIntegral = 0.0
-        self.xIntegral = self.xIntegral + targetVel[0]*0.01
-        self.yIntegral = self.yIntegral + targetVel[1]*0.01       
+        if(self.previous_target_waypoint != self.target_waypoint):
+             self.x_intergral = 0.0
+             self.y_integral = 0.0
+        self.x_intergral = self.x_intergral + target_vel[0]*0.01
+        self.y_integral = self.y_integral + target_vel[1]*0.01       
 
-        targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.9*0.7*kd_factor) + self.yIntegral*0.001*ki_factor
-        #self.get_logger().info('targetForceY: ' + str(targetForceY))  
-        targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.333*0.7*kd_factor) + self.xIntegral*0.001*ki_factor
+        target_force_y = ((target_vel[1]*0.15*kp_factor - current_vel_y*0.9*0.7*kd_factor) 
+            + self.y_integral*0.001*ki_factor)
+        target_force_x = ((target_vel[0]*0.11*kp_factor - current_vel_x*0.333*0.7*kd_factor)
+            + self.x_intergral*0.001*ki_factor)
 
-        #if(numpy.sqrt(velocityX**2 + velocityY**2) < 0.4):
-        #     targetForceY = (targetVel[1]*0.15*kp_factor - currentVelY*0.15*kd_factor) + self.yIntegral*0.000*ki_factor
-        #     targetForceX = (targetVel[0]*0.11*kp_factor - currentVelX*0.11*kd_factor) + self.xIntegral*0.000*ki_factor
-        targetForceX = targetForceX * (5/3) * 4
-        targetForceY = targetForceY * (5/3) * 4
-        if(abs(targetForceY) < 0.2):
-             targetForceY = targetForceY/abs(targetForceY)*0.2
-        if(abs(targetForceX)<0.2):
-             targetForceX = targetForceX/abs(targetForceX)*0.2
-        theta_targetForce = numpy.arctan2(targetForceY, targetForceX)
+        target_force_x = target_force_x * (5/3) * 4
+        target_force_y = target_force_y * (5/3) * 4
+        if(abs(target_force_y) < 0.2):
+             target_force_y = target_force_y/abs(target_force_y)*0.2
+        if(abs(target_force_x)<0.2):
+             target_force_x = target_force_x/abs(target_force_x)*0.2
         
         heading = [1.0, 0.0, 0.0, 0.0]
-        q_target = [self.targetWaypoint.pose.pose.orientation.x, self.targetWaypoint.pose.pose.orientation.y, self.targetWaypoint.pose.pose.orientation.z, self.targetWaypoint.pose.pose.orientation.w]
+        q_target = [self.target_waypoint.pose.pose.orientation.x, 
+            self.target_waypoint.pose.pose.orientation.y, 
+            self.target_waypoint.pose.pose.orientation.z, 
+            self.target_waypoint.pose.pose.orientation.w]
         
         q_target_inv = q_target.copy()
         q_target_inv[0] = -q_target_inv[0]
@@ -152,49 +130,43 @@ class basicPID(Node):
               
         heading = tf_transformations.quaternion_multiply(q_inv, heading)
         heading = tf_transformations.quaternion_multiply(heading, q)
-        theta_targetHeading = numpy.arctan2(heading[1], heading[0])
+        theta_target_heading = numpy.arctan2(heading[1], heading[0])
 
-        #self.get_logger().info('theta_targetHeading: ' + str(theta_targetHeading*180/numpy.pi))  
-                        
-
-        omega = [self.stateEstimate.twist.twist.angular.x, self.stateEstimate.twist.twist.angular.y, self.stateEstimate.twist.twist.angular.z, 0.0]  
+        omega = [self.state_estimate.twist.twist.angular.x, 
+            self.state_estimate.twist.twist.angular.y, 
+            self.state_estimate.twist.twist.angular.z, 
+            0.0]  
         omega = tf_transformations.quaternion_multiply(q, omega)
         omega = tf_transformations.quaternion_multiply(omega, q_inv)        
-        yawRate = omega[2]       
         
-        if(self.previousTargetWaypoint != self.targetWaypoint):
-             self.yawIntegral = 0.0
-        self.yawIntegral = self.yawIntegral + theta_targetHeading*0.01
-        #self.get_logger().info('yawIntegral: ' + str(self.yawIntegral))  
+        if(self.previous_target_waypoint != self.target_waypoint):
+             self.yaw_integral = 0.0
+        self.yaw_integral += theta_target_heading*0.01
         
         kp_rotate_factor = self.get_parameter('basic_rotate_kp').value
         kd_rotate_factor = self.get_parameter('basic_rotate_kd').value
         ki_rotate_factor = self.get_parameter('basic_rotate_ki').value       
         
-        targetTorque = (theta_targetHeading*0.76*kp_rotate_factor - omega[2]*1.2*kd_rotate_factor + 0.001*self.yawIntegral*ki_rotate_factor)
-        #self.get_logger().info('targetTorque: ' + str(targetTorque))  
+        target_torque = (theta_target_heading*0.76*kp_rotate_factor 
+            - omega[2]*1.2*kd_rotate_factor 
+            + 0.001*self.yaw_integral*ki_rotate_factor)
         
-        targetXToSend = Float32()
-        targetYToSend = Float32()
-        targetTorqueToSend = Float32()
+        target_x_to_send = Float32(data=target_force_x)
+        target_y_to_send = Float32(data=target_force_y)
+        target_torque_to_send = Float32(data=target_torque)
         
-        targetXToSend.data = targetForceX
-        targetYToSend.data = targetForceY
-        targetTorqueToSend.data = targetTorque
+        if(self.received_waypoint):
+            self.target_force_x_pub.publish(target_x_to_send)
+            self.target_force_y_pub.publish(target_y_to_send)
+            self.target_torque_pub.publish(target_torque_to_send)
         
-        if(self.receivedWaypoint):
-          #    self.get_logger().info('SENDING TARGET FORCES')
-             self.targetForceXPub.publish(targetXToSend)
-             self.targetForceYPub.publish(targetYToSend)
-             self.targetTorquePub.publish(targetTorqueToSend)
-        
-        self.previousTargetWaypoint = self.targetWaypoint
+        self.previous_target_waypoint = self.target_waypoint
 
         
 def main(args=None):
     rclpy.init(args=args)
 
-    basic_PID = basicPID()
+    basic_PID = BasicPID()
 
     rclpy.spin(basic_PID)
 
