@@ -1,22 +1,13 @@
-import rclpy
-from rclpy.node import Node
-from nav_msgs.msg import Path
 from std_msgs.msg import Bool
+from geometry_msgs.msg import Pose, Twist, Quaternion
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import Quaternion
-from geometry_msgs.msg import PoseStamped
 import tf_transformations
 import numpy
 
-#This node sends the appropriate waypoints to the basic PID, and also decides whether to use the 
-#velocity PID for translational movement or the basic PID
-class ChoosePID(Node):
+class ChoosePID:
 
     def __init__(self):
-        super().__init__('controller_choose_PID')
-        
+
         self.state_estimate = Odometry()
         self.destination = Pose()
         self.navigate_to_point = Bool(data=False)
@@ -24,45 +15,10 @@ class ChoosePID(Node):
         self.next_waypoint = Pose()
         self.cmd_vel = Twist()
         self.hold_final_orient = False
-        
-        self.path_subscriber = self.create_subscription(
-            Path,
-            '/navigation/plan',
-            self.path_callback,
-            10)  
-        self.odom_subscriber = self.create_subscription(
-            Odometry,
-            '/localization/odometry',
-            self.odometry_callback,
-            10)   
-        self.cmd_vel_subscriber = self.create_subscription(
-            Twist,
-            '/cmd_vel',
-            self.cmd_vel_callback,
-            10)  
-            
-        self.hold_final_orientation_sub = self.create_subscription(
-            Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
-
-        self.navigate_to_point_pub = self.create_publisher(Bool, '/controller/navigateToPoint', 10)
-        self.waypoint_pub = self.create_publisher(Odometry, '/waypoint', 10)        
-        timer_period = 0.05  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-
-    def path_callback(self, msg:Path):
-        self.destination = msg.poses[-1].pose 
-        self.next_waypoint = msg.poses[0].pose
-        self.received_path = True
-        
-    def cmd_vel_callback(self, msg:Twist):
-        self.cmd_vel = msg
-        
-    def hold_final_orient_callback(self, msg:Bool):
-        self.hold_final_orient = msg.data
-       
-    def timer_callback(self):
+    
+    def run(self):
         if not self.received_path:
-            return
+            return None, None
 
         dest_x = self.destination.position.x
         dest_y = self.destination.position.y
@@ -71,12 +27,10 @@ class ChoosePID(Node):
         self_y = self.state_estimate.pose.pose.position.y
 
         distance = ((dest_x - self_x)**2 + (dest_y - self_y)**2)**(1/2)
-        #self.get_logger().info('distance: ' + str(distance)) 
         if(distance < 2.0):
             self.navigate_to_point.data = True
         else:
             self.navigate_to_point.data = False
-        self.navigate_to_point_pub.publish(self.navigate_to_point)
 
         target_waypoint = Odometry()
         #If we're within 2 m, point at the final heading. If greater than 2 m,
@@ -103,25 +57,4 @@ class ChoosePID(Node):
             
             target_waypoint.pose.pose.orientation = target_quat
 
-        self.waypoint_pub.publish(target_waypoint)
-  
-    def odometry_callback(self, msg):
-        self.state_estimate = msg       
-
-        
-def main(args=None):
-    rclpy.init(args=args)
-
-    choose_PID = ChoosePID()
-
-    rclpy.spin(choose_PID)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    choose_PID.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
+        return self.navigate_to_point, target_waypoint
