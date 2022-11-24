@@ -1,16 +1,19 @@
-import rclpy
-from rclpy.node import Node
-from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
-from std_msgs.msg import Bool
+from nav_msgs.msg import Odometry
 import tf_transformations
 import numpy
 
-class BasicPID(Node):
+class BasicPID:
 
-    def __init__(self):
-        super().__init__('controller_basic_PID')
-        
+    def __init__(self, kp, kd, ki, rotate_kp, rotate_kd, rotate_ki):
+
+        self._kp_factor:float = kp
+        self._kd_factor:float = kd
+        self._ki_factor:float = ki
+        self._kp_rotate_factor:float = rotate_kp
+        self._kd_rotate_factor:float = rotate_kd
+        self._ki_rotate_factor:float = rotate_ki
+
         self.state_estimate = Odometry()
         self.target_waypoint = Odometry()
         self.yaw_integral = 0.0
@@ -19,54 +22,8 @@ class BasicPID(Node):
         self.previous_target_waypoint = Odometry()
         self.received_waypoint = False
         self.navigate_to_point = False
-        
-        self.declare_parameter('basic_kp', 1.0)
-        self.declare_parameter('basic_kd', 1.0)
-        self.declare_parameter('basic_ki', 1.0)
-        
-        self.declare_parameter('basic_rotate_kp', 1.0)
-        self.declare_parameter('basic_rotate_kd', 1.0)
-        self.declare_parameter('basic_rotate_ki', 1.0)
-                   
-        self.target_force_x_pub = self.create_publisher(Float32, 
-            '/controller/basic_pid/targetForceX', 10)
-        self.target_force_y_pub = self.create_publisher(Float32,
-            '/controller/basic_pid/targetForceY', 10)
-        self.target_torque_pub = self.create_publisher(Float32, 
-            '/controller/basic_pid/targetTorque', 10)
-        
-        #subscribe to odometry from localization
-        self.odom_subscriber = self.create_subscription(
-            Odometry,
-            '/localization/odometry',
-            self.odometry_callback,
-            10)   
-            
-        #subscribe to waypoints
-        self.waypoint_subscriber = self.create_subscription(
-            Odometry,
-            '/waypoint',
-            self.waypoint_callback,
-            10)     
-        self.navigate_to_point_subscriber = self.create_subscription(
-            Bool,
-            '/controller/navigateToPoint',
-            self.navigate_to_point_callback,
-            10)       
-
-        self.timer = self.create_timer(0.01, self.run_pid)
-
-    def navigate_to_point_callback(self, msg:Bool):
-        self.navigate_to_point = msg.data
-        	
-    def odometry_callback(self, msg:Odometry):
-        self.state_estimate = msg
     
-    def waypoint_callback(self, msg:Odometry):
-        self.target_waypoint = msg        
-        self.received_waypoint = True
-
-    def run_pid(self):
+    def run(self):
         target_x = self.target_waypoint.pose.pose.position.x
         target_y = self.target_waypoint.pose.pose.position.y    
         
@@ -92,10 +49,6 @@ class BasicPID(Node):
 
         target_vel = tf_transformations.quaternion_multiply(q_inv, target_vel)
         target_vel = tf_transformations.quaternion_multiply(target_vel, q)
-        
-        kp_factor = self.get_parameter('basic_kp').value
-        kd_factor = self.get_parameter('basic_kd').value
-        ki_factor = self.get_parameter('basic_ki').value
                                 
         if(self.previous_target_waypoint != self.target_waypoint):
              self.x_intergral = 0.0
@@ -103,10 +56,10 @@ class BasicPID(Node):
         self.x_intergral = self.x_intergral + target_vel[0]*0.01
         self.y_integral = self.y_integral + target_vel[1]*0.01       
 
-        target_force_y = ((target_vel[1]*0.15*kp_factor - current_vel_y*0.9*0.7*kd_factor) 
-            + self.y_integral*0.001*ki_factor)
-        target_force_x = ((target_vel[0]*0.11*kp_factor - current_vel_x*0.333*0.7*kd_factor)
-            + self.x_intergral*0.001*ki_factor)
+        target_force_y = ((target_vel[1]*0.15*self._kp_factor - current_vel_y*0.9*0.7*self._kd_factor) 
+            + self.y_integral*0.001*self._ki_factor)
+        target_force_x = ((target_vel[0]*0.11*self._kp_factor - current_vel_x*0.333*0.7*self._kd_factor)
+            + self.x_intergral*0.001*self._ki_factor)
 
         target_force_x = target_force_x * (5/3) * 4
         target_force_y = target_force_y * (5/3) * 4
@@ -143,39 +96,18 @@ class BasicPID(Node):
              self.yaw_integral = 0.0
         self.yaw_integral += theta_target_heading*0.01
         
-        kp_rotate_factor = self.get_parameter('basic_rotate_kp').value
-        kd_rotate_factor = self.get_parameter('basic_rotate_kd').value
-        ki_rotate_factor = self.get_parameter('basic_rotate_ki').value       
-        
-        target_torque = (theta_target_heading*0.76*kp_rotate_factor 
-            - omega[2]*1.2*kd_rotate_factor 
-            + 0.001*self.yaw_integral*ki_rotate_factor)
+        target_torque = (theta_target_heading*0.76*self._kp_rotate_factor 
+            - omega[2]*1.2*self._kd_rotate_factor 
+            + 0.001*self.yaw_integral*self._ki_rotate_factor)
         
         target_x_to_send = Float32(data=target_force_x)
         target_y_to_send = Float32(data=target_force_y)
         target_torque_to_send = Float32(data=target_torque)
+
+        self.previous_target_waypoint = self.target_waypoint
         
         if(self.received_waypoint):
-            self.target_force_x_pub.publish(target_x_to_send)
-            self.target_force_y_pub.publish(target_y_to_send)
-            self.target_torque_pub.publish(target_torque_to_send)
+            return target_x_to_send, target_y_to_send, target_torque_to_send
         
-        self.previous_target_waypoint = self.target_waypoint
-
+        return None, None, None
         
-def main(args=None):
-    rclpy.init(args=args)
-
-    basic_PID = BasicPID()
-
-    rclpy.spin(basic_PID)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    basic_PID.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()

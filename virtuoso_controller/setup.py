@@ -29,7 +29,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'basic_pid = virtuoso_controller.basic_pid:main',   
+            'basic_pid = virtuoso_controller.basic_pid_node:main',   
             'velocity_pid = virtuoso_controller.velocity_pid_node:main', 
             'choose_pid = virtuoso_controller.choose_pid_node:main',
             'motor_cmd_generator = virtuoso_controller.motor_cmd_generator_node:main',
