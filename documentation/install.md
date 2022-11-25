@@ -20,6 +20,9 @@ To get Ubuntu 20.04, we reccommend using a virtual machine (unless you can alrea
 
 **Note:** You will probably want to allocate at least around 8 GB of memory to the VM. Lower memory allocation can make the simulation environment (Gazebo) difficult to run, and Gazebo may crash. If you cannot allocate enough memory for your VM, we have computers in the lab you can use to test software in simulation.
 
+## Set up an SSH key for GitHub authentication
+Follow [this guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) for adding an ssh key to your github account. Make sure you generate the ssh key on your VM.
+
 ## Install ROS2 Foxy
 Follow [this installation guide](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html) to install Foxy. Make sure you do this within your VM.
 
