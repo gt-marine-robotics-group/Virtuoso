@@ -1,0 +1,49 @@
+## Recommended File Structure (following installation)
+```
+~/mrg
+└───vrx_ws 
+└───dev_ws
+│   └───build (auto-generated during a build)
+│   └───install (auto-generated during a build)
+│   └───log (auto-generated during a build)
+│   └───src
+│       └───Virtuoso
+│       └───AutowareAuto
+│       └───spatio_temporal_voxel_layer
+|       └───ublox_dgnss
+|       └───velodyne
+```
+Having all installed directories within a directory (e.g. mrg) is optional, but it can help to keep everything organized. It is strongly recommended that you install Virtuoso, AutowareAuto, and all other ROS2 dependencies being built from source within one workspace (e.g. dev_ws). This makes building Virtuoso simpler.
+
+## Install Ubuntu 20.04
+To get Ubuntu 20.04, we reccommend using a virtual machine (unless you can already boot into Ubuntu 20.04 from your machine). [This tutorial](https://ubuntu.com/tutorials/how-to-run-ubuntu-desktop-on-a-virtual-machine-using-virtualbox#1-overview) explains how to install Ubuntu on VirtualBox.
+
+**Note:** You will probably want to allocate at least around 8 GB of memory to the VM. Lower memory allocation can make the simulation environment (Gazebo) difficult to run, and Gazebo may crash. If you cannot allocate enough memory for your VM, we have computers in the lab you can use to test software in simulation.
+
+## Install ROS2 Foxy
+Follow [this installation guide](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html) to install Foxy. Make sure you do this within your VM.
+
+**Note:** Do not add the command to source Foxy to your ~/.bashrc. This is not in the installation guide, but it is in the tutorials. Because we need to use ROS Noetic for our simulation, we must choose which ROS distribution to source every time we open a terminal.
+
+## Install ROS Noetic
+Follow [this installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu) to install Noetic. Make sure you do this within your VM.
+
+**Note:** Do not add the command to source Noetic to your ~/.bashrc. This is step 1.5 of the guide. Please skip this step.
+
+## Install VRX
+Follow [this installation guide](https://github.com/osrf/vrx/wiki/system_setup_tutorials) to install VRX. For step 1, select Option A: Configure your host machine. 
+
+Before running any commands in a terminal for this installation, you need to source ROS Noetic:
+```
+source /opt/ros/noetic/setup.bash
+```
+
+## Install ROS1 Bridge
+In a new terminal, run the following command to install ros1_bridge:
+```
+sudo apt install ros-foxy-ros1-bridge
+```
+
+Because our software is written in ROS2 Foxy and the simulation is written in ROS Noetic, we need a ROS bridge running in order to receive data from and send data to the simulation.
+
+## Install Virtuoso
