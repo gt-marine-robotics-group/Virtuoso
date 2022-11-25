@@ -1,3 +1,5 @@
+# Installation
+
 ## Recommended File Structure (following installation)
 ```
 ~/openvdb
