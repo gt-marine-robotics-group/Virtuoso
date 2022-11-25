@@ -1,5 +1,6 @@
 ## Recommended File Structure (following installation)
 ```
+~/openvdb
 ~/mrg
 └───vrx_ws 
 └───dev_ws
@@ -50,3 +51,55 @@ sudo apt install ros-foxy-ros1-bridge
 Because our software is written in ROS2 Foxy and the simulation is written in ROS Noetic, we need a ROS bridge running in order to receive data from and send data to the simulation.
 
 ## Install Virtuoso
+Within your workspace, run the following command:
+```
+git clone git@github.com:gt-marine-robotics-group/Virtuoso.git
+```
+
+## Install OpenVDB
+OpenVDB is an open-source software needed to run Spatio-Temporal Voxel Layer (another open-source package we are using). To install it, run the following commands:
+```
+sudo apt-get install -y libboost-iostreams-dev
+sudo apt-get install -y libtbb-dev
+sudo apt-get install -y libblosc-dev
+```
+```
+git clone git@github.com:AcademySoftwareFoundation/openvdb.git
+cd openvdb
+mkdir build
+cd build
+cmake ..
+sudo make -j4
+sudo make install
+```
+More detailed documentation about OpenVDB can be found on [their GitHub](https://github.com/AcademySoftwareFoundation/openvdb).
+
+## Install Spatio-Temporal Voxel Layer
+Within your workspace, run the following command:
+```
+git clone -b foxy-devel https://github.com/SteveMacenski/spatio_temporal_voxel_layer.git
+```
+
+## Install AutowareAuto
+Within your workspace, follow the [guide](https://autowarefoundation.gitlab.io/autoware.auto/AutowareAuto/installation-no-ade.html) to install AutowareAuto. Make sure to replace $ROS_DISTRO with foxy.
+
+## Install Ublox-Dgnss
+Within your workspace, run the following command:
+```
+git clone https://github.com/aussierobots/ublox_dgnss
+```
+
+## Install Velodyne
+Within your workspace, run the following command:
+```
+git clone -b foxy-devel https://github.com/ros-drivers/velodyne.git
+```
+
+## Remove conflicting packages
+Both AutowareAuto and Velodyne have certain overlapping package names. From the AutowareAuto directory, run the following commands:
+```
+cd src
+cd drivers
+rm -rf velodyne_driver velodyne_nodes
+```
+Now, when our velodyne driver is built, it will use the driver from velodyne not from AutowareAuto.
