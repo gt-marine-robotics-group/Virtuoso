@@ -51,7 +51,7 @@ sudo apt install ros-foxy-ros1-bridge
 Because our software is written in ROS2 Foxy and the simulation is written in ROS Noetic, we need a ROS bridge running in order to receive data from and send data to the simulation.
 
 ## Install Virtuoso
-Within your workspace, run the following command:
+Within your workspace (e.g. dev_ws/src), run the following command:
 ```
 git clone git@github.com:gt-marine-robotics-group/Virtuoso.git
 ```
@@ -103,3 +103,16 @@ cd drivers
 rm -rf velodyne_driver velodyne_nodes
 ```
 Now, when our velodyne driver is built, it will use the driver from velodyne not from AutowareAuto.
+
+## Installing Remaining dependinces
+From the root of your workspace (e.g dev_ws), run the following command:
+```
+rosdep install --from-paths src/Virtuoso --ignore-src -r -y --skip-keys="spatio_temporal_voxel_layer velodyne"
+```
+This will install all of Virtuoso's dependencies that we are not building from source.
+
+## Build Virtuoso
+From the root of your workspace, run the following command:
+```
+colcon build --packages-up-to virtuoso_autonomy
+```
