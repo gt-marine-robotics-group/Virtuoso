@@ -7,3 +7,10 @@ Virtuoso is the GT Marine Robotics Group's ROS2 software stack for the RoboBoat,
 
 ## System Architecture
 
+![Virtuoso System Architecture](/documentation/images/virtuoso_architecture.png)
+
+## Installation
+Link to documentation for installation
+
+## Full Documentation
+Link to contents for full documentation
