@@ -1,30 +1,21 @@
-# Virtuoso Navigation
 
-## Building the Package
+## Nav2
 
-This package depends on `virtuoso_processing`, `virtuoso_localization`, and `spatio_temporal_voxel_layer`. 
+Nav2 is an open-source package which is used by our navigation server for global path planning. Nav2 takes in odometry from the localization server and point clouds from the processing server, and it creates a global costmap. When we send it a goal in the map frame, it will generate a sequence of waypoints which the USV will follow. This path is passed to our controller server. Further documentation can be found on the [Nav2 Github](https://github.com/ros-planning/navigation2). 
 
-To build, run `colcon build --packages-up-to virtuoso_navigation`.
+## Virtuoso Navigation Nodes
 
-## Running the Package
+### waypoints_node.py
+This node takes in a sequence of waypoints in the map frame the USV needs to navigate to. Every time the USV arrives at a waypoint, it will generate a path to the next waypoint through Nav2. 
 
-Simply run the launch file: `ros2 launch virtuoso_navigation main.launch.py`.
+### translate_node.py
+This node takes in a point in the base_link frame the USV needs to translate to. The point is transformed to the map frame and then passed into the waypoints_node as a single waypoint.
 
-Note: The filtered Lidar comes from `virtuoso_processing`, so that will need to be running. The transormation between the lidar frame and odom is done by `virtuoso_localization`, so that will need to be running for the global costmap to be accurate.
+### station_keeping_node.py
+This node upon request publishes a path with a single waypoint (the current pose) to the controller. The controller will then attempt to hold that pose.
 
-## Generating Costmap
+## External Subscribed Topics
 
-A local costmap, using `spatio_temporal_voxel_layer` to generate a voxel grid, is created from the filtered PointCloud2 data. It is published to `/local_costmap/costmap`.
-
-![local_costmap](https://user-images.githubusercontent.com/59785089/151289187-5a7f69e8-9790-4889-bada-f9a9331c9e94.png)
-
-The global costmap is also created from the processed data and localization data. It is published to `/global_costmap/costmap`.
-
-![global_costmap](https://user-images.githubusercontent.com/59785089/151289292-ea8ddd43-1586-4462-bc2a-6417429f62ec.png)
-
-## Navigation
-
-### /set_goal
-The SetGoal node takes in a desired goal (published to `/virtuoso_navigation/set_goal`). 
-The goal is passed on to nav2 which generates a [Path](https://github.com/ros2/common_interfaces/blob/master/nav_msgs/msg/Path.msg) published to `/plan`.
-Nav2 also publishes a velocity to `/cmd_vel` that will be used by our motors.
+| Topic | Message Type | Frame | Purpose |
+|-------|--------------|-------|---------|
+| /navigation/set_path | nav_msgs/Path | map | Waypoints to be navigated to. Used by the waypoints_node. |
