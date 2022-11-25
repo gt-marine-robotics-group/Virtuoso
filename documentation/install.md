@@ -113,7 +113,8 @@ rosdep install --from-paths src/Virtuoso --ignore-src -r -y --skip-keys="spatio_
 This will install all of Virtuoso's dependencies that we are not building from source.
 
 ## 15. Build Virtuoso
-From the root of your workspace, run the following command:
+From the root of your workspace, run the following commands:
 ```
+source /opt/ros/foxy/setup.bash
 colcon build --packages-up-to virtuoso_autonomy
 ```
