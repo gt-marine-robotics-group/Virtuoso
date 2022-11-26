@@ -8,8 +8,10 @@ class ShoreFilterer(Node):
     def __init__(self):
         super().__init__('processing_shore_filter')
 
-        self.lidar_sub = self.create_subscription(PointCloud2, '/processing/points_self_filtered', self.callback, 10)
-        self.publisher = self.create_publisher(PointCloud2, '/processing/points_shore_filtered', 10)
+        self.lidar_sub = self.create_subscription(PointCloud2, 
+            '/processing/lidar/points_self_filtered', self.callback, 10)
+        self.publisher = self.create_publisher(PointCloud2, 
+            '/processing/lidar/points_shore_filtered', 10)
 
         self.declare_parameters(namespace='', parameters=[
             ('x_min', 0.0),
