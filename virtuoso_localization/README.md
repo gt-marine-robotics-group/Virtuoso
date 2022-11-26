@@ -1,5 +1,14 @@
 # Virtuoso Localization
 
+## Contents
+- [Robot Localization](#robot-localization)
+- [Virtuoso Nodes](#virtuoso-nodes)
+  - [republisher_node.py](#republisher\_nodepy)
+- [External Subscribed Topics](#external-subscribed-topics)
+- [External Published Topics](#external-published-topics)
+- [Parameters](#parameters)
+  - [ekf.yaml](#ekfyaml)
+
 ## Robot Localization
 
 Currently, the package uses robot_localization for basic state estimation. It uses a single EKF that filters IMU data (including orientation, linear acceleration, and attitude rates) and GPS data (absolute position only). There is also a navsat transform node that transforms the GPS data into coordinates in the odometry frame utilizable by the EKF. 
