@@ -12,7 +12,7 @@ class FindDocksNode(Node):
     def __init__(self):
         super().__init__('perception_find_dock_codes')
 
-        self.camera_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', 
+        self.camera_sub = self.create_subscription(Image, '/processing/image/downscaled', 
             self.image_callback, 10)
         self.start_sub = self.create_subscription(Int8, '/perception/start_find_docks', 
             self.start_callback, 10)

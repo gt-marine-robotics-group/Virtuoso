@@ -22,10 +22,6 @@
   <!-- STVL  -->
   <exec_depend>spatio_temporal_voxel_layer</exec_depend>
 
-  <!-- Virtuoso packages -->
-  <exec_depend>virtuoso_localization</exec_depend>
-  <exec_depend>virtuoso_processing</exec_depend>
-
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>

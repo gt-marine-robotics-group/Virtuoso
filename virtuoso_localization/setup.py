@@ -31,7 +31,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'continual_ekf = virtuoso_localization.continual_ekf:main',
+            'republisher = virtuoso_localization.republisher_node:main',
             'test_pub = virtuoso_localization.test_data_publisher:main'
         ],
     },

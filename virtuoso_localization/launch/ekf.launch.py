@@ -21,7 +21,7 @@ def generate_launch_description():
         sim_time_arg,
         Node(
             package='virtuoso_localization',
-            executable='continual_ekf',
+            executable='republisher',
             parameters=[{
                 'sim_time': sim_time_config
             }]
@@ -42,8 +42,8 @@ def generate_launch_description():
             name='navsat_transform_node',
             respawn='true',
             remappings=[
-            ('/imu', '/wamv/sensors/imu/imu/data'),
-            ('/gps/fix', '/wamv/sensors/gps/gps/fix'),
+            ('/imu', '/navsat/imu'),
+            ('/gps/fix', '/navsat/gps'),
             ("/odometry/filtered", "/localization/odometry"),
             ("/odometry/gps", "/odometry/gps2")
             ],
