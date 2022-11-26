@@ -1,5 +1,21 @@
 # Virtuoso Sensors
 
+## Contents
+- [LIDAR](#lidar)
+- [Camera](#camera)
+- [GPS](#gps)
+- [IMU](#imu)
+  - [Start Sequence](#start-sequence)
+  - [Troubleshooting](#troubleshooting)
+- [Virtuoso Nodes](#virtuoso-nodes)
+  - [lidar_republish.py](#lidar\_republishpy)
+  - [camera_republish.py](#camera\_republishpy)
+  - [f9p_gps_republish.py](#f9p\_gps\_republishpy)
+  - [gx3_republish.py](#gx3\_republishpy)
+- [External Published Topics](#external-published-topics)
+- [Parameters](#parameters)
+  - [microstrain.yaml](#microstrainyaml)
+
 ## LIDAR
 Supports velodyne VLP-16 LIDAR.
 
@@ -21,7 +37,7 @@ The IMU requires a sequence to correctly start.
 - You should seen an error along the lines of "imu does not support the declination command. transition failed"
 - Do not pass a first_start launch argument for any future IMU launches
 
-### IMU Troubleshooting
+### Troubleshooting
 A good way to reset the IMU is to use [sensorconnect microstrain](https://www.microstrain.com/software/sensorconnect) to reboot the device or stop it from streaming. However, do not use this software to calibrate the magnetometer. This software calibrates the IMU backwards.
 
 Instead, use the Iron Calibration under MIP monitor (https://www.microstrain.com/software) to calibrate the IMU.
