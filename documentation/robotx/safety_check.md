@@ -20,7 +20,7 @@ ros2 run virtuoso_autonomy robotx_safety_check.launch.py usv:=<usv>
 
 Replace `<usv>` and `<sim_time>` with the appropriate values.
 
-## Algorithm Walk-through
+## Walk-through
 
 1. First, the challenge is set up in simulation, as seen below.
 
