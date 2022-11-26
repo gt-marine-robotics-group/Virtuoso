@@ -1,3 +1,14 @@
+# Virtuoso Navigation
+
+## Contents
+- [Nav2](#nav2)
+- [Virtuoso Navigation Nodes](#virtuoso-navigation-nodes)
+  - [waypoints_node.py](#waypoints\_nodepy)
+  - [translate_node.py](#translate\_nodepy)
+  - [station_keeping_node.py](#station\_keeping\_nodepy)
+- [External Subscribed Topics](#external-subscribed-topics)
+- [External Published Topics](#external-published-topics)
+- [Parameters](#parameters)
 
 ## Nav2
 
@@ -18,4 +29,21 @@ This node upon request publishes a path with a single waypoint (the current pose
 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
-| /navigation/set_path | nav_msgs/Path | map | Waypoints to be navigated to. Used by the waypoints_node. |
+| /localization/odometry | [nav_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | Used by Nav2 for generating costmap and waypoints_node to determine when to navigate to next waypoint |
+| /navigation/set_path | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Used by the waypoints_node. |
+| /navigation/translate | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Used by translate_node. |
+| /navigation/station_keep | [std_msgs/Empty](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Empty.html) | N/A | Activates station keeping. Used by station_keeping_node. |
+
+## External Published Topics
+
+| Topic | Message Type | Frame | Purpose |
+|-------|--------------|-------|---------|
+| /navigation/plan | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | The global plan the USV should follow. Used by the controller server. |
+| /navigation/success | [geometry_msgs/PoseStamped](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html) | map | Final pose the USV successfully navigates to from waypoint navigation. |
+| /navigation/translate_success | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Point USV successfully translates to. |
+
+## Parameters
+
+### nav2.yaml
+Parameters for tuning Nav2. A full configuration guide can be found [here](https://navigation.ros.org/configuration/index.html). 
+
