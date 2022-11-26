@@ -28,4 +28,31 @@ Instead, use the Iron Calibration under MIP monitor (https://www.microstrain.com
 
 If you are getting an error relating to "cannot connect to /dev/ttyACM1", try using a different number instead of 1 (start at 0). Typically, microROS will be using port 0 and the IMU will be using port 1. However, if microros is not being used then the IMU should use port 0.
 
+## Virtuoso Nodes
+
+### lidar_republish.py
+Republishes the incoming LIDAR data in the correct frame.
+
+### camera_republish.py
+Republishes the incoming camera data in the correct frame.
+
+### f9p_gps_republish.py
+Republishes the incoming GPS data in the correct frame.
+
+### gx3_republish.py
+Republishes the incoming IMU data in the correct frame.
+
+## External Published Topics
+
+| Topic | Message Type | Frame | Purpose |
+|-------|--------------|-------|---------|
+| usv/lidar_points | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Used by processing. |
+| usv/camera_image | [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html) | camera_link | Used by processing. |
+| usv/gpx/fix | [sensor_msgs/NavSatFix](https://docs.ros2.org/foxy/api/sensor_msgs/msg/NavSatFix.html) | ubx | Used by localization. |
+| usv/imu | [sensor_msgs/Imu](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Imu.html) | imu_link | Used by localization. |
+
+## Parameters
+
+### microstrain.yaml
+Unfortunately, no documentation found online.
 
