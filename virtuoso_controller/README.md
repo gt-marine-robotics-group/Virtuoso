@@ -1,5 +1,17 @@
 # Virtuoso Controller
 
+## Contents
+- [Virtuoso Nodes](#virtuoso-nodes)
+  - [choose_pid_node.py](#choose\_pid\_nodepy)
+  - [cmd_vel_generator_node.py](#cmd\_vel\_generator\_nodepy)
+  - [velocity_pid_node.py](#velocity\_pid\_nodepy)
+  - [basic_pid_node.py](#basic\_pid\_nodepy)
+  - [motor_cmd_generator_node.py](#motor\_cmd\_generator\_nodepy)
+- [External Subscribed Topics](#external-subscribed-topics)
+- [External Published Topics](#external-published-topics)
+- [Parameters](#parameters)
+  - [pidgains.yaml](#pidgainsyaml)
+
 ## Virtuoso Nodes
 
 ### choose_pid_node.py
@@ -19,7 +31,7 @@ The target attitude is the direction such that the vehicle’s +x axis is parall
 
 The last-meter PID controller takes in vehicle velocity, position, and attitude as well as target position and attitude and outputs X and Y force as well as torque commands. The last-meter PID controller is implemented so that station keeping can be tuned separately from the vehicle behavior between goals. 
 
-### cmd_vel_generator_node.py
+### motor_cmd_generator_node.py
 
 The control mixer is what sends individual thruster commands based on target X and Y force as well as torque. The rear thruster commands are scaled down in magnitude to not induce excessive torque with Y force commands. In addition, the commands to all thrusters are scaled so that the maximum magnitude is 1.0, but the ratios of all thruster commands are kept.
 
@@ -42,4 +54,12 @@ The control mixer is what sends individual thruster commands based on target X a
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| 
+| controller_basic_PID | basic_kp | float | Proportional factor of PID. |
+| controller_basic_PID | basic_kd | float | Derivate factor of PID. |
+| controller_basic_PID | basic_ki | float | Integral factor of PID. |
+| controller_basic_PID | basic_rotate_kp | float | Proportional factor of PID. |
+| controller_basic_PID | basic_rotate_kd | float | Derivative factor of PID. |
+| controller_basic_PID | basic_rotate_ki | float | Integral factor of PID. |
+| controller_velocity_PID | velocity_kp | float | Proportional factor of PID. |
+| controller_velocity_PID | velocity_kd | float | Derivative factor of PID. |
+| controller_velocity_PID | velocity_ki | float | Integral factor of PID. |

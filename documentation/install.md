@@ -91,6 +91,8 @@ Within your workspace, run the following command:
 git clone https://github.com/aussierobots/ublox_dgnss
 ```
 
+You may also need to create a udev rule as directed in their [README.md](https://github.com/aussierobots/ublox_dgnss/blob/main/README.md).
+
 ## 12. Install Velodyne
 Within your workspace, run the following command:
 ```
