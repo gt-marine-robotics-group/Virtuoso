@@ -1,12 +1,59 @@
 # Virtuoso Autonomy
 
-This package is the "brains" of the robot. It will take in mission data and interpret it, coordinating other parts of the stack accordingly.
+## Launching Tasks
 
-Each [task](./virtuoso_autonomy/tasks) has a main node that is launched by the [main launch file](./launch/main.launch.py). These nodes handle the interpretation of mission data.
+Each task has 2 launch files. To launch a task, first launch the `[usv][task_name]_setup.launch.py` file in a terminal. Then, in a separate terminal, run the `[usv][task_name].launch.py` file. We launch the setup separatly from the autonomy node so that when testing on the water, we can simply launch only the autonomy node when we are ready to start autonomy.
 
-**NOTE:** For the mission_interpreter to work, there must be a custom bridge for the Task message. Documentation on building this bridge with custom messages can be found [here](https://github.com/gt-marine-robotics-group/Virtuoso-Messages/tree/main).
+## Virtuoso Nodes
 
-## Tasks
+Each node has a similar sturcture. There is a `[task_name]_states.py` file which contains the current state of the USV in the task. There is a `[task_name].py` file which handles the logic for executing a task given the current state and inputted data. Finally, there is a `[task_name]_node.py` file which handles the transfer of data from topics to `[task_name].py` and the transfer of data from `[task_name].py` to other topics.
 
-### Task 3: Perception
-The main Perception node subscribes to the task info, classified buoys, and filtered gps topics. Using this information, it sends one message per buoy identified. It only sends a message identifying a buoy after reviewing multiple messages from the classified buoys.
+### robotx/docking_node.py
+
+Handles the docking task. USV procedure: 
+1. Enable station keeping
+2. Find relative location of docks
+3. Approach dock within x meters (customizable)
+4. Translate in the y-direction to the correct dock entrance
+5. Enter the dock 
+
+### robotx/enter_exit_node.py
+
+Handles the Enter and Exit task. USV procedure:
+1. Enable station keeping
+2. Navigate to random entrance (no hydrophone)
+3. Navigate around looping buoy and return to current location
+
+### robotx/gymkhana_node.py
+
+Handles the Gymkhana task. USV procedure:
+1. Enable station keeping
+2. Search for next gate
+3. Navigate to next gate
+4. Repeat steps 2 and 3 until navigated through all gates (customizable)
+
+### robotx/safety_check_node.py
+
+Handles the Safety Check (not technically a task). USV procedure: 
+1. Enable station keeping
+2. Search for next gate
+3. Navigate to next gate
+4. Repeat steps 2 and 3 once more
+
+### robotx/scan_code_node.py
+
+Handles the Scan the Code task. USV procedure:
+1. Enable station keeping
+2. Request code scan
+
+## External Subscribed Topics
+
+| Topic | Message Type | Frame | Purpose |
+|-------|--------------|-------|---------|
+| /localization/odometry | [nav_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | Used by enter_exit_node, gymkhana_node, and safety_check_node. |
+| /buoys/bounding_boxes | [autoware_auto_perception_msgs/BoundingBoxArray](https://gitlab.com/autowarefoundation/autoware.auto/autoware_auto_msgs/-/blob/master/autoware_auto_perception_msgs/msg/BoundingBoxArray.idl) | map | Used by enter_exit_node, gymkhana_node, and safety_check_node. |
+| /navigation/success | [geometry_msgs/PoseStamped](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html) | map | Used by enter_exit_node, gymkhana_node, and safety_check_node. |
+| /perception/dock_code_offsets | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Used by docking_node. |
+| /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | Used by docking_node. |
+| /perception/code | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Used by scan_code_node. |
+
