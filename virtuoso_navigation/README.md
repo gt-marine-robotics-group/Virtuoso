@@ -9,6 +9,7 @@
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [Parameters](#parameters)
+  - [nav2.yaml](#nav2yaml)
 
 ## Nav2
 
