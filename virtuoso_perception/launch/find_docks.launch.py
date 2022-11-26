@@ -14,14 +14,34 @@ def generate_launch_description():
     usv_config = LaunchConfiguration('usv')
 
     dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
+
+    voxel_grid_node_param_file = (pkg_share,
+        '/config/', usv_config, '/voxel_grid_node.yaml')
+
+    voxel_grid_node_param = DeclareLaunchArgument(
+        'voxel_grid_node_param_file',
+        default_value=voxel_grid_node_param_file,
+        description='Path to config file for Voxel Grid Node'
+    )
     
     return LaunchDescription([
         usv_arg,
+        voxel_grid_node_param,
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py')),
             launch_arguments={'usv': usv_config}.items()
         ),
+        Node(
+            package='voxel_grid_nodes',
+            executable='voxel_grid_node_exe',
+            parameters=[LaunchConfiguration('voxel_grid_node_param_file')],
+            remappings=[
+                ('points_in', '/local_costmap/voxel_grid'),
+                ('points_downsampled', '/perception/voxel_voxels')
+            ]
+        ),
+
         Node(
             package='virtuoso_perception',
             executable='find_dock_codes',

@@ -18,7 +18,7 @@ class FindDockEntrancesNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        self.points_sub = self.create_subscription(PointCloud2, '/processing/super_voxels', 
+        self.points_sub = self.create_subscription(PointCloud2, '/perception/voxel_voxels', 
             self.points_callback, 10)
         self.start_sub = self.create_subscription(Int8, '/perception/start_find_docks',
             self.start_callback, 10)
