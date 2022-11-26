@@ -1,4 +1,4 @@
-basic_PID:
+controller_basic_PID:
   ros__parameters:
     # Copy this file to a new file, fill out this section with desired parameters, and specify the new file via params_file to override the default params
     basic_kp: 1.0
@@ -8,7 +8,7 @@ basic_PID:
     basic_rotate_kd: 1.0
     basic_rotate_ki: 1.0
 
-velocity_PID:
+controller_velocity_PID:
   ros__parameters:
     # Copy this file to a new file, fill out this section with desired parameters, and specify the new file via params_file to override the default params
     velocity_kp: 1.0
