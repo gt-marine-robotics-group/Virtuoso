@@ -5,12 +5,15 @@
 In a terminal, run the following commands:
 ```
 source /opt/ros/foxy/setup.bash
+colcon build --packages-up-to virtuoso_autonomy
+source install/setup.bash
 ros2 run virtuoso_autonomy robotx_enter_exit_setup.launch.py sim_time:=<sim_time> usv:=<usv>
 ```
 
 In a second terminal, run the following commands:
 ```
 source /opt/ros/foxy/setup.bash
+source install/setup.bash
 ros2 run virtuoso_autonomy robotx_enter_exit.launch.py usv:=<usv>
 ```
 
