@@ -1,5 +1,19 @@
 # Virtuoso Autonomy
 
+## Contents
+- [Launching Tasks](#launching-tasks)
+- [Virtuoso Nodes](#virtuoso-nodes)
+  - [robotx/docking_node.py](#robotxdocking\_nodepy)
+  - [robotx/enter_exit_node.py](#robotxenter\_exit\_nodepy)
+  - [robotx/gymkhana_node.py](#robotxgymkhana\_nodepy)
+  - [robotx/safety_check_node.py](#robotxsafety\_check\_nodepy)
+  - [robotx/scan_code_node.py](#robotxscan\_code\_nodepy)
+- [External Subscribed Topics](#external-subscribed-topics)
+- [External Published Topics](#external-published-topics)
+- [Parameters](#parameters)
+  - [docking.yaml](#dockingyaml)
+  - [gymkhana.yaml](#gymkhanayaml)
+
 ## Launching Tasks
 
 Each task has 2 launch files. To launch a task, first launch the `[usv][task_name]_setup.launch.py` file in a terminal. Then, in a separate terminal, run the `[usv][task_name].launch.py` file. We launch the setup separatly from the autonomy node so that when testing on the water, we can simply launch only the autonomy node when we are ready to start autonomy.
