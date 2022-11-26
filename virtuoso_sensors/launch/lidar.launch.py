@@ -10,29 +10,14 @@ import os
 
 def generate_launch_description():
 
-    pkg_share = get_package_share_directory('virtuoso_sensors')
     velodyne_share = get_package_share_directory('velodyne')
 
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
-    vlp16_config_file = os.path.join(pkg_share, 'config', 'vlp16.yml')
-
     return LaunchDescription([
         usv_arg,
 
-        DeclareLaunchArgument(
-            'vlp16_node_param_file',
-            default_value=vlp16_config_file
-        ),
-        # Node(
-        #     package='velodyne_nodes',
-        #     namespace='lidar_front',
-        #     executable='velodyne_cloud_node_exe',
-        #     parameters=[LaunchConfiguration('vlp16_node_param_file')],
-        #     remappings=[("topic", "points_xyzi")],
-        #     arguments=["--model", "vlp16"]
-        # ),
         Node(
             package='virtuoso_sensors',
             executable='lidar_republish'
