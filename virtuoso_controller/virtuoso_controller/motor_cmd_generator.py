@@ -1,180 +1,106 @@
-import rclpy
-from rclpy.node import Node
-from nav_msgs.msg import Path
-from std_msgs.msg import Bool
-from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Pose
-from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Float32
+from geometry_msgs.msg import Pose
+from nav_msgs.msg import Odometry
 import numpy
 
-class motorCMDGenerator(Node):
+class MotorCmdGenerator:
 
-#Generates the motor commands from the information from basic_PID, velocity_PID, and choose_PID
+    def __init__(self, sim_time):
 
-    def __init__(self):
-        super().__init__('motor_cmd_generator')
-        
-        self.stateEstimate = Odometry()
+        self._sim_time = sim_time
+
+        self.state_estimate = Odometry()
         self.destination = Pose()
-        self.navigateToPoint = False
-        self.receivedCMD = False
-        self.controllerRate = 0.1
-        self.receivedBasic = False
-        self.receivedVel = False
-        
-        self.navigateToPoint_subscriber = self.create_subscription(
-            Bool,
-            '/navigation/navigateToPoint',
-            self.navigateToPoint_callback,
-            10)           
-        self.basicXSub = self.create_subscription(
-            Float32,
-            'controller/basic_pid/targetForceX',
-            self.basicXcallback,
-            10)      
-        self.basicYSub = self.create_subscription(
-            Float32,
-            'controller/basic_pid/targetForceY',
-            self.basicYcallback,
-            10)     
-        self.basicTorqueSub = self.create_subscription(
-            Float32,
-            'controller/basic_pid/targetTorque',
-            self.basicTorquecallback,
-            10)   
-        self.velXSub = self.create_subscription(
-            Float32,
-            'controller/velocity_pid/targetForceX',
-            self.velXcallback,
-            10)  
-        self.velYSub = self.create_subscription(
-            Float32,
-            'controller/velocity_pid/targetForceY',
-            self.velYcallback,
-            10)  
-        self.velTorqueSub = self.create_subscription(
-            Float32,
-            'controller/velocity_pid/targetTorque',
-            self.velTorquecallback,
-            10)  
+        self.navigate_to_point = False
 
-        self.leftFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_angle', 10)
-        self.rightFrontPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_angle', 10)
-        self.leftRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_angle', 10)
-        self.rightRearPubAngle = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_angle', 10)
+        self.basic_force_x:float = None
+        self.basic_force_y:float = None
+        self.basic_torque:float = None
+        self.vel_force_x:float = None
+        self.vel_force_y:float = None
+        self.vel_torque:float = None
 
-        self.leftFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_front_thrust_cmd', 10)
-        self.rightFrontPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_front_thrust_cmd', 10)             
-        self.leftRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/left_rear_thrust_cmd', 10)
-        self.rightRearPubCmd = self.create_publisher(Float32, '/wamv/thrusters/right_rear_thrust_cmd', 10)
-        
-
-        self.timer = self.create_timer(self.controllerRate, self.timer_callback)
-
-        self.declare_parameter('sim_time', False)
-
-    def navigateToPoint_callback(self, msg):
-        self.navigateToPoint = msg.data
-
-    def basicXcallback(self, msg):
-        self.basicForceX = msg.data
-        self.receivedBasic = True
-        self.checkReceivedCmd()
-    def basicYcallback(self, msg):
-        self.basicForceY = msg.data
-    def basicTorquecallback(self, msg):
-        self.basicTorque = msg.data
-    def velXcallback(self, msg):
-        self.velForceX = msg.data
-        self.receivedVel = True
-        self.checkReceivedCmd()
-    def velYcallback(self, msg):
-        self.velForceY = msg.data              
-    def velTorquecallback(self, msg):
-        self.velTorque = msg.data
-
-    def checkReceivedCmd(self):
-        if(self.receivedBasic and self.receivedVel):
-            self.receivedCMD = True
-        
-    def timer_callback(self):
-        # self.get_logger().info(f'RECEIVED COMMAND: {self.receivedCMD}')
-        if(self.receivedCMD and self.receivedBasic and self.receivedVel):
-            leftFrontAngle = Float32()
-            rightRearAngle = Float32()
-            rightFrontAngle = Float32()      
-            leftRearAngle = Float32()
-            
-            leftFrontCmd = Float32()
-            rightRearCmd = Float32()
-            leftRearCmd = Float32()
-            rightFrontCmd = Float32()
-
-            leftFrontAngle.data = -90*numpy.pi/180*0
-            rightRearAngle.data = 90*numpy.pi/180*0
-            rightFrontAngle.data = 90*numpy.pi/180*0
-            leftRearAngle.data = -90*numpy.pi/180*0
-
-            if (self.navigateToPoint):
-                 targetForceX = self.basicForceX
-                 targetForceY = self.basicForceY
+        self._not_ready = True
+    
+    def run(self):
+        if self._not_ready:
+            if not (self.basic_force_x is None or self.basic_force_y is None 
+                or self.basic_torque is None or self.vel_force_x is None
+                or self.vel_force_y is None):
+                self._not_ready = False
             else:
-                 targetForceX = self.velForceX
-                 targetForceY= self.velForceY
-            targetTorque = self.basicTorque
-            
-                  
-            leftFrontCmd.data = (-targetForceY + targetForceX - targetTorque)
+                return None
 
-            rightFrontCmd.data = (targetForceY + targetForceX + targetTorque)
-            leftRearCmd.data = (targetForceY*0.6 + targetForceX - targetTorque)
-            rightRearCmd.data = (-targetForceY*0.6 + targetForceX + targetTorque)
-            
-            highestCommand = max(abs(leftFrontCmd.data), abs(rightFrontCmd.data), abs(leftRearCmd.data), abs(rightRearCmd.data))
-            
-            if(highestCommand > 1.0):
-                 leftFrontCmd.data = leftFrontCmd.data/highestCommand
-                 rightFrontCmd.data = rightFrontCmd.data/highestCommand
-                 leftRearCmd.data = leftRearCmd.data/highestCommand
-                 rightRearCmd.data = rightRearCmd.data/highestCommand
-            
-            
-            if self.get_parameter('sim_time').value:
-                if(leftFrontCmd.data <0):
-                        leftFrontCmd.data = leftFrontCmd.data*2.5
-                if(rightFrontCmd.data <0):
-                        rightFrontCmd.data = rightFrontCmd.data*2.5
-                if(leftRearCmd.data <0):
-                        leftRearCmd.data = leftRearCmd.data*2.5
-                if(rightRearCmd.data <0):
-                        rightRearCmd.data = rightRearCmd.data*2.5
-                                                                
-            # self.get_logger().info('PUBLISHING MOTOR COMMANDS')
-            self.rightFrontPubAngle.publish(rightFrontAngle)
-            self.leftRearPubAngle.publish(leftRearAngle)
-            self.leftFrontPubAngle.publish(leftFrontAngle)
-            self.rightRearPubAngle.publish(rightRearAngle)     
+        left_front_angle = Float32()
+        right_rear_angle = Float32()
+        right_front_angle = Float32()      
+        left_rear_angle = Float32()
         
-            self.leftFrontPubCmd.publish(leftFrontCmd)
-            self.rightRearPubCmd.publish(rightRearCmd)      
-            self.rightFrontPubCmd.publish(rightFrontCmd)
-            self.leftRearPubCmd.publish(leftRearCmd)     
+        left_front_cmd = Float32()
+        right_rear_cmd = Float32()
+        left_rear_cmd = Float32()
+        right_front_cmd = Float32()
 
+        left_front_angle.data = -90*numpy.pi/180*0
+        right_rear_angle.data = 90*numpy.pi/180*0
+        right_front_angle.data = 90*numpy.pi/180*0
+        left_rear_angle.data = -90*numpy.pi/180*0
+
+        if (self.navigate_to_point):
+                target_force_x = self.basic_force_x
+                target_force_y = self.basic_force_y
+        else:
+                target_force_x = self.vel_force_x
+                target_force_y = self.vel_force_y
+        target_torque = self.basic_torque
         
-def main(args=None):
-    rclpy.init(args=args)
+                
+        left_front_cmd.data = (-target_force_y + target_force_x - target_torque)
+        right_front_cmd.data = (target_force_y + target_force_x + target_torque)
+        left_rear_cmd.data = (target_force_y*0.6 + target_force_x - target_torque)
+        right_rear_cmd.data = (-target_force_y*0.6 + target_force_x + target_torque)
+        
+        highest_cmd = max(
+            abs(left_front_cmd.data), 
+            abs(right_front_cmd.data), 
+            abs(left_rear_cmd.data), 
+            abs(right_rear_cmd.data)
+        )
+        
+        if(highest_cmd > 1.0):
+            left_front_cmd.data /= highest_cmd
+            right_front_cmd.data /= highest_cmd
+            left_rear_cmd.data /= highest_cmd
+            right_rear_cmd.data /= highest_cmd
+        
+        
+        if self._sim_time:
+            if(left_front_cmd.data < 0):
+                    left_front_cmd.data *= 2.5
+            if(right_front_cmd.data < 0):
+                    right_front_cmd.data *= 2.5
+            if(left_rear_cmd.data < 0):
+                    left_rear_cmd.data *= 2.5
+            if(right_rear_cmd.data < 0):
+                    right_rear_cmd.data *= 2.5
 
-    motor_cmd_generator = motorCMDGenerator()
-
-    rclpy.spin(motor_cmd_generator)
-
-    # Destroy the node explicitly
-    # (optional - otherwise it will be done automatically
-    # when the garbage collector destroys the node object)
-    motor_cmd_generator.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()
+        return {
+            'right_front_angle': right_front_angle,
+            'right_rear_angle': right_rear_angle,
+            'left_front_angle': left_front_angle,
+            'left_rear_angle': left_rear_angle,
+            'right_front_cmd': right_front_cmd,
+            'right_rear_cmd': right_rear_cmd,
+            'left_front_cmd': left_front_cmd,
+            'left_rear_cmd': left_rear_cmd
+        }
+                                                            
+        # self.right_front_pub_angle.publish(right_front_angle)
+        # self.left_rear_pub_angle.publish(left_rear_angle)
+        # self.left_front_pub_angle.publish(left_front_angle)
+        # self.right_rear_pub_angle.publish(right_rear_angle)     
+    
+        # self.left_front_pub_cmd.publish(left_front_cmd)
+        # self.right_rear_pub_cmd.publish(right_rear_cmd)      
+        # self.right_front_pub_cmd.publish(right_front_cmd)
+        # self.left_rear_pub_cmd.publish(left_rear_cmd)     

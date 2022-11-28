@@ -30,10 +30,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'grayscale = virtuoso_processing.camera.grayscale:main',
-            'downscale = virtuoso_processing.camera.downscale:main',
-            'self_filter = virtuoso_processing.lidar.self_filter:main',
-            'shore_filter = virtuoso_processing.lidar.shore_filter:main',
+            'downscale = virtuoso_processing.camera.downscale_node:main',
+            'self_filter = virtuoso_processing.lidar.self_filter_node:main',
+            'shore_filter = virtuoso_processing.lidar.shore_filter_node:main',
+
             'test_global_costmap = virtuoso_processing.testing.global_costmap:main'
         ],
     },

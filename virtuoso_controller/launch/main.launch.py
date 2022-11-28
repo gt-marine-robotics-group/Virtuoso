@@ -17,7 +17,7 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
-    pid_params_file = (pkg_share, '/config/', usv_config, '/pidgain.yaml')
+    pid_params_file = (pkg_share, '/config/', usv_config, '/pidgains.yaml')
 
     return LaunchDescription([
         sim_time_arg,
@@ -43,5 +43,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_controller',
             executable='cmd_vel_generator',
-       )
+       ),
+        Node(
+            package='virtuoso_controller',
+            executable='choose_pid'
+        ),
     ])

@@ -10,7 +10,7 @@ class ScanCodeNode(Node):
     def __init__(self):
         super().__init__('perception_scan_code')
 
-        self.camera_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera/image_raw', 
+        self.camera_sub = self.create_subscription(Image, '/processing/image/downscaled', 
             self.image_callback, 10)
         self.get_code_sub = self.create_subscription(Int8, '/perception/get_code', 
             self.start_scan, 10)

@@ -6,10 +6,6 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='virtuoso_processing',
-            executable='grayscale',
-        ),
-        Node(
-            package='virtuoso_processing',
             executable='downscale'
         )
     ])

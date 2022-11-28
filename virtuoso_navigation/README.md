@@ -1,30 +1,51 @@
 # Virtuoso Navigation
 
-## Building the Package
+## Contents
+- [Nav2](#nav2)
+- [Virtuoso Navigation Nodes](#virtuoso-navigation-nodes)
+  - [waypoints_node.py](#waypoints\_nodepy)
+  - [translate_node.py](#translate\_nodepy)
+  - [station_keeping_node.py](#station\_keeping\_nodepy)
+- [External Subscribed Topics](#external-subscribed-topics)
+- [External Published Topics](#external-published-topics)
+- [Parameters](#parameters)
+  - [nav2.yaml](#nav2yaml)
 
-This package depends on `virtuoso_processing`, `virtuoso_localization`, and `spatio_temporal_voxel_layer`. 
+## Nav2
 
-To build, run `colcon build --packages-up-to virtuoso_navigation`.
+Nav2 is an open-source package which is used by our navigation server for global path planning. Nav2 takes in odometry from the localization server and point clouds from the processing server, and it creates a global costmap. When we send it a goal in the map frame, it will generate a sequence of waypoints which the USV will follow. This path is passed to our controller server. Further documentation can be found on the [Nav2 Github](https://github.com/ros-planning/navigation2). 
 
-## Running the Package
+## Virtuoso Navigation Nodes
 
-Simply run the launch file: `ros2 launch virtuoso_navigation main.launch.py`.
+### waypoints_node.py
+This node takes in a sequence of waypoints in the map frame the USV needs to navigate to. Every time the USV arrives at a waypoint, it will generate a path to the next waypoint through Nav2. 
 
-Note: The filtered Lidar comes from `virtuoso_processing`, so that will need to be running. The transormation between the lidar frame and odom is done by `virtuoso_localization`, so that will need to be running for the global costmap to be accurate.
+### translate_node.py
+This node takes in a point in the base_link frame the USV needs to translate to. The point is transformed to the map frame and then passed into the waypoints_node as a single waypoint.
 
-## Generating Costmap
+### station_keeping_node.py
+This node upon request publishes a path with a single waypoint (the current pose) to the controller. The controller will then attempt to hold that pose.
 
-A local costmap, using `spatio_temporal_voxel_layer` to generate a voxel grid, is created from the filtered PointCloud2 data. It is published to `/local_costmap/costmap`.
+## External Subscribed Topics
 
-![local_costmap](https://user-images.githubusercontent.com/59785089/151289187-5a7f69e8-9790-4889-bada-f9a9331c9e94.png)
+| Topic | Message Type | Frame | Purpose |
+|-------|--------------|-------|---------|
+| /localization/odometry | [nav_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | Used by Nav2 for generating costmap and waypoints_node to determine when to navigate to next waypoint. |
+| /processing/lidar/points_shore_filtered | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Used by Nav2 for generating costmap. |
+| /navigation/set_path | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Used by the waypoints_node. |
+| /navigation/translate | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Used by translate_node. |
+| /navigation/station_keep | [std_msgs/Empty](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Empty.html) | N/A | Activates station keeping. Used by station_keeping_node. |
 
-The global costmap is also created from the processed data and localization data. It is published to `/global_costmap/costmap`.
+## External Published Topics
 
-![global_costmap](https://user-images.githubusercontent.com/59785089/151289292-ea8ddd43-1586-4462-bc2a-6417429f62ec.png)
+| Topic | Message Type | Frame | Purpose |
+|-------|--------------|-------|---------|
+| /navigation/plan | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | The global plan the USV should follow. Used by the controller server. |
+| /navigation/success | [geometry_msgs/PoseStamped](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html) | map | Final pose the USV successfully navigates to from waypoint navigation. |
+| /navigation/translate_success | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Point USV successfully translates to. |
 
-## Navigation
+## Parameters
 
-### /set_goal
-The SetGoal node takes in a desired goal (published to `/virtuoso_navigation/set_goal`). 
-The goal is passed on to nav2 which generates a [Path](https://github.com/ros2/common_interfaces/blob/master/nav_msgs/msg/Path.msg) published to `/plan`.
-Nav2 also publishes a velocity to `/cmd_vel` that will be used by our motors.
+### nav2.yaml
+Parameters for tuning Nav2. A full configuration guide can be found [here](https://navigation.ros.org/configuration/index.html). 
+

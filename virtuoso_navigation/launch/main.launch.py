@@ -41,10 +41,6 @@ def generate_launch_description():
             package='virtuoso_navigation',
             executable='station_keeping'
         ),
-        Node(
-            package='virtuoso_navigation',
-            executable='choose_PID'
-        ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
         'use_sim_time': sim_time_config}.items()),
 
@@ -61,6 +57,6 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='odom_to_map',
-            arguments=['0', '0', '0', '0', '0', '0', 'odom', 'map']
+            arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
         )
     ])

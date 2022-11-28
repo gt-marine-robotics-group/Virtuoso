@@ -29,8 +29,12 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'basic_pid = virtuoso_controller.basic_pid:main',   
-            'velocity_pid = virtuoso_controller.velocity_pid:main', 
+            'basic_pid = virtuoso_controller.basic_pid_node:main',   
+            'velocity_pid = virtuoso_controller.velocity_pid_node:main', 
+            'choose_pid = virtuoso_controller.choose_pid_node:main',
+            'motor_cmd_generator = virtuoso_controller.motor_cmd_generator_node:main',
+            'cmd_vel_generator = virtuoso_controller.cmd_vel_generator_node:main',
+
             'test_waypoint_generator = virtuoso_controller.testing.test_waypoint_generator:main',       
             'test_vel_generator = virtuoso_controller.testing.test_vel_generator:main',
             'test_forward = virtuoso_controller.testing.test_forward:main',
@@ -39,8 +43,6 @@ setup(
             'test_right = virtuoso_controller.testing.test_right:main',
             'test_yaw_left = virtuoso_controller.testing.test_yaw_left:main',
             'test_yaw_right = virtuoso_controller.testing.test_yaw_right:main',
-            'motor_cmd_generator = virtuoso_controller.motor_cmd_generator:main',
-            'cmd_vel_generator = virtuoso_controller.cmd_vel_generator:main',
         ],
     },
 )
