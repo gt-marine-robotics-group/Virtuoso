@@ -25,7 +25,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='imu_to_baselink',
-            arguments=['1.17', '0.06', '1.245', '0.222', '0', '0.0', 'wamv/base_link', 'imu_frame'],
+            arguments=['1.17', '0.06', '1.245', '0.32', '0', '0.0', 'wamv/base_link', 'imu_frame'],
             condition=IfCondition(PythonExpression(["'", usv_config, "' == 'robotx'"]))
         ),
         Node(

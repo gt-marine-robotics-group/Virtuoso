@@ -1,5 +1,9 @@
 # Practices
 
+## GitHub
+
+When working on a task, make sure you are working on a separate branch. Push any changes you make to the branch you are working on. When you are ready to merge to the main branch, submit a pull request. After your pull request is reviewed by the Software Lead (and any other individuals related to the merge), the merge will be approved.
+
 ## Nodes
 
 ### Structure
