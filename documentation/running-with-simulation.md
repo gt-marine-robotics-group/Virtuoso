@@ -25,7 +25,7 @@ This is a ONE TIME step.
 Inside of `Virtuoso/utils/wamv_X` there are yaml files containing the configuration of our motors and sensors on the WAM-V in simulation. For VRX to recognize this is the configuration we want our WAM-V to have, we need to create a custom urdf file from these configuration yaml files. To do that, run the following commands: 
 
 ```
-source /opt/ros/foxy/setup.bash
+source /opt/ros/noetic/setup.bash
 source ~/mrg/vrx_ws/devel/setup.bash
 roslaunch vrx_gazebo generate_wamv.launch thruster_yaml:=$HOME/mrg/dev_ws/src/Virtuoso/utils/wamv_X/thruster_config.yaml  component_yaml:=$HOME/mrg/dev_ws/src/Virtuoso/utils/wamv_X/component_config.yaml wamv_target:=$HOME/mrg/wamv.urdf
 ```
