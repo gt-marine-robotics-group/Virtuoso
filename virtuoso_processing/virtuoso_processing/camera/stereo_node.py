@@ -4,6 +4,7 @@ from sensor_msgs.msg import Image, CameraInfo
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+from cv_bridge import CvBridge
 
 class StereoNode(Node):
 
@@ -14,6 +15,8 @@ class StereoNode(Node):
             self.image1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
+        
+        self.debug_image_pub = self.create_publisher(Image, '/processing/stereo/debug', 10)
 
         self.image1:Image = None 
         self.cam_info1:CameraInfo = None
@@ -38,7 +41,9 @@ class StereoNode(Node):
             self.get_logger().info('something is none')
             return
         
-        self.stop = True
+        bgr_image = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='bgr8')
+        
+        # self.stop = True
 
         k = self.cam_info1.k
 
@@ -55,7 +60,12 @@ class StereoNode(Node):
             cv2.CV_32F)
 
         self.get_logger().info('RUN')
-        self.plot(undistort_map)
+        # self.plot(undistort_map)
+
+        img_undist = cv2.remap(bgr_image, undistort_map[0], undistort_map[1], 
+            cv2.INTER_LANCZOS4)
+        
+        self.pub_debug(img_undist)
     
     def plot(self, map):
         xy = np.dstack(np.meshgrid(range(self.cam_info1.width), range(self.cam_info1.height)))
@@ -65,6 +75,10 @@ class StereoNode(Node):
         plt.imshow(ud_map1_abs)
         plt.colorbar()
         plt.show()
+    
+    def pub_debug(self, bgr_image):
+        msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='rgb8')
+        self.debug_image_pub.publish(msg)
 
 
 def main(args=None):
