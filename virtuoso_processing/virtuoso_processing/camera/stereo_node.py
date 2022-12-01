@@ -163,6 +163,10 @@ class StereoNode(Node):
 
         # self.plot(disparity)
         # plt.imshow(disparity)
+
+        cv2.imshow('depth', disparity)
+        cv2.waitKey(0)
+        return
         # self.get_logger().info(str(disparity))
 
         pointcloud = matcher.reconstruct(disparity, img_rect1, Q)
