@@ -8,22 +8,33 @@ from cv_bridge import CvBridge
 class GrayScale(Node):
 
     def __init__(self):
-        super().__init__('grayscale')
-        self.subscription = self.create_subscription(Image, 
+        super().__init__('processing_grayscale')
+
+        self.g1_sub = self.create_subscription(Image, 
             '/wamv/sensors/cameras/front_left_camera/image_raw',
-            self.listener_callback, 10) # subscribes to topic for raw camera data
-        self.publisher = self.create_publisher(Image, '/processing/image/grayscaled', 10)
+            self.g1_callback, 10) # subscribes to topic for raw camera data
+
+        self.g2_sub = self.create_subscription(Image,
+            '/wamv/sensors/cameras/front_right_camera/image_raw',
+            self.g2_callback, 10)
+
+        self.g1_publisher = self.create_publisher(Image, '/processing/image/grayscaled1', 10)
+        self.g2_publisher = self.create_publisher(Image, '/processing/image/grayscaled2', 10)
     
-    def listener_callback(self, msg:Image):
-        rgbData = CvBridge().imgmsg_to_cv2(img_msg=msg, desired_encoding='rgb8')
+    def grayscale(self, img:Image):
+        rgbData = CvBridge().imgmsg_to_cv2(img_msg=img, desired_encoding='rgb8')
 
         grayscale:np.ndarray = rgb2gray(rgbData)
         grayscale *= 255
         grayscale = grayscale.astype('uint8')
 
-        returnMsg = CvBridge().cv2_to_imgmsg(grayscale, encoding='mono8') 
+        return CvBridge().cv2_to_imgmsg(grayscale, encoding='mono8') 
+    
+    def g1_callback(self, msg:Image):
+        self.g1_publisher.publish(self.grayscale(msg)) 
 
-        self.publisher.publish(returnMsg) 
+    def g2_callback(self, msg:Image):
+        self.g2_publisher.publish(self.grayscale(msg))
 
 
 def main(args=None):
