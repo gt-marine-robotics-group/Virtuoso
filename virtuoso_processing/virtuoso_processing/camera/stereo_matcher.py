@@ -14,14 +14,18 @@ class StereoMatcherSGBM(cv2.StereoSGBM):
         min_disp = 0
         num_disp = 320 - min_disp
 
-        self.matcher = cv2.StereoSGBM_create(
-            minDisparity=min_disp,
+        # self.matcher = cv2.StereoSGBM_create(
+        #     minDisparity=min_disp,
+        #     numDisparities=num_disp,
+        #     uniquenessRatio=5,
+        #     speckleRange=5, # docs suggest 1-2 should be good enough
+        #     disp12MaxDiff=1,
+        #     P1=8*2*window_size**2,
+        #     P2=32*2*window_size**2
+        # )
+        self.matcher = cv2.StereoBM_create(
             numDisparities=num_disp,
-            uniquenessRatio=5,
-            speckleRange=5, # docs suggest 1-2 should be good enough
-            disp12MaxDiff=1,
-            P1=8*2*window_size**2,
-            P2=32*2*window_size**2
+            blockSize=11,
         )
     
     def match(self, img1, img2):

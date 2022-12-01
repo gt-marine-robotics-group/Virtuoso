@@ -12,6 +12,8 @@ from geometry_msgs.msg import Pose, Point, Quaternion, TransformStamped
 from scipy.spatial.transform import Rotation
 from .stereo_matcher import StereoMatcherSGBM
 import open3d
+from sensor_msgs.msg import PointCloud2
+from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 
 class StereoNode(Node):
 
@@ -35,6 +37,8 @@ class StereoNode(Node):
             '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
         
         self.debug_image_pub = self.create_publisher(Image, '/processing/stereo/debug', 10)
+
+        self.pcd_pub = self.create_publisher(PointCloud2, '/processing/stereo/points', 10)
 
         self.image1:Image = None 
         self.cam_info1:CameraInfo = None
@@ -137,6 +141,8 @@ class StereoNode(Node):
             c2_pose.orientation.z, c2_pose.orientation.w]).as_mrp()
         c2_trans = np.array([float(c2_pose.position.x), float(c2_pose.position.y),
             float(c2_pose.position.z)])
+        
+        # self.get_logger().info(str(c2_trans))
 
         R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(c1_matrix, c1_distortion,
             c2_matrix, c2_distortion, image_size, c2_rodrigues, c2_trans,
@@ -155,17 +161,27 @@ class StereoNode(Node):
 
         self.pub_debug(img_rect2)
 
-        self.stop = True
+        # self.stop = True
 
         matcher = StereoMatcherSGBM(self)
 
-        disparity = matcher.match(img_rect1, img_rect2)
+        # cv2.imshow('grayscale', cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY))
+        # cv2.waitKey(0)
 
-        # self.plot(disparity)
-        # plt.imshow(disparity)
+        # disparity = matcher.match(img_rect1, img_rect2)
+        disparity = matcher.match(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY),
+            cv2.cvtColor(img_rect2, cv2.COLOR_BGR2GRAY))
 
-        cv2.imshow('depth', disparity)
-        cv2.waitKey(0)
+        # cv2.imshow('depth', disparity)
+        # cv2.waitKey(0)
+
+        # self.get_logger().info(str(np.shape(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY))))
+
+        pointcloud = cv2.reprojectImageTo3D(disparity, Q)
+        # self.get_logger().info(str(np.shape(pointcloud)))
+
+        self.pub_pointcloud(pointcloud)
+
         return
         # self.get_logger().info(str(disparity))
 
@@ -181,6 +197,22 @@ class StereoNode(Node):
 
         # self.display_pcd(pointcloud)
 
+    def pub_pointcloud(self, cv_pcd):
+        dimensions = np.shape(cv_pcd)
+        pcd = PointCloud2()
+        pcd.height = 1
+        pcd.width = dimensions[0] * dimensions[1]
+        pcd.header.frame_id = 'camera'
+
+        points = list()
+        for row in cv_pcd:
+            for point in row:
+                points.append(point)
+        
+        pcd = create_cloud_xyz32(pcd.header, points)
+
+        self.get_logger().info('CREATED CLOUD')
+        self.pcd_pub.publish(pcd)
     
     def plot(self, map):
         xy = np.dstack(np.meshgrid(range(self.cam_info1.width), range(self.cam_info1.height)))
