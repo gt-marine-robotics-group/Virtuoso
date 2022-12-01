@@ -9,6 +9,7 @@ from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from geometry_msgs.msg import Pose, Point, Quaternion, TransformStamped
+from scipy.spatial.transform import Rotation
 
 class StereoNode(Node):
 
@@ -95,6 +96,8 @@ class StereoNode(Node):
         bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='mono8')
         bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='mono8')
 
+        image_size = (self.cam_info1.width, self.cam_info1.height)
+
         trans = self.get_c2_to_c1_transform()
         # self.get_logger().info(str(trans))
         if trans is None: return
@@ -104,26 +107,48 @@ class StereoNode(Node):
         c1_matrix, c1_distortion = self.find_intrinsic(self.cam_info1)
         c2_matrix, c2_distortion = self.find_intrinsic(self.cam_info2)
 
-        undistort_map1 = cv2.initUndistortRectifyMap(c1_matrix, c1_distortion, 
-            np.eye(3), c1_matrix, (self.cam_info1.width, self.cam_info1.height), 
-            cv2.CV_32F)
-        undistort_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion,
-            np.eye(3), c2_matrix, (self.cam_info2.width, self.cam_info2.height),
-            cv2.CV_32F)
+        # undistort_map1 = cv2.initUndistortRectifyMap(c1_matrix, c1_distortion, 
+        #     np.eye(3), c1_matrix, image_size, 
+        #     cv2.CV_32F)
+        # undistort_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion,
+        #     np.eye(3), c2_matrix, image_size,
+        #     cv2.CV_32F)
         
-        img_undist1 = cv2.remap(bgr_image1, undistort_map1[0], undistort_map1[1], 
-            cv2.INTER_LANCZOS4)
-        img_undist2 = cv2.remap(bgr_image2, undistort_map2[0], undistort_map2[1],
-            cv2.INTER_LANCZOS4)
+        # img_undist1 = cv2.remap(bgr_image1, undistort_map1[0], undistort_map1[1], 
+        #     cv2.INTER_LANCZOS4)
+        # img_undist2 = cv2.remap(bgr_image2, undistort_map2[0], undistort_map2[1],
+        #     cv2.INTER_LANCZOS4)
+
+        # self.pub_debug(img_undist2)
         
         c1_pose = Pose(position=Point(x=0.0, y=0.0, z=0.0), 
             orientation=Quaternion(x=0.0, y=0.0, z=0.0, w=1.0))
         
         trans_vector = trans.transform.translation
+        # For some reason the transformation from right cam to left cam is x = 0.2,
+        # should probably be y = 0.2 but may have something to do with one of the camera's
+        # orientation.
         c2_pose = Pose(position=Point(x=trans_vector.x, y=trans_vector.y, z=trans_vector.z),
             orientation=trans.transform.rotation)
+        c2_rodrigues = Rotation.from_quat([c2_pose.orientation.x, c2_pose.orientation.y,
+            c2_pose.orientation.z, c2_pose.orientation.w]).as_mrp()
+        c2_trans = np.array([float(c2_pose.position.x), float(c2_pose.position.y),
+            float(c2_pose.position.z)])
+
+        R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(c1_matrix, c1_distortion,
+            c2_matrix, c2_distortion, image_size, c2_rodrigues, c2_trans,
+            cv2.CALIB_ZERO_DISPARITY)
         
-        self.pub_debug(img_undist2)
+        rect_map1 = cv2.initUndistortRectifyMap(c1_matrix, c1_distortion, 
+            R1, P1, image_size, cv2.CV_32F)
+        
+        rect_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion, 
+            R2, P2, image_size, cv2.CV_32F)
+        
+        img_rect1 = cv2.remap(bgr_image1, *rect_map1, cv2.INTER_LANCZOS4)
+        img_rect2 = cv2.remap(bgr_image2, *rect_map2, cv2.INTER_LANCZOS4)
+
+        self.pub_debug(img_rect2)
     
     def plot(self, map):
         xy = np.dstack(np.meshgrid(range(self.cam_info1.width), range(self.cam_info1.height)))
