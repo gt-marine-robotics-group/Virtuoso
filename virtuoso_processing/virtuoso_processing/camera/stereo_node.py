@@ -10,18 +10,26 @@ from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from geometry_msgs.msg import Pose, Point, Quaternion, TransformStamped
 from scipy.spatial.transform import Rotation
+from .stereo_matcher import StereoMatcherSGBM
+import open3d
 
 class StereoNode(Node):
 
     def __init__(self):
         super().__init__('processing_stereo')
 
-        self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
+        # self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
+        #     self.image1_callback, 10)
+        self.image1_sub = self.create_subscription(Image, 
+            '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.image1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
         
-        self.image2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
+        # self.image2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
+        #     self.image2_callback, 10)
+        self.image2_sub = self.create_subscription(Image,
+            '/wamv/sensors/cameras/front_right_camera/image_raw',
             self.image2_callback, 10)
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
@@ -80,7 +88,6 @@ class StereoNode(Node):
         return camera_matrix, camera_distortion
     
     def execute(self):
-        # self.get_logger().info(str(self.cam_info))
 
         if self.stop:
             return
@@ -90,16 +97,12 @@ class StereoNode(Node):
             self.get_logger().info('something is none')
             return
         
-        # self.get_logger().info(str(self.image1.header.frame_id))
-        # self.get_logger().info(str(self.image2.header.frame_id))
-        
-        bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='mono8')
-        bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='mono8')
+        bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='bgr8')
+        bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='bgr8')
 
         image_size = (self.cam_info1.width, self.cam_info1.height)
 
         trans = self.get_c2_to_c1_transform()
-        # self.get_logger().info(str(trans))
         if trans is None: return
         
         # self.stop = True
@@ -148,7 +151,32 @@ class StereoNode(Node):
         img_rect1 = cv2.remap(bgr_image1, *rect_map1, cv2.INTER_LANCZOS4)
         img_rect2 = cv2.remap(bgr_image2, *rect_map2, cv2.INTER_LANCZOS4)
 
+        # self.get_logger().info(str(np.shape(img_rect1)))
+
         self.pub_debug(img_rect2)
+
+        self.stop = True
+
+        matcher = StereoMatcherSGBM(self)
+
+        disparity = matcher.match(img_rect1, img_rect2)
+
+        # self.plot(disparity)
+        # plt.imshow(disparity)
+        # self.get_logger().info(str(disparity))
+
+        pointcloud = matcher.reconstruct(disparity, img_rect1, Q)
+
+        self.get_logger().info(str(pointcloud.points))
+
+        pointcloud, _ = pointcloud.remove_statistical_outlier(
+            nb_neighbors=20, std_ratio=1.5
+        )
+
+        self.get_logger().info(str(pointcloud.points))
+
+        # self.display_pcd(pointcloud)
+
     
     def plot(self, map):
         xy = np.dstack(np.meshgrid(range(self.cam_info1.width), range(self.cam_info1.height)))
@@ -159,8 +187,16 @@ class StereoNode(Node):
         plt.colorbar()
         plt.show()
     
+    def display_pcd(self, pointcloud):
+        origin_frame = open3d.geometry.TriangleMesh.create_coordinate_frame(
+            size=0.10, origin=[0, 0, 0]
+        )
+
+        open3d.visualization.draw_geometries([pointcloud, origin_frame])
+    
     def pub_debug(self, bgr_image):
-        msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='mono8')
+        # msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='mono8')
+        msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='rgb8')
         self.debug_image_pub.publish(msg)
 
 
