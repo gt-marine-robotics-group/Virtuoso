@@ -31,6 +31,7 @@ setup(
     entry_points={
         'console_scripts': [
             'downscale = virtuoso_processing.camera.downscale_node:main',
+            'grayscale = virtuoso_processing.camera.grayscale_node:main',
             'stereo = virtuoso_processing.camera.stereo_node:main',
             'self_filter = virtuoso_processing.lidar.self_filter_node:main',
             'shore_filter = virtuoso_processing.lidar.shore_filter_node:main',

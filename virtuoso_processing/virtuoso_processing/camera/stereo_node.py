@@ -11,7 +11,7 @@ class StereoNode(Node):
     def __init__(self):
         super().__init__('processing_stereo')
 
-        self.image1_sub = self.create_subscription(Image, '/processing/image/downscaled', 
+        self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled', 
             self.image1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
@@ -41,7 +41,7 @@ class StereoNode(Node):
             self.get_logger().info('something is none')
             return
         
-        bgr_image = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='bgr8')
+        bgr_image = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='mono8')
         
         # self.stop = True
 
@@ -77,7 +77,7 @@ class StereoNode(Node):
         plt.show()
     
     def pub_debug(self, bgr_image):
-        msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='rgb8')
+        msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='mono8')
         self.debug_image_pub.publish(msg)
 
 

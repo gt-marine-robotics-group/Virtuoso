@@ -10,6 +10,10 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_processing',
+            executable='grayscale'
+        ),
+        Node(
+            package='virtuoso_processing',
             executable='stereo'
         )
     ])
