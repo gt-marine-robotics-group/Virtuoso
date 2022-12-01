@@ -7,5 +7,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_processing',
             executable='downscale'
+        ),
+        Node(
+            package='virtuoso_processing',
+            executable='stereo'
         )
     ])
