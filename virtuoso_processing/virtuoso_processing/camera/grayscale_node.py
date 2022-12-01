@@ -28,7 +28,10 @@ class GrayScale(Node):
         grayscale *= 255
         grayscale = grayscale.astype('uint8')
 
-        return CvBridge().cv2_to_imgmsg(grayscale, encoding='mono8') 
+        msg = CvBridge().cv2_to_imgmsg(grayscale, encoding='mono8') 
+        msg.header.frame_id = img.header.frame_id
+
+        return msg
     
     def g1_callback(self, msg:Image):
         self.g1_publisher.publish(self.grayscale(msg)) 
