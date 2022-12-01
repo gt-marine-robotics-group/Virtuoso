@@ -8,6 +8,7 @@ from cv_bridge import CvBridge
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
+from geometry_msgs.msg import Pose, Point, Quaternion, TransformStamped
 
 class StereoNode(Node):
 
@@ -52,7 +53,7 @@ class StereoNode(Node):
         self.cam_info2 = msg
     
     def get_c2_to_c1_transform(self):
-        trans = None
+        trans:TransformStamped = None
         try:
             trans = self.tf_buffer.lookup_transform(
                 'wamv/front_left_camera_link_optical',
@@ -114,6 +115,13 @@ class StereoNode(Node):
             cv2.INTER_LANCZOS4)
         img_undist2 = cv2.remap(bgr_image2, undistort_map2[0], undistort_map2[1],
             cv2.INTER_LANCZOS4)
+        
+        c1_pose = Pose(position=Point(x=0.0, y=0.0, z=0.0), 
+            orientation=Quaternion(x=0.0, y=0.0, z=0.0, w=1.0))
+        
+        trans_vector = trans.transform.translation
+        c2_pose = Pose(position=Point(x=trans_vector.x, y=trans_vector.y, z=trans_vector.z),
+            orientation=trans.transform.rotation)
         
         self.pub_debug(img_undist2)
     
