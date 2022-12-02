@@ -22,6 +22,8 @@ class StereoNode(Node):
 
         self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
             self.image1_callback, 10)
+        # self.image1_sub = self.create_subscription(Image, '/processing/image/downscaled1',
+        #     self.image1_callback, 10)
         # self.image1_sub = self.create_subscription(Image, 
         #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
         #     self.image1_callback, 10)
@@ -30,6 +32,8 @@ class StereoNode(Node):
         
         self.image2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
             self.image2_callback, 10)
+        # self.image2_sub = self.create_subscription(Image, '/processing/image/downscaled2',
+        #     self.image2_callback, 10)
         # self.image2_sub = self.create_subscription(Image,
         #     '/wamv/sensors/cameras/front_right_camera/image_raw',
         #     self.image2_callback, 10)
@@ -178,6 +182,7 @@ class StereoNode(Node):
             return
         self.get_logger().info('got disparity')
 
+        self.pub_debug(disparity)
         # cv2.imshow('depth', disparity)
         # cv2.waitKey(0)
 
@@ -232,8 +237,9 @@ class StereoNode(Node):
         plt.show()
     
     def pub_debug(self, bgr_image):
-        # msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='mono8')
-        msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='rgb8')
+        mono = cv2.convertScaleAbs(bgr_image, cv2.CV_8UC1, 100, 0.0)
+        msg = CvBridge().cv2_to_imgmsg(mono, encoding='mono8')
+        # msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='rgb8')
         self.debug_image_pub.publish(msg)
 
 
