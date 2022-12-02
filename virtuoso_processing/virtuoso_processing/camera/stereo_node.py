@@ -14,6 +14,7 @@ from .stereo_matcher import StereoMatcherSGBM
 import open3d
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
+import time
 
 class StereoNode(Node):
 
@@ -190,8 +191,8 @@ class StereoNode(Node):
 
         try:
             self.pub_pointcloud(pointcloud)
-        except:
-            self.get_logger().info('POINT CLOUD PUB ERROR')
+        except Exception as e:
+            self.get_logger().info(f'POINT CLOUD PUB ERROR: {e}')
             return
         self.get_logger().info('published')
 
@@ -201,12 +202,20 @@ class StereoNode(Node):
         pcd.width = 0
         pcd.header.frame_id = 'camera'
 
+        # unfortunately this is the fastest solution I found
+        start_time = time.time()
         points = list()
         for row in cv_pcd:
             for point in row:
                 if point[2] > 0: continue
-                points.append(point)
+                # points.append(point)
+                points.append([
+                    -point[2],
+                    point[0],
+                    point[1]
+                ])
                 pcd.width += 1
+        self.get_logger().info(f'exec time: {time.time() - start_time}')
         
         pcd = create_cloud_xyz32(pcd.header, points)
 
