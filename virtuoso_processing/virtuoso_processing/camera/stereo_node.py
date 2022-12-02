@@ -54,8 +54,10 @@ class StereoNode(Node):
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.stop = False
+        
+        self.matcher = StereoMatcherSGBM(self)
 
-        self.create_timer(0.1, self.execute)
+        self.create_timer(1.0, self.execute)
     
     def image1_callback(self, msg:Image):
         self.image1 = msg
@@ -136,6 +138,7 @@ class StereoNode(Node):
             R2, P2, image_size, cv2.CV_32F)
     
     def execute(self):
+        self.get_logger().info('executing')
 
         if self.stop:
             return
@@ -145,33 +148,35 @@ class StereoNode(Node):
             self.get_logger().info('something is none')
             return
         
-        bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='bgr8')
-        bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='bgr8')
-
-        # self.stop = True
+        try:
+            bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='mono8')
+            bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='mono8')
+        except:
+            self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
+            return
+        self.get_logger().info('got cv2 images')
 
         self.find_rect_maps()
         if self.rect_map1 is None or self.rect_map2 is None:
             return
+        self.get_logger().info('got rect maps')
         
-        img_rect1 = cv2.remap(bgr_image1, *self.rect_map1, cv2.INTER_LANCZOS4)
-        img_rect2 = cv2.remap(bgr_image2, *self.rect_map2, cv2.INTER_LANCZOS4)
-
-        # self.get_logger().info(str(np.shape(img_rect1)))
-
-        # self.pub_debug(img_rect2)
-
-        # self.stop = True
-
-        matcher = StereoMatcherSGBM(self)
-
-        # disparity = matcher.match(img_rect1, img_rect2)
         try:
-            disparity = matcher.match(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY),
-                cv2.cvtColor(img_rect2, cv2.COLOR_BGR2GRAY))
+            img_rect1 = cv2.remap(bgr_image1, *self.rect_map1, cv2.INTER_LANCZOS4)
+            img_rect2 = cv2.remap(bgr_image2, *self.rect_map2, cv2.INTER_LANCZOS4)
+        except:
+            self.get_logger().info('REMAPPING ERROR')
+            return
+        self.get_logger().info('got image rects')
+
+        try:
+            disparity = self.matcher.match(img_rect1, img_rect2)
+            # disparity = matcher.match(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY),
+            #     cv2.cvtColor(img_rect2, cv2.COLOR_BGR2GRAY))
         except:
             self.get_logger().info('DISPARITY ERROR')
             return
+        self.get_logger().info('got disparity')
 
         # cv2.imshow('depth', disparity)
         # cv2.waitKey(0)
@@ -181,8 +186,14 @@ class StereoNode(Node):
         except:
             self.get_logger().info('3D REPROJECT ERROR')
             return
+        self.get_logger().info('got cv2 pointcloud')
 
-        self.pub_pointcloud(pointcloud)
+        try:
+            self.pub_pointcloud(pointcloud)
+        except:
+            self.get_logger().info('POINT CLOUD PUB ERROR')
+            return
+        self.get_logger().info('published')
 
     def pub_pointcloud(self, cv_pcd):
         dimensions = np.shape(cv_pcd)
