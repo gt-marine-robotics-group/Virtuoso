@@ -11,7 +11,6 @@ from rclpy.time import Time
 from geometry_msgs.msg import Pose, Point, Quaternion, TransformStamped
 from scipy.spatial.transform import Rotation
 from .stereo_matcher import StereoMatcherSGBM
-import open3d
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
@@ -231,13 +230,6 @@ class StereoNode(Node):
         plt.imshow(ud_map1_abs)
         plt.colorbar()
         plt.show()
-    
-    def display_pcd(self, pointcloud):
-        origin_frame = open3d.geometry.TriangleMesh.create_coordinate_frame(
-            size=0.10, origin=[0, 0, 0]
-        )
-
-        open3d.visualization.draw_geometries([pointcloud, origin_frame])
     
     def pub_debug(self, bgr_image):
         # msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='mono8')
