@@ -20,19 +20,19 @@ class StereoNode(Node):
     def __init__(self):
         super().__init__('processing_stereo')
 
-        # self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
-        #     self.image1_callback, 10)
-        self.image1_sub = self.create_subscription(Image, 
-            '/wamv/sensors/cameras/front_left_camera/image_raw', 
+        self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
             self.image1_callback, 10)
+        # self.image1_sub = self.create_subscription(Image, 
+        #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
+        #     self.image1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
         
-        # self.image2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
-        #     self.image2_callback, 10)
-        self.image2_sub = self.create_subscription(Image,
-            '/wamv/sensors/cameras/front_right_camera/image_raw',
+        self.image2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
             self.image2_callback, 10)
+        # self.image2_sub = self.create_subscription(Image,
+        #     '/wamv/sensors/cameras/front_right_camera/image_raw',
+        #     self.image2_callback, 10)
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
         
@@ -45,6 +45,10 @@ class StereoNode(Node):
 
         self.image2:Image = None
         self.cam_info2:CameraInfo = None
+
+        self.rect_map1 = None
+        self.rect_map2 = None
+        self.Q = None
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -91,42 +95,17 @@ class StereoNode(Node):
 
         return camera_matrix, camera_distortion
     
-    def execute(self):
-
-        if self.stop:
+    def find_rect_maps(self):
+        if not self.rect_map1 is None and not self.rect_map2 is None:
             return
-
-        if (self.image1 is None or self.cam_info1 is None 
-            or self.image2 is None or self.cam_info2 is None):
-            self.get_logger().info('something is none')
-            return
-        
-        bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='bgr8')
-        bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='bgr8')
 
         image_size = (self.cam_info1.width, self.cam_info1.height)
 
         trans = self.get_c2_to_c1_transform()
         if trans is None: return
-        
-        # self.stop = True
 
         c1_matrix, c1_distortion = self.find_intrinsic(self.cam_info1)
         c2_matrix, c2_distortion = self.find_intrinsic(self.cam_info2)
-
-        # undistort_map1 = cv2.initUndistortRectifyMap(c1_matrix, c1_distortion, 
-        #     np.eye(3), c1_matrix, image_size, 
-        #     cv2.CV_32F)
-        # undistort_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion,
-        #     np.eye(3), c2_matrix, image_size,
-        #     cv2.CV_32F)
-        
-        # img_undist1 = cv2.remap(bgr_image1, undistort_map1[0], undistort_map1[1], 
-        #     cv2.INTER_LANCZOS4)
-        # img_undist2 = cv2.remap(bgr_image2, undistort_map2[0], undistort_map2[1],
-        #     cv2.INTER_LANCZOS4)
-
-        # self.pub_debug(img_undist2)
         
         c1_pose = Pose(position=Point(x=0.0, y=0.0, z=0.0), 
             orientation=Quaternion(x=0.0, y=0.0, z=0.0, w=1.0))
@@ -148,54 +127,62 @@ class StereoNode(Node):
             c2_matrix, c2_distortion, image_size, c2_rodrigues, c2_trans,
             cv2.CALIB_ZERO_DISPARITY)
         
-        rect_map1 = cv2.initUndistortRectifyMap(c1_matrix, c1_distortion, 
+        self.Q = Q
+        
+        self.rect_map1 = cv2.initUndistortRectifyMap(c1_matrix, c1_distortion, 
             R1, P1, image_size, cv2.CV_32F)
         
-        rect_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion, 
+        self.rect_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion, 
             R2, P2, image_size, cv2.CV_32F)
+    
+    def execute(self):
+
+        if self.stop:
+            return
+
+        if (self.image1 is None or self.cam_info1 is None 
+            or self.image2 is None or self.cam_info2 is None):
+            self.get_logger().info('something is none')
+            return
         
-        img_rect1 = cv2.remap(bgr_image1, *rect_map1, cv2.INTER_LANCZOS4)
-        img_rect2 = cv2.remap(bgr_image2, *rect_map2, cv2.INTER_LANCZOS4)
+        bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='bgr8')
+        bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='bgr8')
+
+        # self.stop = True
+
+        self.find_rect_maps()
+        if self.rect_map1 is None or self.rect_map2 is None:
+            return
+        
+        img_rect1 = cv2.remap(bgr_image1, *self.rect_map1, cv2.INTER_LANCZOS4)
+        img_rect2 = cv2.remap(bgr_image2, *self.rect_map2, cv2.INTER_LANCZOS4)
 
         # self.get_logger().info(str(np.shape(img_rect1)))
 
-        self.pub_debug(img_rect2)
+        # self.pub_debug(img_rect2)
 
         # self.stop = True
 
         matcher = StereoMatcherSGBM(self)
 
-        # cv2.imshow('grayscale', cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY))
-        # cv2.waitKey(0)
-
         # disparity = matcher.match(img_rect1, img_rect2)
-        disparity = matcher.match(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY),
-            cv2.cvtColor(img_rect2, cv2.COLOR_BGR2GRAY))
+        try:
+            disparity = matcher.match(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY),
+                cv2.cvtColor(img_rect2, cv2.COLOR_BGR2GRAY))
+        except:
+            self.get_logger().info('DISPARITY ERROR')
+            return
 
         # cv2.imshow('depth', disparity)
         # cv2.waitKey(0)
 
-        # self.get_logger().info(str(np.shape(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY))))
-
-        pointcloud = cv2.reprojectImageTo3D(disparity, Q)
-        # self.get_logger().info(str(np.shape(pointcloud)))
+        try:
+            pointcloud = cv2.reprojectImageTo3D(disparity, self.Q)
+        except:
+            self.get_logger().info('3D REPROJECT ERROR')
+            return
 
         self.pub_pointcloud(pointcloud)
-
-        return
-        # self.get_logger().info(str(disparity))
-
-        pointcloud = matcher.reconstruct(disparity, img_rect1, Q)
-
-        self.get_logger().info(str(pointcloud.points))
-
-        pointcloud, _ = pointcloud.remove_statistical_outlier(
-            nb_neighbors=20, std_ratio=1.5
-        )
-
-        self.get_logger().info(str(pointcloud.points))
-
-        # self.display_pcd(pointcloud)
 
     def pub_pointcloud(self, cv_pcd):
         dimensions = np.shape(cv_pcd)
@@ -212,6 +199,7 @@ class StereoNode(Node):
         pcd = create_cloud_xyz32(pcd.header, points)
 
         self.get_logger().info('CREATED CLOUD')
+        self.get_logger().info(str(pcd.width))
         self.pcd_pub.publish(pcd)
     
     def plot(self, map):

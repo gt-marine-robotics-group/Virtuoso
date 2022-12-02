@@ -25,8 +25,9 @@ class StereoMatcherSGBM(cv2.StereoSGBM):
         # )
         self.matcher = cv2.StereoBM_create(
             numDisparities=num_disp,
-            blockSize=11,
+            blockSize=17
         )
+        self.matcher.setSpeckleWindowSize(10)
     
     def match(self, img1, img2):
         disparity = self.matcher.compute(img1, img2).astype(np.float32) / 16.0
