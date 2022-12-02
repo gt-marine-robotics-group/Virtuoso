@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge
 from skimage.transform import downscale_local_mean
 import numpy as np
@@ -21,6 +21,11 @@ class DownScale(Node):
         
         self.d1_pub = self.create_publisher(Image, '/processing/image/downscaled1', 10)
         self.d2_pub = self.create_publisher(Image, '/processing/image/downscaled2', 10)
+
+        self.d1_info_pub = self.create_publisher(CameraInfo, 
+            '/processing/image/downscaled1/camera_info', 10)
+        self.d2_info_pub = self.create_publisher(CameraInfo, 
+            '/processing/image/downscaled2/camera_info', 10)
     
     def listener_callback(self, msg:Image):
         self.publisher.publish(msg)
@@ -31,6 +36,8 @@ class DownScale(Node):
         downscaled = downscale_local_mean(data, (2, 2)).astype('uint8')
 
         return CvBridge().cv2_to_imgmsg(downscaled, 'mono8')
+    
+    # def downscale_info
     
     def g1_callback(self, msg:Image):
         self.d1_pub.publish(self.downscale(msg))
