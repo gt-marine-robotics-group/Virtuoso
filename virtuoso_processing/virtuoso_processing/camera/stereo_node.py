@@ -196,16 +196,17 @@ class StereoNode(Node):
         self.get_logger().info('published')
 
     def pub_pointcloud(self, cv_pcd):
-        dimensions = np.shape(cv_pcd)
         pcd = PointCloud2()
         pcd.height = 1
-        pcd.width = dimensions[0] * dimensions[1]
+        pcd.width = 0
         pcd.header.frame_id = 'camera'
 
         points = list()
         for row in cv_pcd:
             for point in row:
+                if point[2] > 0: continue
                 points.append(point)
+                pcd.width += 1
         
         pcd = create_cloud_xyz32(pcd.header, points)
 
