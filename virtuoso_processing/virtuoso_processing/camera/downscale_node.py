@@ -18,6 +18,11 @@ class DownScale(Node):
             self.g1_callback, 10)
         self.g2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
             self.g2_callback, 10)
+
+        self.cam_info1_sub = self.create_subscription(CameraInfo, 
+            '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
+        self.cam_info2_sub = self.create_subscription(CameraInfo,
+            '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
         
         self.d1_pub = self.create_publisher(Image, '/processing/image/downscaled1', 10)
         self.d2_pub = self.create_publisher(Image, '/processing/image/downscaled2', 10)
@@ -33,11 +38,20 @@ class DownScale(Node):
     def downscale(self, img:Image):
         data = CvBridge().imgmsg_to_cv2(img, 'mono8')
 
-        downscaled = downscale_local_mean(data, (2, 2)).astype('uint8')
+        downscaled = downscale_local_mean(data, (4, 4)).astype('uint8')
 
         return CvBridge().cv2_to_imgmsg(downscaled, 'mono8')
     
-    # def downscale_info
+    def downscale_info(self, info:CameraInfo):
+        info.k[2] /= 4
+        info.k[5] /= 4
+        return info
+    
+    def cam_info1_callback(self, msg:CameraInfo):
+        self.d1_info_pub.publish(self.downscale_info(msg))
+    
+    def cam_info2_callback(self, msg:CameraInfo):
+        self.d2_info_pub.publish(self.downscale_info(msg))
     
     def g1_callback(self, msg:Image):
         self.d1_pub.publish(self.downscale(msg))
