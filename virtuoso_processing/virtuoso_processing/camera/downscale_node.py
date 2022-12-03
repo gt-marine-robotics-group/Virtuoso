@@ -38,13 +38,15 @@ class DownScale(Node):
     def downscale(self, img:Image):
         data = CvBridge().imgmsg_to_cv2(img, 'mono8')
 
-        downscaled = downscale_local_mean(data, (4, 4)).astype('uint8')
+        downscaled = downscale_local_mean(data, (2, 2)).astype('uint8')
 
         return CvBridge().cv2_to_imgmsg(downscaled, 'mono8')
     
     def downscale_info(self, info:CameraInfo):
-        info.k[2] /= 4
-        info.k[5] /= 4
+        info.k[0] /= 2
+        info.k[2] /= 2
+        info.k[4] /= 2
+        info.k[5] /= 2
         return info
     
     def cam_info1_callback(self, msg:CameraInfo):
