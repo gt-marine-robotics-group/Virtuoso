@@ -30,8 +30,12 @@ class BuoyColorFilterNode(Node):
 
         red_filtered = self.color_filter.red_orange_filter(hsv_lower1=[0,50,50], 
             hsv_upper1=[10,255,255], hsv_lower2=[160,50,50], hsv_upper2=[180,255,255])
+        green_filtered = self.color_filter.green_filter()
+        black_filtered = self.color_filter.black_filter()
 
-        return CvBridge().cv2_to_imgmsg(red_filtered, encoding='bgr8')
+        combo = cv2.bitwise_or(cv2.bitwise_or(red_filtered, green_filtered), black_filtered)
+
+        return CvBridge().cv2_to_imgmsg(combo, encoding='bgr8')
     
     def image1_callback(self, msg:Image):
         self.bc_filter1_pub.publish(self.apply_filter(msg))

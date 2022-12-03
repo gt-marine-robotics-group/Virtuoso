@@ -11,12 +11,14 @@ class ColorFilter():
         lower = np.array(hsv_lower)
         upper = np.array(hsv_upper)
 
+        return self.filter(lower, upper)
+
         # Could apply a bitwise_not to the mask to make the cone
         # actually appear black instead of white when returned.
         # However this would mean an extra case to consider when filtering for finding shapes
-        mask = cv2.inRange(self.hsv, lower, upper)
+        # mask = cv2.inRange(self.hsv, lower, upper)
 
-        return cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
+        # return cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
     
     def white_filter(self, hsv_lower=[0,0,0], hsv_upper=[0,0,255]):
         lower = np.array(hsv_lower)
