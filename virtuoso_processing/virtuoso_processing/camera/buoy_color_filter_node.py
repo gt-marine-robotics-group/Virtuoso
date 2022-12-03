@@ -24,13 +24,14 @@ class BuoyColorFilterNode(Node):
             '/processing/image/buoy_color_filter2', 10)
     
     def apply_filter(self, img:Image):
-        bgr_image = CvBridge().imgmsg_to_cv2(img)
+        bgr_image = CvBridge().imgmsg_to_cv2(img, desired_encoding='bgr8')
 
         self.color_filter = ColorFilter(cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV), bgr_image)
 
-        blue_filtered = self.color_filter.blue_filter()
+        red_filtered = self.color_filter.red_orange_filter(hsv_lower1=[0,50,50], 
+            hsv_upper1=[10,255,255], hsv_lower2=[160,50,50], hsv_upper2=[180,255,255])
 
-        return CvBridge().cv2_to_imgmsg(blue_filtered, encoding='bgr8')
+        return CvBridge().cv2_to_imgmsg(red_filtered, encoding='bgr8')
     
     def image1_callback(self, msg:Image):
         self.bc_filter1_pub.publish(self.apply_filter(msg))
