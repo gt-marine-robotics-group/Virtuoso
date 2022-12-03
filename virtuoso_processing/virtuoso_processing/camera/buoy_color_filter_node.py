@@ -32,8 +32,12 @@ class BuoyColorFilterNode(Node):
             hsv_upper1=[10,255,255], hsv_lower2=[160,50,50], hsv_upper2=[180,255,255])
         green_filtered = self.color_filter.green_filter()
         black_filtered = self.color_filter.black_filter()
+        yellow_filtered = self.color_filter.yellow_filter()
 
-        combo = cv2.bitwise_or(cv2.bitwise_or(red_filtered, green_filtered), black_filtered)
+        combo = cv2.bitwise_or(
+            cv2.bitwise_or(cv2.bitwise_or(red_filtered, green_filtered), yellow_filtered),
+            black_filtered 
+        )
 
         return CvBridge().cv2_to_imgmsg(combo, encoding='bgr8')
     
