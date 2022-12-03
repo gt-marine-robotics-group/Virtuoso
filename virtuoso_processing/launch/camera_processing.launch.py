@@ -6,6 +6,10 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='virtuoso_processing',
+            executable='buoy_color_filter'
+        ),
+        Node(
+            package='virtuoso_processing',
             executable='downscale'
         ),
         Node(

@@ -30,6 +30,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'buoy_color_filter = virtuoso_processing.camera.buoy_color_filter_node:main',
             'downscale = virtuoso_processing.camera.downscale_node:main',
             'grayscale = virtuoso_processing.camera.grayscale_node:main',
             'stereo = virtuoso_processing.camera.stereo_node:main',

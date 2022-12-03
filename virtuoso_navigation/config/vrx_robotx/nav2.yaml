@@ -32,7 +32,8 @@ local_costmap:
         observation_sources: pointcloud
         pointcloud:
           data_type: PointCloud2
-          topic: /processing/lidar/points_shore_filtered 
+          # topic: /processing/lidar/points_shore_filtered 
+          topic: /processing/stereo/points
           marking: true
           clearing: true
           obstacle_range: 30.0
@@ -133,7 +134,8 @@ global_costmap:
         observation_sources: pointcloud
         pointcloud:
           data_type: PointCloud2
-          topic: /processing/lidar/points_shore_filtered 
+          # topic: /processing/lidar/points_shore_filtered 
+          topic: /processing/stereo/points
           marking: true
           clearing: true
           obstacle_range: 30.0

@@ -210,7 +210,7 @@ class StereoNode(Node):
         pcd = PointCloud2()
         pcd.height = 1
         pcd.width = 0
-        pcd.header.frame_id = 'camera'
+        pcd.header.frame_id = 'wamv/lidar_wamv_link'
 
         # unfortunately this is the fastest solution I found
         start_time = time.time()

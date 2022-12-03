@@ -10,13 +10,17 @@ class GrayScale(Node):
     def __init__(self):
         super().__init__('processing_grayscale')
 
-        self.g1_sub = self.create_subscription(Image, 
-            '/wamv/sensors/cameras/front_left_camera/image_raw',
-            self.g1_callback, 10) # subscribes to topic for raw camera data
+        # self.g1_sub = self.create_subscription(Image, 
+        #     '/wamv/sensors/cameras/front_left_camera/image_raw',
+        #     self.g1_callback, 10) # subscribes to topic for raw camera data
+        self.g1_sub = self.create_subscription(Image,
+            '/processing/image/buoy_color_filter1', self.g1_callback, 10)
 
+        # self.g2_sub = self.create_subscription(Image,
+        #     '/wamv/sensors/cameras/front_right_camera/image_raw',
+        #     self.g2_callback, 10)
         self.g2_sub = self.create_subscription(Image,
-            '/wamv/sensors/cameras/front_right_camera/image_raw',
-            self.g2_callback, 10)
+            '/processing/image/buoy_color_filter2', self.g2_callback, 10)
 
         self.g1_publisher = self.create_publisher(Image, '/processing/image/grayscaled1', 10)
         self.g2_publisher = self.create_publisher(Image, '/processing/image/grayscaled2', 10)
