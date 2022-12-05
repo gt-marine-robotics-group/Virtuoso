@@ -27,5 +27,26 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='find_buoys',
             parameters=[buoys_param_file]
-        ) 
+        ),
+
+        Node(
+            package='virtuoso_perception',
+            executable='buoy_color_filter'
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='downscale'
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='grayscale'
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='stereo'
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='stereo_filter'
+        )
     ])

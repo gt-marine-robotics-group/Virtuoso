@@ -18,11 +18,11 @@ import time
 class StereoNode(Node):
 
     def __init__(self):
-        super().__init__('processing_stereo')
+        super().__init__('perception_stereo')
 
-        # self.image1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
+        # self.image1_sub = self.create_subscription(Image, '/perception/image/grayscaled1', 
         #     self.image1_callback, 10)
-        self.image1_sub = self.create_subscription(Image, '/processing/image/downscaled1',
+        self.image1_sub = self.create_subscription(Image, '/perception/image/downscaled1',
             self.image1_callback, 10)
         # self.image1_sub = self.create_subscription(Image, 
         #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
@@ -31,11 +31,11 @@ class StereoNode(Node):
         # self.cam_info1_sub = self.create_subscription(CameraInfo, 
         #     '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
-            '/processing/image/downscaled1/camera_info', self.cam_info1_callback, 10)
+            '/perception/image/downscaled1/camera_info', self.cam_info1_callback, 10)
         
-        # self.image2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
+        # self.image2_sub = self.create_subscription(Image, '/perception/image/grayscaled2',
         #     self.image2_callback, 10)
-        self.image2_sub = self.create_subscription(Image, '/processing/image/downscaled2',
+        self.image2_sub = self.create_subscription(Image, '/perception/image/downscaled2',
             self.image2_callback, 10)
         # self.image2_sub = self.create_subscription(Image,
         #     '/wamv/sensors/cameras/front_right_camera/image_raw',
@@ -44,11 +44,11 @@ class StereoNode(Node):
         # self.cam_info2_sub = self.create_subscription(CameraInfo,
         #     '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
         self.cam_info2_sub = self.create_subscription(CameraInfo,
-            '/processing/image/downscaled2/camera_info', self.cam_info2_callback, 10)
+            '/perception/image/downscaled2/camera_info', self.cam_info2_callback, 10)
         
-        self.debug_image_pub = self.create_publisher(Image, '/processing/stereo/debug', 10)
+        self.debug_image_pub = self.create_publisher(Image, '/perception/stereo/debug', 10)
 
-        self.pcd_pub = self.create_publisher(PointCloud2, '/processing/stereo/points', 10)
+        self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
 
         self.image1:Image = None 
         self.cam_info1:CameraInfo = None

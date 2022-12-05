@@ -34,7 +34,13 @@ setup(
             'classify_buoys = virtuoso_perception.buoys.classify_buoys_node:main',
             'scan_code = virtuoso_perception.code.scan_code_node:main',
             'find_dock_codes = virtuoso_perception.dock.find_dock_codes_node:main',
-            'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main'
+            'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main',
+
+            'buoy_color_filter = virtuoso_perception.buoys.buoy_color_filter_node:main',
+            'downscale = virtuoso_perception.camera_processing.downscale_node:main',
+            'grayscale = virtuoso_perception.camera_processing.grayscale_node:main',
+            'stereo = virtuoso_perception.stereo.stereo_node:main',
+            'stereo_filter = virtuoso_perception.stereo.stereo_filter_node:main',
         ],
     },
 )

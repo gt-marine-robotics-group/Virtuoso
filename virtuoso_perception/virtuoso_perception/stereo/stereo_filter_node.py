@@ -1,18 +1,18 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-from ..utils.pointcloud import read_points, create_cloud_xyz32
+from virtuoso_processing.utils.pointcloud import read_points, create_cloud_xyz32
 
 class StereoFilterNode(Node):
 
     def __init__(self):
-        super().__init__('processing_stereo_filter')
+        super().__init__('perception_stereo_filter')
 
-        self.pcd_sub = self.create_subscription(PointCloud2, '/processing/stereo/points',
+        self.pcd_sub = self.create_subscription(PointCloud2, '/perception/stereo/points',
             self.pcd_callback, 10)
 
         self.filtered_pub = self.create_publisher(PointCloud2, 
-            '/processing/stereo/points_filtered', 10)
+            '/perception/stereo/points_filtered', 10)
         
     def pcd_callback(self, msg:PointCloud2):
 

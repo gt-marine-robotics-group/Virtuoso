@@ -8,7 +8,7 @@ import cv2
 class BuoyColorFilterNode(Node):
 
     def __init__(self):
-        super().__init__('processing_buoy_color_filter')
+        super().__init__('perception_buoy_color_filter')
 
         self.image1_sub = self.create_subscription(Image, 
             '/wamv/sensors/cameras/front_left_camera/image_raw', 
@@ -19,9 +19,9 @@ class BuoyColorFilterNode(Node):
             self.image2_callback, 10)
         
         self.bc_filter1_pub = self.create_publisher(Image,
-            '/processing/image/buoy_color_filter1', 10)
+            '/perception/buoys/buoy_color_filter1', 10)
         self.bc_filter2_pub = self.create_publisher(Image,
-            '/processing/image/buoy_color_filter2', 10)
+            '/perception/buoys/buoy_color_filter2', 10)
     
     def apply_filter(self, img:Image):
         bgr_image = CvBridge().imgmsg_to_cv2(img, desired_encoding='bgr8')

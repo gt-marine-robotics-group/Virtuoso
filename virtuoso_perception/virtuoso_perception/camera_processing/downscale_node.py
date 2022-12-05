@@ -8,15 +8,15 @@ import numpy as np
 class DownScale(Node):
 
     def __init__(self):
-        super().__init__('processing_downscale')
+        super().__init__('perception_downscale')
         self.subscription = self.create_subscription(Image,
             '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.listener_callback, 10) # subscribes to topic for raw camera data
-        self.publisher = self.create_publisher(Image, '/processing/image/downscaled', 10)
+        self.publisher = self.create_publisher(Image, '/perception/image/downscaled', 10)
 
-        self.g1_sub = self.create_subscription(Image, '/processing/image/grayscaled1', 
+        self.g1_sub = self.create_subscription(Image, '/perception/image/grayscaled1', 
             self.g1_callback, 10)
-        self.g2_sub = self.create_subscription(Image, '/processing/image/grayscaled2',
+        self.g2_sub = self.create_subscription(Image, '/perception/image/grayscaled2',
             self.g2_callback, 10)
 
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
@@ -24,13 +24,13 @@ class DownScale(Node):
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
         
-        self.d1_pub = self.create_publisher(Image, '/processing/image/downscaled1', 10)
-        self.d2_pub = self.create_publisher(Image, '/processing/image/downscaled2', 10)
+        self.d1_pub = self.create_publisher(Image, '/perception/image/downscaled1', 10)
+        self.d2_pub = self.create_publisher(Image, '/perception/image/downscaled2', 10)
 
         self.d1_info_pub = self.create_publisher(CameraInfo, 
-            '/processing/image/downscaled1/camera_info', 10)
+            '/perception/image/downscaled1/camera_info', 10)
         self.d2_info_pub = self.create_publisher(CameraInfo, 
-            '/processing/image/downscaled2/camera_info', 10)
+            '/perception/image/downscaled2/camera_info', 10)
     
     def listener_callback(self, msg:Image):
         self.publisher.publish(msg)
