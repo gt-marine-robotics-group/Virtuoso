@@ -19,5 +19,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_processing',
             executable='stereo'
+        ),
+        Node(
+            package='virtuoso_processing',
+            executable='stereo_filter'
         )
     ])
