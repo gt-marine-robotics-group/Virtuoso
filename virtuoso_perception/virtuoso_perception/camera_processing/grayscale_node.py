@@ -14,13 +14,13 @@ class GrayScale(Node):
         #     '/wamv/sensors/cameras/front_left_camera/image_raw',
         #     self.g1_callback, 10) # subscribes to topic for raw camera data
         self.g1_sub = self.create_subscription(Image,
-            '/perception/buoys/buoy_color_filter1', self.g1_callback, 10)
+            '/perception/buoys/buoy_filter1', self.g1_callback, 10)
 
         # self.g2_sub = self.create_subscription(Image,
         #     '/wamv/sensors/cameras/front_right_camera/image_raw',
         #     self.g2_callback, 10)
         self.g2_sub = self.create_subscription(Image,
-            '/perception/buoys/buoy_color_filter2', self.g2_callback, 10)
+            '/perception/buoys/buoy_filter2', self.g2_callback, 10)
 
         self.g1_publisher = self.create_publisher(Image, '/perception/image/grayscaled1', 10)
         self.g2_publisher = self.create_publisher(Image, '/perception/image/grayscaled2', 10)

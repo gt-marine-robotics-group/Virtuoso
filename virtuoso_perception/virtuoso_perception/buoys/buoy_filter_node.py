@@ -19,9 +19,9 @@ class BuoyColorFilterNode(Node):
             self.image2_callback, 10)
         
         self.bc_filter1_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_color_filter1', 10)
+            '/perception/buoys/buoy_filter1', 10)
         self.bc_filter2_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_color_filter2', 10)
+            '/perception/buoys/buoy_filter2', 10)
     
     def apply_filter(self, img:Image):
         bgr_image = CvBridge().imgmsg_to_cv2(img, desired_encoding='bgr8')

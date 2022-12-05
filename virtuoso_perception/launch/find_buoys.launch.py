@@ -31,7 +31,7 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_perception',
-            executable='buoy_color_filter'
+            executable='buoy_filter'
         ),
         Node(
             package='virtuoso_perception',
