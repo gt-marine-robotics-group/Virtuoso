@@ -16,14 +16,10 @@ class BuoyColorFilterNode(Node):
         self.image1_sub = self.create_subscription(Image, 
             '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.image1_callback, 10)
-        # self.image1_sub = self.create_subscription(Image,
-        #     '/perception/image/raw_downscaled1', self.image1_callback, 10)
 
         self.image2_sub = self.create_subscription(Image,
             '/wamv/sensors/cameras/front_right_camera/image_raw',
             self.image2_callback, 10)
-        # self.image2_sub = self.create_subscription(Image,
-        #     '/perception/image/raw_downscaled2', self.image2_callback, 10)
         
         self.bc_filter1_pub = self.create_publisher(Image,
             '/perception/buoys/buoy_filter1', 10)
@@ -34,6 +30,8 @@ class BuoyColorFilterNode(Node):
             '/perception/buoys/buoy_filter/debug/black_white', 10)
         self.full_contours_debug_pub = self.create_publisher(Image,
             '/perception/buoys/buoy_filter/debug/full_contours', 10)
+        self.filtered_contours_debug_pub = self.create_publisher(Image,
+            '/perception/buoys/buoy_filter/debug/filtered_contours', 10)
     
     def contour_filter(self, bgr_img:np.ndarray):
 
@@ -42,6 +40,8 @@ class BuoyColorFilterNode(Node):
         gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
         _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
         contours = find_contours(black_and_white)
+
+        filtered_img = np.zeros(np.shape(black_and_white)).astype('uint8')
 
         self.black_white_debug_pub.publish(CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
         self.full_contours_debug_pub.publish(
@@ -53,6 +53,7 @@ class BuoyColorFilterNode(Node):
 
         filtered = list()
         for i, cnt in enumerate(contours):
+
             area = cv2.contourArea(cnt)
             if area < 100:
                 continue
@@ -61,8 +62,6 @@ class BuoyColorFilterNode(Node):
             blank = np.zeros((img_shape[0], img_shape[1]))
             filled = cv2.drawContours(blank, contours, i, 255, -1)
             
-            ### WILL NOT WORK FOR RED
-
             # get the index of all pixels within the contour
             pts = np.where(filled == 255)
 
@@ -71,8 +70,6 @@ class BuoyColorFilterNode(Node):
 
             for pt in cnt:
                 pt = pt[0]
-                # x_to_y[pt[0]] = pt[1]
-                # y_to_x[pt[1]] = pt[0]
                 if pt[0] in x_to_y:
                     x_to_y[pt[0]].append(pt[1])
                 else:
@@ -84,7 +81,6 @@ class BuoyColorFilterNode(Node):
                     y_to_x[pt[1]] = [pt[0]]
 
             # get the hue of the hsv_img at each index
-            # color = np.array(list(black_and_white[pts[0][i]][pts[1][i]] for i in range(pts[0].size)))
             color = list()
             for i in range(pts[0].size):
                 on_border = False
@@ -110,17 +106,18 @@ class BuoyColorFilterNode(Node):
             if mode.mode[0] != 255:
                 continue
             
-            self.get_logger().info(str(mode.count[0] / len(color)))
-            
             if mode.count[0] / len(color) < .70:
                 continue
             
+            for i in range(pts[0].size):
+                filtered_img[pts[0][i]][pts[1][i]] = 255
+            
             filtered.append(cnt)
         
-        self.get_logger().info(str(len(filtered)))
-        drawn = cv2.drawContours(bgr_img, filtered, -1, (255,0,0), 3)
+        drawn = cv2.drawContours(bgr_img.copy(), filtered, -1, (255,0,0), 3)
+        self.filtered_contours_debug_pub.publish(CvBridge().cv2_to_imgmsg(drawn, encoding='bgr8'))
 
-        return drawn
+        return filtered_img
     
     def apply_filter(self, img:Image):
         bgr_image = CvBridge().imgmsg_to_cv2(img, desired_encoding='bgr8')
@@ -140,7 +137,7 @@ class BuoyColorFilterNode(Node):
 
         contour_filtered = self.contour_filter(combo)
 
-        return CvBridge().cv2_to_imgmsg(contour_filtered, encoding='bgr8')
+        return CvBridge().cv2_to_imgmsg(contour_filtered, encoding='mono8')
     
     def image1_callback(self, msg:Image):
         self.bc_filter1_pub.publish(self.apply_filter(msg))
