@@ -14,17 +14,17 @@ class BuoyColorFilterNode(Node):
         super().__init__('perception_buoy_color_filter')
 
         self.declare_parameters(namespace='', parameters=[
-            ('topic', ''),
+            ('base_topic', ''),
         ])
 
-        base_topic = self.get_parameter('topic').value
+        base_topic = self.get_parameter('base_topic').value
 
         self.image_sub = self.create_subscription(Image, 
             f'{base_topic}/image_raw', self.image_callback, 10)
 
         self.filter_pub = self.create_publisher(Image,
             f'{base_topic}/buoy_filter', 10)
-
+        
         self.black_white_debug_pub = self.create_publisher(Image,
             f'{base_topic}/buoy_filter/debug/black_white', 10)
         self.full_contours_debug_pub = self.create_publisher(Image,
@@ -139,6 +139,7 @@ class BuoyColorFilterNode(Node):
         return CvBridge().cv2_to_imgmsg(contour_filtered, encoding='mono8')
     
     def image_callback(self, msg:Image):
+        self.get_logger().info(f'getting image for {self.get_name()}')
         self.filter_pub.publish(self.apply_filter(msg))
 
 

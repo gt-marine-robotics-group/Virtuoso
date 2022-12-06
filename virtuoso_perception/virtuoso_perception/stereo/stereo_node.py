@@ -20,6 +20,14 @@ class StereoNode(Node):
     def __init__(self):
         super().__init__('perception_stereo')
 
+        self.declare_parameters(namespace='', parameters=[
+            ('base_topics', []),
+            ('frames', [])
+        ])
+
+        base_topics = self.get_parameter('base_topics').value
+        self.frames = self.get_parameter('frames').value
+
         # self.image1_sub = self.create_subscription(Image, '/perception/image/grayscaled1', 
         #     self.image1_callback, 10)
         # self.image1_sub = self.create_subscription(Image, '/perception/image/downscaled1',
@@ -28,10 +36,10 @@ class StereoNode(Node):
         #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
         #     self.image1_callback, 10)
         self.image1_sub = self.create_subscription(Image,
-            '/perception/buoys/buoy_filter1', self.image1_callback, 10)
+            f'{base_topics[0]}/buoy_filter', self.image1_callback, 10)
 
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
-            '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
+            f'{base_topics[0]}/camera_info', self.cam_info1_callback, 10)
         # self.cam_info1_sub = self.create_subscription(CameraInfo, 
         #     '/perception/image/downscaled1/camera_info', self.cam_info1_callback, 10)
         
@@ -43,10 +51,10 @@ class StereoNode(Node):
         #     '/wamv/sensors/cameras/front_right_camera/image_raw',
         #     self.image2_callback, 10)
         self.image2_sub = self.create_subscription(Image,
-            '/perception/buoys/buoy_filter2', self.image2_callback, 10)
+            f'{base_topics[1]}/buoy_filter', self.image2_callback, 10)
 
         self.cam_info2_sub = self.create_subscription(CameraInfo,
-            '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
+            f'{base_topics[1]}/camera_info', self.cam_info2_callback, 10)
         # self.cam_info2_sub = self.create_subscription(CameraInfo,
         #     '/perception/image/downscaled2/camera_info', self.cam_info2_callback, 10)
         
@@ -89,8 +97,8 @@ class StereoNode(Node):
         trans:TransformStamped = None
         try:
             trans = self.tf_buffer.lookup_transform(
-                'wamv/front_left_camera_link_optical',
-                'wamv/front_right_camera_link_optical',
+                self.frames[0],
+                self.frames[1],
                 Time()
             )
         except:

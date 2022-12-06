@@ -1,8 +1,8 @@
 
 camera_config:
-  bow_camera_topics: [
+  bow_camera_base_topics: [
       "/wamv/sensors/cameras/front_left_camera",
-      "/wamv/sensors/camera/front_right_camera"
+      "/wamv/sensors/cameras/front_right_camera"
     ]
   bow_camera_frames: [
     "wamv/front_left_camera_link_optical",

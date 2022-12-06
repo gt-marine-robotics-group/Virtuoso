@@ -44,14 +44,14 @@ def generate_launch_description():
         )
     )
 
-    for topic in camera_data['camera_config']['bow_camera_topics']:
+    for topic in camera_data['camera_config']['bow_camera_base_topics']:
         ld.append(
             Node(
                 package='virtuoso_perception',
                 executable='buoy_filter',
                 name=f'perception_buoy_filter_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
-                    {'topic': topic}
+                    {'base_topic': topic}
                 ]
             )
         )
@@ -73,7 +73,11 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='stereo'
+            executable='stereo',
+            parameters=[
+                {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
+                {'frames': camera_data['camera_config']['bow_camera_frames']}
+            ]
         )
     )
 
