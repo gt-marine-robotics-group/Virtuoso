@@ -4,6 +4,8 @@ from virtuoso_perception.utils.ColorFilter import ColorFilter
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
+from ..utils.code_identification import find_contours
+import numpy as np
 
 class BuoyColorFilterNode(Node):
 
@@ -22,6 +24,68 @@ class BuoyColorFilterNode(Node):
             '/perception/buoys/buoy_filter1', 10)
         self.bc_filter2_pub = self.create_publisher(Image,
             '/perception/buoys/buoy_filter2', 10)
+
+        self.black_white_debug_pub = self.create_publisher(Image,
+            '/perception/buoys/buoy_filter/debug/black_white', 10)
+        self.full_contours_debug_pub = self.create_publisher(Image,
+            '/perception/buoys/buoy_filter/debug/full_contours', 10)
+    
+    def contour_filter(self, bgr_img:np.ndarray):
+        # hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
+        # contours = find_contours(hsv_img)
+
+        img_shape = np.shape(bgr_img)
+
+        gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
+        _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+        self.get_logger().info(str(np.shape(black_and_white)))
+        contours = find_contours(black_and_white)
+
+        self.black_white_debug_pub.publish(CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
+        self.full_contours_debug_pub.publish(
+            CvBridge().cv2_to_imgmsg(cv2.drawContours(
+                    bgr_img.copy(), contours, -1, (255,0,0), 1
+                ),
+                encoding='bgr8')
+        )
+
+        filtered = list()
+        for i, cnt in enumerate(contours):
+            area = cv2.contourArea(cnt)
+            if area < 1000:
+                continue
+
+            # create image with specific contour filled in
+            blank = np.zeros((img_shape[0], img_shape[1]))
+            filled = cv2.drawContours(blank, contours, i, 255, -1)
+            
+            ### WILL NOT WORK FOR RED
+
+            # get the index of all pixels within the contour
+            pts = np.where(filled == 255)
+            # self.get_logger().info(str(np.shape(pts)))
+            # self.get_logger().info(str(np.shape(hsv_img)))
+            # self.get_logger().info(str(hsv_img[0][0][0]))
+
+            # get the hue of the hsv_img at each index
+            # hues = np.array(list(hsv_img[pts[0][i]][pts[1][i]][0] for i in range(pts[0].size)))
+            color = np.array(list(black_and_white[pts[0][i]][pts[1][i]] for i in range(pts[0].size)))
+            # self.get_logger().info(str(hues))
+            # self.get_logger().info(str(color))
+
+            std_deviation = np.std(color)
+
+            self.get_logger().info(str(std_deviation))
+
+            if std_deviation > 80:
+                continue
+            
+            filtered.append(cnt)
+        
+        self.get_logger().info(str(len(filtered)))
+        drawn = cv2.drawContours(bgr_img, filtered, -1, (255,0,0), 3)
+
+        return drawn
     
     def apply_filter(self, img:Image):
         bgr_image = CvBridge().imgmsg_to_cv2(img, desired_encoding='bgr8')
@@ -30,7 +94,7 @@ class BuoyColorFilterNode(Node):
 
         red_filtered = self.color_filter.red_orange_filter(hsv_lower1=[0,50,50], 
             hsv_upper1=[10,255,255], hsv_lower2=[160,50,50], hsv_upper2=[180,255,255])
-        green_filtered = self.color_filter.green_filter()
+        green_filtered = self.color_filter.green_filter(hsv_lower=[50,50,30])
         black_filtered = self.color_filter.black_filter()
         yellow_filtered = self.color_filter.yellow_filter()
 
@@ -39,7 +103,9 @@ class BuoyColorFilterNode(Node):
             black_filtered 
         )
 
-        return CvBridge().cv2_to_imgmsg(combo, encoding='bgr8')
+        contour_filtered = self.contour_filter(combo)
+
+        return CvBridge().cv2_to_imgmsg(contour_filtered, encoding='bgr8')
     
     def image1_callback(self, msg:Image):
         self.bc_filter1_pub.publish(self.apply_filter(msg))
