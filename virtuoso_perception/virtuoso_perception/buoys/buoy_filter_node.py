@@ -13,25 +13,24 @@ class BuoyColorFilterNode(Node):
     def __init__(self):
         super().__init__('perception_buoy_color_filter')
 
-        self.image1_sub = self.create_subscription(Image, 
-            '/wamv/sensors/cameras/front_left_camera/image_raw', 
-            self.image1_callback, 10)
+        self.declare_parameters(namespace='', parameters=[
+            ('topic', ''),
+        ])
 
-        self.image2_sub = self.create_subscription(Image,
-            '/wamv/sensors/cameras/front_right_camera/image_raw',
-            self.image2_callback, 10)
-        
-        self.bc_filter1_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_filter1', 10)
-        self.bc_filter2_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_filter2', 10)
+        base_topic = self.get_parameter('topic').value
+
+        self.image_sub = self.create_subscription(Image, 
+            f'{base_topic}/image_raw', self.image_callback, 10)
+
+        self.filter_pub = self.create_publisher(Image,
+            f'{base_topic}/buoy_filter', 10)
 
         self.black_white_debug_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_filter/debug/black_white', 10)
+            f'{base_topic}/buoy_filter/debug/black_white', 10)
         self.full_contours_debug_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_filter/debug/full_contours', 10)
+            f'{base_topic}/buoy_filter/debug/full_contours', 10)
         self.filtered_contours_debug_pub = self.create_publisher(Image,
-            '/perception/buoys/buoy_filter/debug/filtered_contours', 10)
+            f'{base_topic}/buoy_filter/debug/filtered_contours', 10)
     
     def contour_filter(self, bgr_img:np.ndarray):
 
@@ -139,11 +138,8 @@ class BuoyColorFilterNode(Node):
 
         return CvBridge().cv2_to_imgmsg(contour_filtered, encoding='mono8')
     
-    def image1_callback(self, msg:Image):
-        self.bc_filter1_pub.publish(self.apply_filter(msg))
-    
-    def image2_callback(self, msg:Image):
-        self.bc_filter2_pub.publish(self.apply_filter(msg))
+    def image_callback(self, msg:Image):
+        self.filter_pub.publish(self.apply_filter(msg))
 
 
 def main(args=None):
