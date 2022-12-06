@@ -24,7 +24,7 @@ class StereoMatcherSGBM(cv2.StereoSGBM):
         # )
         self.matcher = cv2.StereoBM_create(
             numDisparities=64,
-            blockSize=17
+            blockSize=51
         )
         self.matcher.setSpeckleWindowSize(10)
     
