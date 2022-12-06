@@ -1,6 +1,6 @@
 
 # All the contour points flattened into a 1d array
-int32[] points
+int32[] contour_points
 
 # Offet for start of each contour in points array
 int32[] contour_offsets
