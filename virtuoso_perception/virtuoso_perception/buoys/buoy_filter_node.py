@@ -31,14 +31,11 @@ class BuoyColorFilterNode(Node):
             '/perception/buoys/buoy_filter/debug/full_contours', 10)
     
     def contour_filter(self, bgr_img:np.ndarray):
-        # hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
-        # contours = find_contours(hsv_img)
 
         img_shape = np.shape(bgr_img)
 
         gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
         _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
-        self.get_logger().info(str(np.shape(black_and_white)))
         contours = find_contours(black_and_white)
 
         self.black_white_debug_pub.publish(CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
@@ -63,15 +60,45 @@ class BuoyColorFilterNode(Node):
 
             # get the index of all pixels within the contour
             pts = np.where(filled == 255)
-            # self.get_logger().info(str(np.shape(pts)))
-            # self.get_logger().info(str(np.shape(hsv_img)))
-            # self.get_logger().info(str(hsv_img[0][0][0]))
+
+            x_to_y = dict()
+            y_to_x = dict()
+
+            for pt in cnt:
+                pt = pt[0]
+                # x_to_y[pt[0]] = pt[1]
+                # y_to_x[pt[1]] = pt[0]
+                if pt[0] in x_to_y:
+                    x_to_y[pt[0]].append(pt[1])
+                else:
+                    x_to_y[pt[0]] = [pt[1]]
+                
+                if pt[1] in y_to_x:
+                    y_to_x[pt[1]].append(pt[0])
+                else:
+                    y_to_x[pt[1]] = [pt[0]]
 
             # get the hue of the hsv_img at each index
-            # hues = np.array(list(hsv_img[pts[0][i]][pts[1][i]][0] for i in range(pts[0].size)))
-            color = np.array(list(black_and_white[pts[0][i]][pts[1][i]] for i in range(pts[0].size)))
-            # self.get_logger().info(str(hues))
-            # self.get_logger().info(str(color))
+            # color = np.array(list(black_and_white[pts[0][i]][pts[1][i]] for i in range(pts[0].size)))
+            color = list()
+            for i in range(pts[0].size):
+                on_border = False
+
+                if pts[0][i] in x_to_y:
+                    for pt in x_to_y[pts[0][i]]:
+                        if abs(pt - pts[1][i]) < 3:
+                            on_border = True
+                            break
+                if on_border: continue
+
+                if pts[1][i] in y_to_x:
+                    for pt in y_to_x[pts[1][i]]:
+                        if abs(pt - pts[0][i]) < 3:
+                            on_border = True
+                            break
+                if on_border: continue
+
+                color.append(black_and_white[pts[0][i]][pts[1][i]])
 
             std_deviation = np.std(color)
 
