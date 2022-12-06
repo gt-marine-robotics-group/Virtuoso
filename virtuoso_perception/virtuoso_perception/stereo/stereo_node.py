@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image, CameraInfo
+from sensor_msgs.msg import Image, CameraInfo, CompressedImage
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -14,6 +14,7 @@ from .stereo_matcher import StereoMatcherSGBM
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
+from virtuoso_msgs.msg import BuoyFilteredImage
 
 class StereoNode(Node):
 
@@ -35,8 +36,10 @@ class StereoNode(Node):
         # self.image1_sub = self.create_subscription(Image, 
         #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
         #     self.image1_callback, 10)
-        self.image1_sub = self.create_subscription(Image,
-            f'{base_topics[0]}/buoy_filter', self.image1_callback, 10)
+        # self.image1_sub = self.create_subscription(Image,
+        #     f'{base_topics[0]}/buoy_filter', self.image1_callback, 10)
+        self.filtered1_sub = self.create_subscription(BuoyFilteredImage,
+            f'{base_topics[0]}/buoy_filter', self.filtered1_callback, 10)
 
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             f'{base_topics[0]}/camera_info', self.cam_info1_callback, 10)
@@ -50,8 +53,10 @@ class StereoNode(Node):
         # self.image2_sub = self.create_subscription(Image,
         #     '/wamv/sensors/cameras/front_right_camera/image_raw',
         #     self.image2_callback, 10)
-        self.image2_sub = self.create_subscription(Image,
-            f'{base_topics[1]}/buoy_filter', self.image2_callback, 10)
+        # self.image2_sub = self.create_subscription(Image,
+        #     f'{base_topics[1]}/buoy_filter', self.image2_callback, 10)
+        self.filtered2_sub = self.create_subscription(BuoyFilteredImage,
+            f'{base_topics[1]}/buoy_filter', self.filtered2_callback, 10)
 
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             f'{base_topics[1]}/camera_info', self.cam_info2_callback, 10)
@@ -59,13 +64,17 @@ class StereoNode(Node):
         #     '/perception/image/downscaled2/camera_info', self.cam_info2_callback, 10)
         
         self.debug_image_pub = self.create_publisher(Image, '/perception/stereo/debug', 10)
+        self.debug_received_compressed_pub = self.create_publisher(Image,
+            '/perception/stereo/debug/received_compressed', 10)
 
         self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
 
-        self.image1:Image = None 
+        # self.image1:Image = None 
+        self.buoy_filtered1:BuoyFilteredImage = None
         self.cam_info1:CameraInfo = None
 
-        self.image2:Image = None
+        # self.image2:Image = None
+        self.buoy_filtered2:BuoyFilteredImage = None
         self.cam_info2:CameraInfo = None
 
         self.rect_map1 = None
@@ -81,14 +90,14 @@ class StereoNode(Node):
 
         self.create_timer(1.0, self.execute)
     
-    def image1_callback(self, msg:Image):
-        self.image1 = msg
+    def filtered1_callback(self, msg:BuoyFilteredImage):
+        self.buoy_filtered1 = msg
     
     def cam_info1_callback(self, msg:CameraInfo):
         self.cam_info1 = msg
     
-    def image2_callback(self, msg:Image):
-        self.image2 = msg
+    def filtered2_callback(self, msg:BuoyFilteredImage):
+        self.buoy_filtered2 = msg
     
     def cam_info2_callback(self, msg:CameraInfo):
         self.cam_info2 = msg
@@ -165,14 +174,16 @@ class StereoNode(Node):
         if self.stop:
             return
 
-        if (self.image1 is None or self.cam_info1 is None 
-            or self.image2 is None or self.cam_info2 is None):
+        if (self.buoy_filtered1 is None or self.cam_info1 is None 
+            or self.buoy_filtered2 is None or self.cam_info2 is None):
             self.get_logger().info('something is none')
             return
         
+        self.debug_received_compressed_pub.publish(self.buoy_filtered1.image)
+        
         try:
-            bgr_image1 = CvBridge().imgmsg_to_cv2(self.image1, desired_encoding='mono8')
-            bgr_image2 = CvBridge().imgmsg_to_cv2(self.image2, desired_encoding='mono8')
+            mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
+            mono_image2 = CvBridge().imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
         except:
             self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
             return
@@ -184,8 +195,8 @@ class StereoNode(Node):
         self.get_logger().info('got rect maps')
         
         try:
-            img_rect1 = cv2.remap(bgr_image1, *self.rect_map1, cv2.INTER_LANCZOS4)
-            img_rect2 = cv2.remap(bgr_image2, *self.rect_map2, cv2.INTER_LANCZOS4)
+            img_rect1 = cv2.remap(mono_image1, *self.rect_map1, cv2.INTER_LANCZOS4)
+            img_rect2 = cv2.remap(mono_image2, *self.rect_map2, cv2.INTER_LANCZOS4)
         except:
             self.get_logger().info('REMAPPING ERROR')
             return

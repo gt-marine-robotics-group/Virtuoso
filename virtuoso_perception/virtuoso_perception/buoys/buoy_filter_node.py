@@ -190,7 +190,7 @@ class BuoyColorFilterNode(Node):
         filtered_img, contours, colors, contour_offsets = self.contour_filter(combo)
 
         msg = BuoyFilteredImage()
-        msg.image = CvBridge().cv2_to_compressed_imgmsg(filtered_img)
+        msg.image = CvBridge().cv2_to_imgmsg(filtered_img, encoding='mono8')
         msg.contour_points = contours
         msg.contour_offsets = contour_offsets
         msg.contour_colors = colors

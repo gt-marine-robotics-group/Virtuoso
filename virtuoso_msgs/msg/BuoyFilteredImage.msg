@@ -10,4 +10,4 @@ int32[] contour_offsets
 string[] contour_colors
 
 # Grayscale image
-sensor_msgs/CompressedImage image
+sensor_msgs/Image image
