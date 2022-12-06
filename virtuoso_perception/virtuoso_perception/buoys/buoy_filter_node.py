@@ -16,10 +16,14 @@ class BuoyColorFilterNode(Node):
         self.image1_sub = self.create_subscription(Image, 
             '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.image1_callback, 10)
+        # self.image1_sub = self.create_subscription(Image,
+        #     '/perception/image/raw_downscaled1', self.image1_callback, 10)
 
         self.image2_sub = self.create_subscription(Image,
             '/wamv/sensors/cameras/front_right_camera/image_raw',
             self.image2_callback, 10)
+        # self.image2_sub = self.create_subscription(Image,
+        #     '/perception/image/raw_downscaled2', self.image2_callback, 10)
         
         self.bc_filter1_pub = self.create_publisher(Image,
             '/perception/buoys/buoy_filter1', 10)
@@ -50,7 +54,7 @@ class BuoyColorFilterNode(Node):
         filtered = list()
         for i, cnt in enumerate(contours):
             area = cv2.contourArea(cnt)
-            if area < 1000:
+            if area < 100:
                 continue
 
             # create image with specific contour filled in
@@ -87,14 +91,14 @@ class BuoyColorFilterNode(Node):
 
                 if pts[0][i] in x_to_y:
                     for pt in x_to_y[pts[0][i]]:
-                        if abs(pt - pts[1][i]) < 20:
+                        if abs(pt - pts[1][i]) < 5:
                             on_border = True
                             break
                 if on_border: continue
 
                 if pts[1][i] in y_to_x:
                     for pt in y_to_x[pts[1][i]]:
-                        if abs(pt - pts[0][i]) < 20:
+                        if abs(pt - pts[0][i]) < 5:
                             on_border = True
                             break
                 if on_border: continue
@@ -108,7 +112,7 @@ class BuoyColorFilterNode(Node):
             
             self.get_logger().info(str(mode.count[0] / len(color)))
             
-            if mode.count[0] / len(color) < .75:
+            if mode.count[0] / len(color) < .70:
                 continue
             
             filtered.append(cnt)
