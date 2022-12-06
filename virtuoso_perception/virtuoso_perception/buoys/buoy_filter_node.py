@@ -6,6 +6,7 @@ from cv_bridge import CvBridge
 import cv2
 from ..utils.code_identification import find_contours
 import numpy as np
+from scipy import stats
 
 class BuoyColorFilterNode(Node):
 
@@ -100,11 +101,14 @@ class BuoyColorFilterNode(Node):
 
                 color.append(black_and_white[pts[0][i]][pts[1][i]])
 
-            std_deviation = np.std(color)
+            mode = stats.mode(color)
 
-            self.get_logger().info(str(std_deviation))
-
-            if std_deviation > 80:
+            if mode.mode[0] != 255:
+                continue
+            
+            self.get_logger().info(str(mode.count[0] / len(color)))
+            
+            if mode.count[0] / len(color) < .75:
                 continue
             
             filtered.append(cnt)
