@@ -7,8 +7,17 @@ import cv2
 from ..utils.code_identification import find_contours
 import numpy as np
 from scipy import stats
+import random
 
 class BuoyColorFilterNode(Node):
+
+    color_ranges = {
+        'red': [[[0,50,50], [10, 255, 255]], 
+            [[160, 50, 50], [180, 255, 255]]],
+        'green': [[[50, 50, 20], [86, 255, 255]]],
+        'yellow': [[[20, 100, 100], [30, 255, 255]]],
+        'black': [[[0, 0, 255], [255, 255, 255]]]
+    }
 
     def __init__(self):
         super().__init__('perception_buoy_color_filter')
@@ -32,6 +41,18 @@ class BuoyColorFilterNode(Node):
         self.filtered_contours_debug_pub = self.create_publisher(Image,
             f'{base_topic}/buoy_filter/debug/filtered_contours', 10)
     
+    def pixel_color(self, pixel:np.ndarray):
+
+        for color, ranges in self.color_ranges.items():
+            for r in ranges: # usually 1 iteration (2 for red)
+                for i in range(len(r)): # always 3 iterations
+                    if (pixel[i] < r[0][i] or pixel[i] > r[1][i]):
+                        break
+                else: # if we never break (i.e. this is the pixel's color)
+                    return color
+        
+        return None
+    
     def contour_filter(self, bgr_img:np.ndarray):
 
         img_shape = np.shape(bgr_img)
@@ -49,6 +70,8 @@ class BuoyColorFilterNode(Node):
                 ),
                 encoding='bgr8')
         )
+
+        hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
 
         filtered = list()
         for i, cnt in enumerate(contours):
@@ -79,8 +102,14 @@ class BuoyColorFilterNode(Node):
                 else:
                     y_to_x[pt[1]] = [pt[0]]
 
-            # get the hue of the hsv_img at each index
-            color = list()
+            # determine whether pixel is or isn't filtered out
+            binary_pixels = list()
+            colors = {
+                'red': 0,
+                'green': 0,
+                'yellow': 0,
+                'black': 0 
+            }
             for i in range(pts[0].size):
                 on_border = False
 
@@ -98,18 +127,25 @@ class BuoyColorFilterNode(Node):
                             break
                 if on_border: continue
 
-                color.append(black_and_white[pts[0][i]][pts[1][i]])
+                if random.randint(0, 9) == 5: # 1/10 chance
+                    color = self.pixel_color(hsv_img[pts[0][i]][pts[1][i]])
+                    if not color is None:
+                        colors[color] += 1
 
-            mode = stats.mode(color)
+                binary_pixels.append(black_and_white[pts[0][i]][pts[1][i]])
+
+            mode = stats.mode(binary_pixels)
 
             if mode.mode[0] != 255:
                 continue
             
-            if mode.count[0] / len(color) < .70:
+            if mode.count[0] / len(binary_pixels) < .70:
                 continue
             
             for i in range(pts[0].size):
                 filtered_img[pts[0][i]][pts[1][i]] = 255
+            
+            self.get_logger().info(str(colors))
             
             filtered.append(cnt)
         
