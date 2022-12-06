@@ -86,14 +86,14 @@ class BuoyColorFilterNode(Node):
 
                 if pts[0][i] in x_to_y:
                     for pt in x_to_y[pts[0][i]]:
-                        if abs(pt - pts[1][i]) < 3:
+                        if abs(pt - pts[1][i]) < 20:
                             on_border = True
                             break
                 if on_border: continue
 
                 if pts[1][i] in y_to_x:
                     for pt in y_to_x[pts[1][i]]:
-                        if abs(pt - pts[0][i]) < 3:
+                        if abs(pt - pts[0][i]) < 20:
                             on_border = True
                             break
                 if on_border: continue
@@ -121,7 +121,7 @@ class BuoyColorFilterNode(Node):
 
         red_filtered = self.color_filter.red_orange_filter(hsv_lower1=[0,50,50], 
             hsv_upper1=[10,255,255], hsv_lower2=[160,50,50], hsv_upper2=[180,255,255])
-        green_filtered = self.color_filter.green_filter(hsv_lower=[50,50,30])
+        green_filtered = self.color_filter.green_filter(hsv_lower=[50,50,20])
         black_filtered = self.color_filter.black_filter()
         yellow_filtered = self.color_filter.yellow_filter()
 
