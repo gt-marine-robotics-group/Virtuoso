@@ -22,29 +22,33 @@ class StereoNode(Node):
 
         # self.image1_sub = self.create_subscription(Image, '/perception/image/grayscaled1', 
         #     self.image1_callback, 10)
-        self.image1_sub = self.create_subscription(Image, '/perception/image/downscaled1',
-            self.image1_callback, 10)
+        # self.image1_sub = self.create_subscription(Image, '/perception/image/downscaled1',
+        #     self.image1_callback, 10)
         # self.image1_sub = self.create_subscription(Image, 
         #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
         #     self.image1_callback, 10)
+        self.image1_sub = self.create_subscription(Image,
+            '/perception/buoys/buoy_filter1', self.image1_callback, 10)
 
-        # self.cam_info1_sub = self.create_subscription(CameraInfo, 
-        #     '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
-            '/perception/image/downscaled1/camera_info', self.cam_info1_callback, 10)
+            '/wamv/sensors/cameras/front_left_camera/camera_info', self.cam_info1_callback, 10)
+        # self.cam_info1_sub = self.create_subscription(CameraInfo, 
+        #     '/perception/image/downscaled1/camera_info', self.cam_info1_callback, 10)
         
         # self.image2_sub = self.create_subscription(Image, '/perception/image/grayscaled2',
         #     self.image2_callback, 10)
-        self.image2_sub = self.create_subscription(Image, '/perception/image/downscaled2',
-            self.image2_callback, 10)
+        # self.image2_sub = self.create_subscription(Image, '/perception/image/downscaled2',
+        #     self.image2_callback, 10)
         # self.image2_sub = self.create_subscription(Image,
         #     '/wamv/sensors/cameras/front_right_camera/image_raw',
         #     self.image2_callback, 10)
+        self.image2_sub = self.create_subscription(Image,
+            '/perception/buoys/buoy_filter2', self.image2_callback, 10)
 
-        # self.cam_info2_sub = self.create_subscription(CameraInfo,
-        #     '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
         self.cam_info2_sub = self.create_subscription(CameraInfo,
-            '/perception/image/downscaled2/camera_info', self.cam_info2_callback, 10)
+            '/wamv/sensors/cameras/front_right_camera/camera_info', self.cam_info2_callback, 10)
+        # self.cam_info2_sub = self.create_subscription(CameraInfo,
+        #     '/perception/image/downscaled2/camera_info', self.cam_info2_callback, 10)
         
         self.debug_image_pub = self.create_publisher(Image, '/perception/stereo/debug', 10)
 
