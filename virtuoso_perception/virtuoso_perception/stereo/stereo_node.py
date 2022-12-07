@@ -61,11 +61,31 @@ class StereoNode(Node):
 
         self.stop = False
         
-        self.matcher = cv2.StereoBM_create(
-            numDisparities=64,
-            blockSize=51
+        # self.matcher = cv2.StereoBM_create(
+        #     numDisparities=64,
+        #     blockSize=51
+        # )
+        window_size = 15
+        self.matcher = cv2.StereoSGBM_create(
+            # minDisparity=0,
+            # numDisparities=64,
+            # speckleWindowSize=10,
+            # speckleRange=1,
+            # disp12MaxDiff=1,
+            # uniquenessRatio=5
+
+            blockSize=window_size,
+            P1=9 * 3 * window_size,
+            # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
+            P2=128 * 3 * window_size,
+            disp12MaxDiff=12,
+            uniquenessRatio=40,
+            speckleWindowSize=50,
+            speckleRange=32,
+            preFilterCap=63,
+            mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
         )
-        self.matcher.setSpeckleWindowSize(10)
+        # self.matcher.setSpeckleWindowSize(10)
 
         self.create_timer(1.0, self.execute)
     
@@ -181,6 +201,7 @@ class StereoNode(Node):
 
         try:
             disparity = self.matcher.compute(img_rect1, img_rect2).astype(np.float32) / 16.0
+            # disparity = self.matcher.compute(mono_image1, mono_image2).astype(np.float32) / 16.0
         except:
             self.get_logger().info('DISPARITY ERROR')
             return
