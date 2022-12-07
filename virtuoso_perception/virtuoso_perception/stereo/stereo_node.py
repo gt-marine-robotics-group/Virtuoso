@@ -10,7 +10,6 @@ from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from geometry_msgs.msg import Pose, Point, Quaternion, TransformStamped
 from scipy.spatial.transform import Rotation
-from .stereo_matcher import StereoMatcherSGBM
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
@@ -29,43 +28,19 @@ class StereoNode(Node):
         base_topics = self.get_parameter('base_topics').value
         self.frames = self.get_parameter('frames').value
 
-        # self.image1_sub = self.create_subscription(Image, '/perception/image/grayscaled1', 
-        #     self.image1_callback, 10)
-        # self.image1_sub = self.create_subscription(Image, '/perception/image/downscaled1',
-        #     self.image1_callback, 10)
-        # self.image1_sub = self.create_subscription(Image, 
-        #     '/wamv/sensors/cameras/front_left_camera/image_raw', 
-        #     self.image1_callback, 10)
-        # self.image1_sub = self.create_subscription(Image,
-        #     f'{base_topics[0]}/buoy_filter', self.image1_callback, 10)
         self.filtered1_sub = self.create_subscription(BuoyFilteredImage,
             f'{base_topics[0]}/buoy_filter', self.filtered1_callback, 10)
-
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             f'{base_topics[0]}/camera_info', self.cam_info1_callback, 10)
-        # self.cam_info1_sub = self.create_subscription(CameraInfo, 
-        #     '/perception/image/downscaled1/camera_info', self.cam_info1_callback, 10)
         
-        # self.image2_sub = self.create_subscription(Image, '/perception/image/grayscaled2',
-        #     self.image2_callback, 10)
-        # self.image2_sub = self.create_subscription(Image, '/perception/image/downscaled2',
-        #     self.image2_callback, 10)
-        # self.image2_sub = self.create_subscription(Image,
-        #     '/wamv/sensors/cameras/front_right_camera/image_raw',
-        #     self.image2_callback, 10)
-        # self.image2_sub = self.create_subscription(Image,
-        #     f'{base_topics[1]}/buoy_filter', self.image2_callback, 10)
         self.filtered2_sub = self.create_subscription(BuoyFilteredImage,
             f'{base_topics[1]}/buoy_filter', self.filtered2_callback, 10)
-
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             f'{base_topics[1]}/camera_info', self.cam_info2_callback, 10)
-        # self.cam_info2_sub = self.create_subscription(CameraInfo,
-        #     '/perception/image/downscaled2/camera_info', self.cam_info2_callback, 10)
         
         self.debug_image_pub = self.create_publisher(Image, '/perception/stereo/debug', 10)
-        self.debug_received_compressed_pub = self.create_publisher(Image,
-            '/perception/stereo/debug/received_compressed', 10)
+        self.debug_received_img_pub = self.create_publisher(Image,
+            '/perception/stereo/debug/received_img', 10)
 
         self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
 
@@ -86,7 +61,11 @@ class StereoNode(Node):
 
         self.stop = False
         
-        self.matcher = StereoMatcherSGBM(self)
+        self.matcher = cv2.StereoBM_create(
+            numDisparities=64,
+            blockSize=51
+        )
+        self.matcher.setSpeckleWindowSize(10)
 
         self.create_timer(1.0, self.execute)
     
@@ -154,8 +133,6 @@ class StereoNode(Node):
         c2_trans = np.array([float(c2_pose.position.x), float(c2_pose.position.y),
             float(c2_pose.position.z)])
         
-        # self.get_logger().info(str(c2_trans))
-
         R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(c1_matrix, c1_distortion,
             c2_matrix, c2_distortion, image_size, c2_rodrigues, c2_trans,
             cv2.CALIB_ZERO_DISPARITY)
@@ -179,7 +156,7 @@ class StereoNode(Node):
             self.get_logger().info('something is none')
             return
         
-        self.debug_received_compressed_pub.publish(self.buoy_filtered1.image)
+        self.debug_received_img_pub.publish(self.buoy_filtered1.image)
         
         try:
             mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
@@ -203,17 +180,13 @@ class StereoNode(Node):
         self.get_logger().info('got image rects')
 
         try:
-            disparity = self.matcher.match(img_rect1, img_rect2)
-            # disparity = matcher.match(cv2.cvtColor(img_rect1, cv2.COLOR_BGR2GRAY),
-            #     cv2.cvtColor(img_rect2, cv2.COLOR_BGR2GRAY))
+            disparity = self.matcher.compute(img_rect1, img_rect2).astype(np.float32) / 16.0
         except:
             self.get_logger().info('DISPARITY ERROR')
             return
         self.get_logger().info('got disparity')
 
         self.pub_debug(disparity)
-        # cv2.imshow('depth', disparity)
-        # cv2.waitKey(0)
 
         try:
             pointcloud = cv2.reprojectImageTo3D(disparity, self.Q)

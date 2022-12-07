@@ -157,15 +157,11 @@ class BuoyColorFilterNode(Node):
             for i in range(pts[0].size):
                 filtered_img[pts[0][i]][pts[1][i]] = 255
             
-            self.get_logger().info(str(colors))
-            
             filtered_contour_offsets.append(len(filtered_contours))
             filtered_contours.extend(int(p) for pt in cnt for p in pt[0])
             filtered_contour_colors.append(self.dominant_color(colors))
             filtered.append(cnt)
 
-            self.get_logger().info(str(filtered_contours))
-        
         drawn = cv2.drawContours(bgr_img.copy(), filtered, -1, (255,0,0), 3)
         self.filtered_contours_debug_pub.publish(CvBridge().cv2_to_imgmsg(drawn, encoding='bgr8'))
 
@@ -200,7 +196,6 @@ class BuoyColorFilterNode(Node):
         # return CvBridge().cv2_to_imgmsg(contour_filtered, encoding='mono8')
     
     def image_callback(self, msg:Image):
-        self.get_logger().info(f'getting image for {self.get_name()}')
         self.filter_pub.publish(self.apply_filter(msg))
 
 
