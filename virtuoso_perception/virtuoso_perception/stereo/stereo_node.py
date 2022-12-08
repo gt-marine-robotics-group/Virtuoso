@@ -219,12 +219,31 @@ class StereoNode(Node):
         
         return contours
     
-    def find_cam_x_angle(self, point:tuple, f:float, center:tuple):
-        # if point
-        pass
+    def find_left_cam_x_angle(self, point:tuple, f:float, center:tuple):
+        if point[1] > center[1]:
+            return math.atan(f / (point[1] - center[1]))
+
+        if point[1] < center[1]:
+            return math.atan((center[1] - point[1]) / f) + (math.pi / 2)
+
+        return math.pi / 2
     
+    def find_right_cam_x_angle(self, point:tuple, f:float, center:tuple):
+        if point[1] > center[1]:
+            return math.atan((point[1] - center[1]) / f) + (math.pi / 2)
+        
+        if point[1] < center[1]:
+            return math.atan(f / (center[1] - point[1]))
+        
+        return math.pi / 2
+    
+    # fx1 and fx2 should be the same
     def find_object_robot_y(self, mid1:tuple, mid2:tuple, fx1:float, fx2:float, center:tuple):
-        pass
+        left_x_theta = self.find_left_cam_x_angle(mid1, fx1, center)
+        right_x_theta = self.find_right_cam_x_angle(mid2, fx2, center)
+
+        self.get_logger().info(f'left theta: {left_x_theta * 180 / math.pi}')
+        self.get_logger().info(f'right theta: {right_x_theta * 180 / math.pi}')
     
     def execute(self):
         self.get_logger().info('executing')
@@ -328,6 +347,12 @@ class StereoNode(Node):
         )
 
         self.get_logger().info(f'midpoints: {midpoints}')
+
+        center = (
+            len(img_rect1) // 2, len(img_rect1[0]) // 2
+        )
+        self.find_object_robot_y(midpoints[0], midpoints[1], 
+            self.cam_info1.k[0], self.cam_info2.k[0], center)
 
         # img_rect1[midpoints[0][0], midpoints[0][1]] = 255
         # img_rect2[midpoints[1][0], midpoints[1][1]] = 255
