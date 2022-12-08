@@ -299,6 +299,31 @@ class StereoNode(Node):
             return
         self.get_logger().info('got image rects')
 
+        midpoints_indexes = [
+            np.where(img_rect1 == 255),
+            np.where(img_rect2 == 255)
+        ]
+
+        midpoint_counters = list(
+            {'x-sum': 0, 'x-count': indexes[0].size, 'y-sum': 0, 'y-count': indexes[1].size} 
+            for indexes in midpoints_indexes
+        )
+
+        for i in range(len(midpoints_indexes)):
+            for j in range(midpoints_indexes[i][0].size):
+                midpoint_counters[i]['x-sum'] += midpoints_indexes[i][0][j]
+                midpoint_counters[i]['y-sum'] += midpoints_indexes[i][1][j]
+
+        midpoints = list(
+            (counter['x-sum'] // counter['x-count'], counter['y-sum'] // counter['y-count'])
+            for counter in midpoint_counters
+        )
+
+        self.get_logger().info(f'midpoints: {midpoints}')
+
+        img_rect1[midpoints[0][0], midpoints[0][1]] = 255
+        img_rect2[midpoints[1][0], midpoints[1][1]] = 255
+
         self.debug_rectified_cam1_pub[0].publish(
             self.cv_bridge.cv2_to_imgmsg(img_rect1, encoding='mono8')
         )
