@@ -238,12 +238,24 @@ class StereoNode(Node):
         return math.pi / 2
     
     # fx1 and fx2 should be the same
-    def find_object_robot_y(self, mid1:tuple, mid2:tuple, fx1:float, fx2:float, center:tuple):
+    def find_object_xy(self, mid1:tuple, mid2:tuple, fx1:float, fx2:float, center:tuple,
+        cam_separation=0.2):
         left_x_theta = self.find_left_cam_x_angle(mid1, fx1, center)
         right_x_theta = self.find_right_cam_x_angle(mid2, fx2, center)
 
         self.get_logger().info(f'left theta: {left_x_theta * 180 / math.pi}')
         self.get_logger().info(f'right theta: {right_x_theta * 180 / math.pi}')
+
+        s_theta = math.pi - left_x_theta - right_x_theta
+
+        left_hyp = math.sin(right_x_theta) * cam_separation / s_theta
+
+        object_y = left_hyp * math.sin(left_x_theta)
+
+        object_x = -1 * math.sqrt(left_hyp**2 - object_y**2)
+
+        self.get_logger().info(f'object y: {object_y}')
+        self.get_logger().info(f'object x: {object_x}')
     
     def execute(self):
         self.get_logger().info('executing')
@@ -351,7 +363,7 @@ class StereoNode(Node):
         center = (
             len(img_rect1) // 2, len(img_rect1[0]) // 2
         )
-        self.find_object_robot_y(midpoints[0], midpoints[1], 
+        self.find_object_xy(midpoints[0], midpoints[1], 
             self.cam_info1.k[0], self.cam_info2.k[0], center)
 
         # img_rect1[midpoints[0][0], midpoints[0][1]] = 255
