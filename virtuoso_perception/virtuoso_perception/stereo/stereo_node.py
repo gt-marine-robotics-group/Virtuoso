@@ -211,6 +211,15 @@ class StereoNode(Node):
         if (len(self.buoy_filtered1.contour_offsets) != 
             len(self.buoy_filtered2.contour_offsets)):
             return
+
+        try:
+            mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
+            mono_image2 = CvBridge().imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
+        except:
+            self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
+            return
+        self.get_logger().info('got cv2 images')
+
         
         contours = [
             self.unflatten_contours(self.buoy_filtered1.contour_points, 
@@ -218,7 +227,6 @@ class StereoNode(Node):
             self.unflatten_contours(self.buoy_filtered2.contour_points, 
                 self.buoy_filtered2.contour_offsets)
         ]
-        self.get_logger().info(str(np.shape(contours[0])))
         
         buoy_pairs = list()
         for cnt_num in range(len(self.buoy_filtered1.contour_offsets)):
@@ -226,7 +234,8 @@ class StereoNode(Node):
             for img_num in range(2):
                 blank = np.zeros((self.cam_info1.height, self.cam_info1.width))
                 filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, -1).astype('uint8')
-                pair.append(filled)
+                pair.append(cv2.bitwise_and(filled, 
+                    mono_image1 if img_num == 0 else mono_image2))
             buoy_pairs.append(pair)
         
         if len(buoy_pairs) == 0:
@@ -240,14 +249,6 @@ class StereoNode(Node):
         # self.debug_received_img_pub.publish(self.buoy_filtered1.image)
         self.debug_received_img_pub.publish(CvBridge().cv2_to_imgmsg(mono_image1, encoding='mono8'))
         
-        # try:
-        #     mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
-        #     mono_image2 = CvBridge().imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
-        # except:
-        #     self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
-        #     return
-        # self.get_logger().info('got cv2 images')
-
         self.find_rect_maps()
         if self.rect_map1 is None or self.rect_map2 is None:
             return
