@@ -250,12 +250,15 @@ class StereoNode(Node):
 
         left_hyp = math.sin(right_x_theta) * cam_separation / s_theta
 
-        object_y = left_hyp * math.sin(left_x_theta)
+        object_x = left_hyp * math.sin(left_x_theta)
 
-        object_x = -1 * math.sqrt(left_hyp**2 - object_y**2)
+        object_y = math.sqrt(left_hyp**2 - object_x**2)
+        if mid1[1] > center[1]: object_y *= -1
 
-        self.get_logger().info(f'object y: {object_y}')
         self.get_logger().info(f'object x: {object_x}')
+        self.get_logger().info(f'object y: {object_y}')
+
+        return object_x, object_y
     
     def execute(self):
         self.get_logger().info('executing')
@@ -363,11 +366,8 @@ class StereoNode(Node):
         center = (
             len(img_rect1) // 2, len(img_rect1[0]) // 2
         )
-        self.find_object_xy(midpoints[0], midpoints[1], 
+        x, y = self.find_object_xy(midpoints[0], midpoints[1], 
             self.cam_info1.k[0], self.cam_info2.k[0], center)
-
-        # img_rect1[midpoints[0][0], midpoints[0][1]] = 255
-        # img_rect2[midpoints[1][0], midpoints[1][1]] = 255
 
         self.debug_rectified_cam1_pub[0].publish(
             self.cv_bridge.cv2_to_imgmsg(img_rect1, encoding='mono8')
@@ -375,6 +375,10 @@ class StereoNode(Node):
         self.debug_rectified_cam2_pub[0].publish(
             self.cv_bridge.cv2_to_imgmsg(img_rect2, encoding='mono8')
         )
+
+        self.pub_single_point_pcd((x, y))
+
+        return
 
         try:
             disparity = self.matcher.compute(img_rect1, img_rect2).astype(np.float32) / 16.0
@@ -400,6 +404,18 @@ class StereoNode(Node):
             return
         self.get_logger().info('published')
 
+    def pub_single_point_pcd(self, point:tuple):
+        pcd = PointCloud2()
+        pcd.height = 1
+        pcd.width = 1
+        pcd.header.frame_id = 'wamv/lidar_wamv_link'
+
+        pcd = create_cloud_xyz32(pcd.header, 
+            [[point[0], point[1], 0]])
+
+        self.get_logger().info('CREATED SINGLE POINT PCD')
+
+        self.pcd_pub.publish(pcd)
 
     def pub_pointcloud(self, cv_pcd):
         pcd = PointCloud2()
