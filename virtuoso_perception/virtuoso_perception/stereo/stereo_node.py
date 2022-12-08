@@ -15,6 +15,7 @@ from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
 from virtuoso_msgs.msg import BuoyFilteredImage
 import threading
+import math
 
 class StereoNode(Node):
 
@@ -218,6 +219,13 @@ class StereoNode(Node):
         
         return contours
     
+    def find_cam_x_angle(self, point:tuple, f:float, center:tuple):
+        # if point
+        pass
+    
+    def find_object_robot_y(self, mid1:tuple, mid2:tuple, fx1:float, fx2:float, center:tuple):
+        pass
+    
     def execute(self):
         self.get_logger().info('executing')
 
@@ -262,7 +270,7 @@ class StereoNode(Node):
             for img_num in range(2):
                 blank = np.zeros((self.cam_info1.height, self.cam_info1.width))
                 filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, -1).astype('uint8')
-                filled = cv2.drawContours(filled, contours[img_num], cnt_num, 127, 3).astype('uint8')
+                # filled = cv2.drawContours(filled, contours[img_num], cnt_num, 127, 3).astype('uint8')
                 pair.append(cv2.bitwise_and(filled, 
                     mono_image1 if img_num == 0 else mono_image2))
                 # pair.append(cv2.bitwise_or(filled, 
@@ -311,18 +319,18 @@ class StereoNode(Node):
 
         for i in range(len(midpoints_indexes)):
             for j in range(midpoints_indexes[i][0].size):
-                midpoint_counters[i]['x-sum'] += midpoints_indexes[i][0][j]
-                midpoint_counters[i]['y-sum'] += midpoints_indexes[i][1][j]
+                midpoint_counters[i]['x-sum'] += midpoints_indexes[i][1][j]
+                midpoint_counters[i]['y-sum'] += midpoints_indexes[i][0][j]
 
         midpoints = list(
-            (counter['x-sum'] // counter['x-count'], counter['y-sum'] // counter['y-count'])
+            (counter['y-sum'] // counter['y-count'], counter['x-sum'] // counter['x-count'])
             for counter in midpoint_counters
         )
 
         self.get_logger().info(f'midpoints: {midpoints}')
 
-        img_rect1[midpoints[0][0], midpoints[0][1]] = 255
-        img_rect2[midpoints[1][0], midpoints[1][1]] = 255
+        # img_rect1[midpoints[0][0], midpoints[0][1]] = 255
+        # img_rect2[midpoints[1][0], midpoints[1][1]] = 255
 
         self.debug_rectified_cam1_pub[0].publish(
             self.cv_bridge.cv2_to_imgmsg(img_rect1, encoding='mono8')
