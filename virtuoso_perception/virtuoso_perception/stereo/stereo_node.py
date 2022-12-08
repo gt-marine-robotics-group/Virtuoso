@@ -14,6 +14,7 @@ from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
 from virtuoso_msgs.msg import BuoyFilteredImage
+import threading
 
 class StereoNode(Node):
 
@@ -61,12 +62,14 @@ class StereoNode(Node):
 
         self.stop = False
         
-        # self.matcher = cv2.StereoBM_create(
-        #     numDisparities=64,
-        #     blockSize=51
-        # )
+        self.matcher = cv2.StereoBM_create(
+            numDisparities=64,
+            blockSize=51
+        )
+        self.matcher.setSpeckleWindowSize(10)
+
         window_size = 15
-        self.matcher = cv2.StereoSGBM_create(
+        # self.matcher = cv2.StereoSGBM_create(
             # minDisparity=0,
             # numDisparities=64,
             # speckleWindowSize=10,
@@ -74,18 +77,17 @@ class StereoNode(Node):
             # disp12MaxDiff=1,
             # uniquenessRatio=5
 
-            blockSize=window_size,
-            P1=9 * 3 * window_size,
-            # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
-            P2=128 * 3 * window_size,
-            disp12MaxDiff=12,
-            uniquenessRatio=40,
-            speckleWindowSize=50,
-            speckleRange=32,
-            preFilterCap=63,
-            mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
-        )
-        # self.matcher.setSpeckleWindowSize(10)
+            # blockSize=window_size,
+            # P1=9 * 3 * window_size,
+            # # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
+            # P2=128 * 3 * window_size,
+            # disp12MaxDiff=12,
+            # uniquenessRatio=40,
+            # speckleWindowSize=50,
+            # speckleRange=32,
+            # preFilterCap=63,
+            # mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+        # )
 
         self.create_timer(1.0, self.execute)
     
@@ -132,6 +134,7 @@ class StereoNode(Node):
             return
 
         image_size = (self.cam_info1.width, self.cam_info1.height)
+        # image_size = (self.cam_info1.height, self.cam_info1.width)
 
         trans = self.get_c2_to_c1_transform()
         if trans is None: return
@@ -165,6 +168,35 @@ class StereoNode(Node):
         self.rect_map2 = cv2.initUndistortRectifyMap(c2_matrix, c2_distortion, 
             R2, P2, image_size, cv2.CV_32F)
     
+    def unflatten_contours(self, flat_contours:list, contour_offsets:list):
+        contours = np.empty((len(contour_offsets),), dtype=object)
+
+        # self.get_logger().info(str(len(flat_contours)))
+        for i, offset in enumerate(contour_offsets):
+            if i == len(contour_offsets) - 1:
+                final_i = len(flat_contours)
+            else:
+                final_i = contour_offsets[i + 1]
+            
+            # self.get_logger().info(f'final: {final_i}')
+            contour = np.empty(((final_i - offset) // 2, 1, 2), dtype='int64')
+            flat_i = offset
+            count = 0
+            # self.get_logger().info(f'flat: {flat_i}')
+            while flat_i < final_i:
+                contour[count,0,0] = flat_contours[flat_i]
+                contour[count,0,1] = flat_contours[flat_i + 1]
+                count += 1
+                flat_i += 2
+            # self.get_logger().info(f'flat: {flat_i}')
+            # self.get_logger().info(str(len(contour)))
+
+            contours[i] = contour
+        # self.get_logger().info(str(np.shape(contours)))
+        # self.get_logger().info(str(np.shape(contours[0])))
+        
+        return contours
+    
     def execute(self):
         self.get_logger().info('executing')
 
@@ -175,16 +207,46 @@ class StereoNode(Node):
             or self.buoy_filtered2 is None or self.cam_info2 is None):
             self.get_logger().info('something is none')
             return
-        
-        self.debug_received_img_pub.publish(self.buoy_filtered1.image)
-        
-        try:
-            mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
-            mono_image2 = CvBridge().imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
-        except:
-            self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
+
+        if (len(self.buoy_filtered1.contour_offsets) != 
+            len(self.buoy_filtered2.contour_offsets)):
             return
-        self.get_logger().info('got cv2 images')
+        
+        contours = [
+            self.unflatten_contours(self.buoy_filtered1.contour_points, 
+                self.buoy_filtered1.contour_offsets),
+            self.unflatten_contours(self.buoy_filtered2.contour_points, 
+                self.buoy_filtered2.contour_offsets)
+        ]
+        self.get_logger().info(str(np.shape(contours[0])))
+        
+        buoy_pairs = list()
+        for cnt_num in range(len(self.buoy_filtered1.contour_offsets)):
+            pair = list()
+            for img_num in range(2):
+                blank = np.zeros((self.cam_info1.height, self.cam_info1.width))
+                filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, -1).astype('uint8')
+                pair.append(filled)
+            buoy_pairs.append(pair)
+        
+        if len(buoy_pairs) == 0:
+            self.get_logger().info('no contours')
+            return
+        
+        self.run_stereo(buoy_pairs[0][0], buoy_pairs[0][1])
+    
+    def run_stereo(self, mono_image1, mono_image2):
+        
+        # self.debug_received_img_pub.publish(self.buoy_filtered1.image)
+        self.debug_received_img_pub.publish(CvBridge().cv2_to_imgmsg(mono_image1, encoding='mono8'))
+        
+        # try:
+        #     mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
+        #     mono_image2 = CvBridge().imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
+        # except:
+        #     self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
+        #     return
+        # self.get_logger().info('got cv2 images')
 
         self.find_rect_maps()
         if self.rect_map1 is None or self.rect_map2 is None:
@@ -222,6 +284,7 @@ class StereoNode(Node):
             self.get_logger().info(f'POINT CLOUD PUB ERROR: {e}')
             return
         self.get_logger().info('published')
+
 
     def pub_pointcloud(self, cv_pcd):
         pcd = PointCloud2()

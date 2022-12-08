@@ -70,6 +70,8 @@ class BuoyColorFilterNode(Node):
         _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
         contours = find_contours(black_and_white)
 
+        # self.get_logger().info(f'contour shape: {np.shape(contours)}')
+
         filtered_img = np.zeros(np.shape(black_and_white)).astype('uint8')
         filtered_contours = list()
         filtered_contour_offsets = list()
@@ -156,6 +158,8 @@ class BuoyColorFilterNode(Node):
             
             for i in range(pts[0].size):
                 filtered_img[pts[0][i]][pts[1][i]] = 255
+
+            self.get_logger().info(f'cnt shape: {np.shape(cnt)}')
             
             filtered_contour_offsets.append(len(filtered_contours))
             filtered_contours.extend(int(p) for pt in cnt for p in pt[0])
