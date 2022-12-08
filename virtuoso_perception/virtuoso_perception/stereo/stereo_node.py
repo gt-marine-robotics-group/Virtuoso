@@ -1,5 +1,5 @@
 import rclpy
-from rclpy.node import Node
+from rclpy.node import Node, Publisher
 from sensor_msgs.msg import Image, CameraInfo, CompressedImage
 import numpy as np
 import cv2
@@ -39,9 +39,25 @@ class StereoNode(Node):
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             f'{base_topics[1]}/camera_info', self.cam_info2_callback, 10)
         
-        self.debug_image_pub = self.create_publisher(Image, '/perception/stereo/debug', 10)
-        self.debug_received_img_pub = self.create_publisher(Image,
-            '/perception/stereo/debug/received_img', 10)
+        self.debug_disparity_pubs = [
+            self.create_publisher(Image, '/perception/stereo/debug/disparity1', 10)
+        ]
+        self.debug_received_img_pubs = [
+            self.create_publisher(Image, '/perception/stereo/debug/received_img1', 10),
+            self.create_publisher(Image, '/perception/stereo/debug/received_img2', 10)
+        ]
+        self.debug_contoured_buoy_cam1_pub = [
+            self.create_publisher(Image, '/perception/stereo/debug/cam1/contoured_buoy1', 10)
+        ]
+        self.debug_contoured_buoy_cam2_pub = [
+            self.create_publisher(Image, '/perception/stereo/debug/cam2/contoured_buoy1', 10)
+        ]
+        self.debug_rectified_cam1_pub = [
+            self.create_publisher(Image, '/perception/stereo/debug/cam1/rectified1', 10)
+        ]
+        self.debug_rectified_cam2_pub = [
+            self.create_publisher(Image, '/perception/stereo/debug/cam2/rectified1', 10)
+        ]
 
         self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
 
@@ -59,6 +75,8 @@ class StereoNode(Node):
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+
+        self.cv_bridge = CvBridge()
 
         self.stop = False
         
@@ -171,29 +189,22 @@ class StereoNode(Node):
     def unflatten_contours(self, flat_contours:list, contour_offsets:list):
         contours = np.empty((len(contour_offsets),), dtype=object)
 
-        # self.get_logger().info(str(len(flat_contours)))
         for i, offset in enumerate(contour_offsets):
             if i == len(contour_offsets) - 1:
                 final_i = len(flat_contours)
             else:
                 final_i = contour_offsets[i + 1]
             
-            # self.get_logger().info(f'final: {final_i}')
             contour = np.empty(((final_i - offset) // 2, 1, 2), dtype='int64')
             flat_i = offset
             count = 0
-            # self.get_logger().info(f'flat: {flat_i}')
             while flat_i < final_i:
                 contour[count,0,0] = flat_contours[flat_i]
                 contour[count,0,1] = flat_contours[flat_i + 1]
                 count += 1
                 flat_i += 2
-            # self.get_logger().info(f'flat: {flat_i}')
-            # self.get_logger().info(str(len(contour)))
 
             contours[i] = contour
-        # self.get_logger().info(str(np.shape(contours)))
-        # self.get_logger().info(str(np.shape(contours[0])))
         
         return contours
     
@@ -213,12 +224,19 @@ class StereoNode(Node):
             return
 
         try:
-            mono_image1 = CvBridge().imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
-            mono_image2 = CvBridge().imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
+            mono_image1 = self.cv_bridge.imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
+            mono_image2 = self.cv_bridge.imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
         except:
             self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
             return
         self.get_logger().info('got cv2 images')
+
+        self.debug_received_img_pubs[0].publish(
+            self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
+        )
+        self.debug_received_img_pubs[1].publish(
+            self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
+        )
 
         
         contours = [
@@ -247,7 +265,13 @@ class StereoNode(Node):
     def run_stereo(self, mono_image1, mono_image2):
         
         # self.debug_received_img_pub.publish(self.buoy_filtered1.image)
-        self.debug_received_img_pub.publish(CvBridge().cv2_to_imgmsg(mono_image1, encoding='mono8'))
+        # self.debug_received_img_pub.publish(CvBridge().cv2_to_imgmsg(mono_image1, encoding='mono8'))
+        self.debug_contoured_buoy_cam1_pub[0].publish(
+            self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
+        )
+        self.debug_contoured_buoy_cam2_pub[0].publish(
+            self.cv_bridge.cv2_to_imgmsg(mono_image2, encoding='mono8')
+        )
         
         self.find_rect_maps()
         if self.rect_map1 is None or self.rect_map2 is None:
@@ -261,6 +285,13 @@ class StereoNode(Node):
             self.get_logger().info('REMAPPING ERROR')
             return
         self.get_logger().info('got image rects')
+
+        self.debug_rectified_cam1_pub[0].publish(
+            self.cv_bridge.cv2_to_imgmsg(img_rect1, encoding='mono8')
+        )
+        self.debug_rectified_cam2_pub[0].publish(
+            self.cv_bridge.cv2_to_imgmsg(img_rect2, encoding='mono8')
+        )
 
         try:
             disparity = self.matcher.compute(img_rect1, img_rect2).astype(np.float32) / 16.0
@@ -327,7 +358,8 @@ class StereoNode(Node):
         mono = cv2.convertScaleAbs(bgr_image, cv2.CV_8UC1, 100, 0.0)
         msg = CvBridge().cv2_to_imgmsg(mono, encoding='mono8')
         # msg = CvBridge().cv2_to_imgmsg(bgr_image, encoding='rgb8')
-        self.debug_image_pub.publish(msg)
+        # self.debug_image_pub.publish(msg)
+        self.debug_disparity_pubs[0].publish(msg)
 
 
 def main(args=None):
