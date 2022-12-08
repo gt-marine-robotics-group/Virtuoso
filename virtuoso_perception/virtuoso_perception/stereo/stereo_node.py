@@ -82,29 +82,39 @@ class StereoNode(Node):
         
         self.matcher = cv2.StereoBM_create(
             numDisparities=64,
-            blockSize=51
+            blockSize=101
         )
         self.matcher.setSpeckleWindowSize(10)
 
         window_size = 15
         # self.matcher = cv2.StereoSGBM_create(
             # minDisparity=0,
-            # numDisparities=64,
+            # numDisparities=128,
             # speckleWindowSize=10,
             # speckleRange=1,
             # disp12MaxDiff=1,
             # uniquenessRatio=5
 
+            # disp12MaxDiff=-1,
+            # blockSize=11,
+            # P1=0,
+            # P2=1,
+            # uniquenessRatio=15,
+            # speckleRange=128
+
             # blockSize=window_size,
             # P1=9 * 3 * window_size,
-            # # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
+            # wsize default 3; 5; 7 for SGBM reduced size image; 15 for SGBM full size image (1300px and above); 5 Works nicely
             # P2=128 * 3 * window_size,
+            # P1=1,
+            # P2=2,
             # disp12MaxDiff=12,
-            # uniquenessRatio=40,
-            # speckleWindowSize=50,
-            # speckleRange=32,
-            # preFilterCap=63,
-            # mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
+            # disp12MaxDiff=-1,
+        #     uniquenessRatio=40,
+        #     speckleWindowSize=50,
+        #     speckleRange=32,
+        #     preFilterCap=63,
+        #     mode=cv2.STEREO_SGBM_MODE_SGBM_3WAY
         # )
 
         self.create_timer(1.0, self.execute)
@@ -252,8 +262,11 @@ class StereoNode(Node):
             for img_num in range(2):
                 blank = np.zeros((self.cam_info1.height, self.cam_info1.width))
                 filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, -1).astype('uint8')
+                filled = cv2.drawContours(filled, contours[img_num], cnt_num, 127, 3).astype('uint8')
                 pair.append(cv2.bitwise_and(filled, 
                     mono_image1 if img_num == 0 else mono_image2))
+                # pair.append(cv2.bitwise_or(filled, 
+                #     mono_image1 if img_num == 0 else mono_image2))
             buoy_pairs.append(pair)
         
         if len(buoy_pairs) == 0:
