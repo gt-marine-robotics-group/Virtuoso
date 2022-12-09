@@ -8,7 +8,7 @@ from ..utils.code_identification import find_contours
 import numpy as np
 from scipy import stats
 import random
-from virtuoso_msgs.msg import BuoyFilteredImage
+from virtuoso_msgs.msg import BuoyFilteredImage, Contours
 
 class BuoyColorFilterNode(Node):
 
@@ -32,7 +32,7 @@ class BuoyColorFilterNode(Node):
         self.image_sub = self.create_subscription(Image, 
             f'{base_topic}/image_raw', self.image_callback, 10)
 
-        self.filter_pub = self.create_publisher(BuoyFilteredImage,
+        self.filter_pub = self.create_publisher(Contours,
             f'{base_topic}/buoy_filter', 10)
         
         self.black_white_debug_pub = self.create_publisher(Image,
@@ -185,8 +185,7 @@ class BuoyColorFilterNode(Node):
 
         filtered_img, contours, colors, contour_offsets = self.contour_filter(combo)
 
-        msg = BuoyFilteredImage()
-        msg.image = CvBridge().cv2_to_imgmsg(filtered_img, encoding='mono8')
+        msg = Contours()
         msg.contour_points = contours
         msg.contour_offsets = contour_offsets
         msg.contour_colors = colors

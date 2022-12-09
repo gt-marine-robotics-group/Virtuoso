@@ -24,6 +24,7 @@ find_package(sensor_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BuoyFilteredImage.msg"
+  "msg/Contours.msg"
   DEPENDENCIES sensor_msgs
  )
 

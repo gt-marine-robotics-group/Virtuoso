@@ -13,7 +13,7 @@ from scipy.spatial.transform import Rotation
 from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
-from virtuoso_msgs.msg import BuoyFilteredImage
+from virtuoso_msgs.msg import Contours
 import math
 from typing import List
 from multiprocessing import Process, Array, Pool
@@ -31,12 +31,12 @@ class StereoNode(Node):
         base_topics = self.get_parameter('base_topics').value
         self.frames = self.get_parameter('frames').value
 
-        self.filtered1_sub = self.create_subscription(BuoyFilteredImage,
+        self.filtered1_sub = self.create_subscription(Contours,
             f'{base_topics[0]}/buoy_filter', self.filtered1_callback, 10)
         self.cam_info1_sub = self.create_subscription(CameraInfo, 
             f'{base_topics[0]}/camera_info', self.cam_info1_callback, 10)
         
-        self.filtered2_sub = self.create_subscription(BuoyFilteredImage,
+        self.filtered2_sub = self.create_subscription(Contours,
             f'{base_topics[1]}/buoy_filter', self.filtered2_callback, 10)
         self.cam_info2_sub = self.create_subscription(CameraInfo,
             f'{base_topics[1]}/camera_info', self.cam_info2_callback, 10)
@@ -67,11 +67,11 @@ class StereoNode(Node):
         # ]
 
         # self.image1:Image = None 
-        self.buoy_filtered1:BuoyFilteredImage = None
+        self.buoy_filtered1:Contours = None
         self.cam_info1:CameraInfo = None
 
         # self.image2:Image = None
-        self.buoy_filtered2:BuoyFilteredImage = None
+        self.buoy_filtered2:Contours = None
         self.cam_info2:CameraInfo = None
 
         self.rect_map1 = None
@@ -126,13 +126,13 @@ class StereoNode(Node):
 
         self.create_timer(1.0, self.execute)
     
-    def filtered1_callback(self, msg:BuoyFilteredImage):
+    def filtered1_callback(self, msg:Contours):
         self.buoy_filtered1 = msg
     
     def cam_info1_callback(self, msg:CameraInfo):
         self.cam_info1 = msg
     
-    def filtered2_callback(self, msg:BuoyFilteredImage):
+    def filtered2_callback(self, msg:Contours):
         self.buoy_filtered2 = msg
     
     def cam_info2_callback(self, msg:CameraInfo):
@@ -289,20 +289,20 @@ class StereoNode(Node):
             len(self.buoy_filtered2.contour_offsets)):
             return
 
-        try:
-            mono_image1 = self.cv_bridge.imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
-            mono_image2 = self.cv_bridge.imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
-        except:
-            self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
-            return
+        # try:
+        #     mono_image1 = self.cv_bridge.imgmsg_to_cv2(self.buoy_filtered1.image, desired_encoding='mono8')
+        #     mono_image2 = self.cv_bridge.imgmsg_to_cv2(self.buoy_filtered2.image, desired_encoding='mono8')
+        # except:
+        #     self.get_logger().info('ERROR CONVERTING ROS TO CV2 IMAGE')
+        #     return
         self.get_logger().info('got cv2 images')
 
-        self.debug_received_img_pubs[0].publish(
-            self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
-        )
-        self.debug_received_img_pubs[1].publish(
-            self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
-        )
+        # self.debug_received_img_pubs[0].publish(
+        #     self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
+        # )
+        # self.debug_received_img_pubs[1].publish(
+        #     self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
+        # )
 
         
         contours = [
