@@ -61,7 +61,10 @@ class StereoNode(Node):
             self.create_publisher(Image, '/perception/stereo/debug/cam2/rectified1', 10)
         ]
 
-        self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
+        # self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
+        self.pcd_pubs = [
+            self.create_publisher(PointCloud2, '/perception/stereo/points1', 10)
+        ]
 
         # self.image1:Image = None 
         self.buoy_filtered1:BuoyFilteredImage = None
@@ -329,8 +332,9 @@ class StereoNode(Node):
             '/perception/stereo/debug/cam1/rectified', len(buoy_pairs))
         self.update_publishers_size(self.debug_rectified_cam2_pub, 
             '/perception/stereo/debug/cam2/rectified', len(buoy_pairs))
+        self.update_publishers_size(self.pcd_pubs, '/perception/stereo/points', len(buoy_pairs))
         
-        self.get_logger().info(f'pub length: {len(self.debug_contoured_buoy_cam1_pub)}')
+        self.get_logger().info(f'pub length: {len(self.pcd_pubs)}')
 
         self.run_stereo(buoy_pairs[0][0], buoy_pairs[0][1])
     
@@ -432,7 +436,8 @@ class StereoNode(Node):
 
         self.get_logger().info('CREATED SINGLE POINT PCD')
 
-        self.pcd_pub.publish(pcd)
+        # self.pcd_pub.publish(pcd)
+        self.pcd_pubs[0].publish(pcd)
 
     def pub_pointcloud(self, cv_pcd):
         pcd = PointCloud2()
