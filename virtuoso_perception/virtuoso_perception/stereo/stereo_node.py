@@ -14,9 +14,9 @@ from sensor_msgs.msg import PointCloud2
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 import time
 from virtuoso_msgs.msg import BuoyFilteredImage
-import threading
 import math
 from typing import List
+from multiprocessing import Process, Array, Pool
 
 class StereoNode(Node):
 
@@ -77,6 +77,8 @@ class StereoNode(Node):
         self.rect_map1 = None
         self.rect_map2 = None
         self.Q = None
+
+        self.points = list()
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -140,7 +142,7 @@ class StereoNode(Node):
         curr_i = len(publishers)
         while curr_i < num:
             publishers.append(
-                self.create_publisher(publishers[0].msg_type, f'base{curr_i + 1}', 10)
+                self.create_publisher(publishers[0].msg_type, f'{base}{curr_i + 1}', 10)
             )
             curr_i += 1
     
@@ -336,16 +338,57 @@ class StereoNode(Node):
         
         self.get_logger().info(f'pub length: {len(self.pcd_pubs)}')
 
-        self.run_stereo(buoy_pairs[0][0], buoy_pairs[0][1])
+        # self.run_stereo(buoy_pairs[0][0], buoy_pairs[0][1])
+        # self.points = list(None for _ in range(len(buoy_pairs)))
+        self.points = Array(typecode_or_type='d', size_or_initializer=len(buoy_pairs)*2)
+        # processes = list()
+        # for i, pair in enumerate(buoy_pairs):
+        #     process = Process(target=self.run_stereo, args=(pair[0], pair[1], i))
+        #     process.start()
+        #     processes.append(process)
+        #     self.run_stereo(pair[0], pair[1], i)
+
+        # for p in processes:
+        #     p.join()
+
+        contours_remaining = True
+        count = 0
+        while contours_remaining:
+            contours_remaining = False
+            # run at most 8 processes
+            pair_indexes = ((count * 8) + i for i in range(8))
+            processes = list()
+            for index in pair_indexes:
+                if index >= len(buoy_pairs): break
+                process = Process(target=self.run_stereo, 
+                    args=(buoy_pairs[index][0], buoy_pairs[index][1], index))
+                process.start()
+                processes.append(process)
+            else:
+                contours_remaining = True
+                count += 1
+            
+            for p in processes:
+                p.join()
+
+        # pool = Pool()
+        # for i, pair in enumerate(buoy_pairs):
+        #     pool.apply_async(self.run_stereo, args=(pair[0], pair[1], i))
+        
+        # pool.close()
+        # pool.join()
+        
+        self.get_logger().info(str(list(p for p in self.points)))
     
-    def run_stereo(self, mono_image1, mono_image2):
+    def run_stereo(self, mono_image1, mono_image2, pub_index:int):
+        self.get_logger().info(f'pub_index: {pub_index}')
         
         # self.debug_received_img_pub.publish(self.buoy_filtered1.image)
         # self.debug_received_img_pub.publish(CvBridge().cv2_to_imgmsg(mono_image1, encoding='mono8'))
-        self.debug_contoured_buoy_cam1_pub[0].publish(
+        self.debug_contoured_buoy_cam1_pub[pub_index].publish(
             self.cv_bridge.cv2_to_imgmsg(mono_image1, encoding='mono8')
         )
-        self.debug_contoured_buoy_cam2_pub[0].publish(
+        self.debug_contoured_buoy_cam2_pub[pub_index].publish(
             self.cv_bridge.cv2_to_imgmsg(mono_image2, encoding='mono8')
         )
         
@@ -390,14 +433,14 @@ class StereoNode(Node):
         x, y = self.find_object_xy(midpoints[0], midpoints[1], 
             self.cam_info1.k[0], self.cam_info2.k[0], center)
 
-        self.debug_rectified_cam1_pub[0].publish(
+        self.debug_rectified_cam1_pub[pub_index].publish(
             self.cv_bridge.cv2_to_imgmsg(img_rect1, encoding='mono8')
         )
-        self.debug_rectified_cam2_pub[0].publish(
+        self.debug_rectified_cam2_pub[pub_index].publish(
             self.cv_bridge.cv2_to_imgmsg(img_rect2, encoding='mono8')
         )
 
-        self.pub_single_point_pcd((x, y))
+        self.pub_single_point_pcd((x, y), pub_index)
 
         return
 
@@ -425,7 +468,7 @@ class StereoNode(Node):
             return
         self.get_logger().info('published')
 
-    def pub_single_point_pcd(self, point:tuple):
+    def pub_single_point_pcd(self, point:tuple, pub_index:int):
         pcd = PointCloud2()
         pcd.height = 1
         pcd.width = 1
@@ -437,7 +480,10 @@ class StereoNode(Node):
         self.get_logger().info('CREATED SINGLE POINT PCD')
 
         # self.pcd_pub.publish(pcd)
-        self.pcd_pubs[0].publish(pcd)
+        # self.pcd_pubs[pub_index].publish(pcd)
+        base = pub_index * 2
+        self.points[base] = point[0]
+        self.points[base + 1] = point[1]
 
     def pub_pointcloud(self, cv_pcd):
         pcd = PointCloud2()
