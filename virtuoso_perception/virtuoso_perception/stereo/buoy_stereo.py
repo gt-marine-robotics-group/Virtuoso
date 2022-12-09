@@ -3,9 +3,11 @@ from ..utils.node_helper import NodeHelper
 import numpy as np
 import cv2
 from virtuoso_msgs.msg import Contours
-from .utils import unflatten_contours
+from .utils import unflatten_contours, img_points_to_physical_xy
 from multiprocessing import Process, Array
 from sensor_msgs.msg import CameraInfo
+from cv_bridge import CvBridge
+from .pixel_matcher import PixelMatcher
 
 class BuoyStereo(NodeHelper):
 
@@ -27,6 +29,8 @@ class BuoyStereo(NodeHelper):
         self._right_cam_info = right_cam_info
 
         self._points = list()
+
+        self._cv_bridge = CvBridge()
 
     def _update_debug_pub_sizes(self, num:int):
         if self._node is None:
@@ -82,5 +86,31 @@ class BuoyStereo(NodeHelper):
                 p.join()
         
     def _find_buoy_pose(self, left_img, right_img, buoy_index):
-        # run_stereo from stereo_node.py
-        pass
+        self._debug(f'buoy_index: {buoy_index}')
+
+        self._debug_pub_indexed('/perception/stereo/debug/left_cam/contoured_buoy', buoy_index,
+            self._cv_bridge.cv2_to_imgmsg(left_img, encoding='mono8')) 
+        self._debug_pub_indexed('/perception/stereo/debug/right_cam/contoured_buoy', buoy_index,
+            self._cv_bridge.cv2_to_imgmsg(right_img, encoding='mono8'))
+
+        left_img_rect = cv2.remap(left_img, *self._left_rect_map, cv2.INTER_LANCZOS4)
+        right_img_rect = cv2.remap(right_img, *self._right_rect_map, cv2.INTER_LANCZOS4)
+
+        self._debug_pub_indexed('/perception/stereo/debug/left_cam/rectified', buoy_index,
+            self._cv_bridge.cv2_to_imgmsg(left_img_rect, encoding='mono8'))
+        self._debug_pub_indexed('/perception/stereo/debug/right_cam/rectified', buoy_index,
+            self._cv_bridge.cv2_to_imgmsg(right_img_rect, encoding='mono8'))
+
+        midpoints = PixelMatcher.midpoints(left_img_rect, right_img_rect)
+
+        self._debug(f'midpoints: {midpoints}')
+
+        x, y = img_points_to_physical_xy(midpoints[0], midpoints[1], 
+            self._left_cam_info.k[0], self._right_cam_info.k[0], 
+            (len(left_img_rect) // 2, len(left_img_rect[0]) // 2)
+        )
+
+        points_base_index = buoy_index * 2
+        self._points[points_base_index] = x
+        self._points[points_base_index + 1] = y
+

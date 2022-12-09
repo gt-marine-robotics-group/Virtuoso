@@ -15,3 +15,8 @@ class NodeHelper:
         if self._node is None:
             return
         self._node.debug_pub(name, msg)
+    
+    def _debug_pub_indexed(self, base:str, num:int, msg):
+        if self._node is None:
+            return
+        self._node.debug_pub_indexed(base, num, msg)

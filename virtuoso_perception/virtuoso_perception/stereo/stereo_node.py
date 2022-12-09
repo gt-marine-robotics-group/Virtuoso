@@ -48,15 +48,23 @@ class StereoNode(Node):
             self.create_publisher(Image, '/perception/stereo/debug/received_img1', 10),
             self.create_publisher(Image, '/perception/stereo/debug/received_img2', 10)
         ]
+
+        # RENAME TO LEFT_CAM
         self.debug_contoured_buoy_cam1_pub = [
             self.create_publisher(Image, '/perception/stereo/debug/cam1/contoured_buoy1', 10)
         ]
+
+        # RENAME TO RIGHT_CAM
         self.debug_contoured_buoy_cam2_pub = [
             self.create_publisher(Image, '/perception/stereo/debug/cam2/contoured_buoy1', 10)
         ]
+
+        # RENAME TO LEFT_CAM
         self.debug_rectified_cam1_pub = [
             self.create_publisher(Image, '/perception/stereo/debug/cam1/rectified1', 10)
         ]
+
+        # RENAME TO RIGHT_CAM
         self.debug_rectified_cam2_pub = [
             self.create_publisher(Image, '/perception/stereo/debug/cam2/rectified1', 10)
         ]
