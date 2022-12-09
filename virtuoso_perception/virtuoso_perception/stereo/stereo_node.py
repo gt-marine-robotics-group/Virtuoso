@@ -16,6 +16,7 @@ import time
 from virtuoso_msgs.msg import BuoyFilteredImage
 import threading
 import math
+from typing import List
 
 class StereoNode(Node):
 
@@ -131,6 +132,14 @@ class StereoNode(Node):
     
     def cam_info2_callback(self, msg:CameraInfo):
         self.cam_info2 = msg
+    
+    def update_publishers_size(self, publishers:List[Publisher], base:str, num:int):
+        curr_i = len(publishers)
+        while curr_i < num:
+            publishers.append(
+                self.create_publisher(publishers[0].msg_type, f'base{curr_i + 1}', 10)
+            )
+            curr_i += 1
     
     def get_c2_to_c1_transform(self):
         trans:TransformStamped = None
@@ -304,17 +313,25 @@ class StereoNode(Node):
             for img_num in range(2):
                 blank = np.zeros((self.cam_info1.height, self.cam_info1.width))
                 filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, -1).astype('uint8')
-                # filled = cv2.drawContours(filled, contours[img_num], cnt_num, 127, 3).astype('uint8')
                 pair.append(cv2.bitwise_and(filled, 
                     mono_image1 if img_num == 0 else mono_image2))
-                # pair.append(cv2.bitwise_or(filled, 
-                #     mono_image1 if img_num == 0 else mono_image2))
             buoy_pairs.append(pair)
         
         if len(buoy_pairs) == 0:
             self.get_logger().info('no contours')
             return
+
+        self.update_publishers_size(self.debug_contoured_buoy_cam1_pub, 
+            '/perception/stereo/debug/cam1/contoured_buoy', len(buoy_pairs))
+        self.update_publishers_size(self.debug_contoured_buoy_cam2_pub, 
+            '/perception/stereo/debug/cam2/contoured_buoy', len(buoy_pairs))
+        self.update_publishers_size(self.debug_rectified_cam1_pub, 
+            '/perception/stereo/debug/cam1/rectified', len(buoy_pairs))
+        self.update_publishers_size(self.debug_rectified_cam2_pub, 
+            '/perception/stereo/debug/cam2/rectified', len(buoy_pairs))
         
+        self.get_logger().info(f'pub length: {len(self.debug_contoured_buoy_cam1_pub)}')
+
         self.run_stereo(buoy_pairs[0][0], buoy_pairs[0][1])
     
     def run_stereo(self, mono_image1, mono_image2):
