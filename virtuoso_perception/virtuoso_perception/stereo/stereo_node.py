@@ -317,9 +317,10 @@ class StereoNode(Node):
             pair = list()
             for img_num in range(2):
                 blank = np.zeros((self.cam_info1.height, self.cam_info1.width))
-                filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, -1).astype('uint8')
-                pair.append(cv2.bitwise_and(filled, 
-                    mono_image1 if img_num == 0 else mono_image2))
+                filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, 1).astype('uint8')
+                pair.append(filled)
+                # pair.append(cv2.bitwise_and(filled, 
+                #     mono_image1 if img_num == 0 else mono_image2))
             buoy_pairs.append(pair)
         
         if len(buoy_pairs) == 0:
