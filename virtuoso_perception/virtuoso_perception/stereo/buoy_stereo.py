@@ -37,7 +37,7 @@ class BuoyStereo(NodeHelper):
             return
         self._node.update_debug_pub_sizes(num)
     
-    def run(self):
+    def find_buoy_poses(self):
 
         contours = [
             unflatten_contours(self._left_contours.contour_points, 
@@ -57,11 +57,11 @@ class BuoyStereo(NodeHelper):
 
         if len(buoy_pairs) == 0:
             self._debug('no contours')
-            return
+            return list()
         
         self._update_debug_pub_sizes(len(buoy_pairs))
 
-        self._debug_pub(f'pub length: {len(buoy_pairs)}')
+        self._debug(f'pub length: {len(buoy_pairs)}')
 
         self._points = Array(typecode_or_type='d', size_or_initializer=len(buoy_pairs)*2)
 
@@ -84,6 +84,11 @@ class BuoyStereo(NodeHelper):
             
             for p in processes:
                 p.join()
+            
+            for p in processes:
+                p.close()
+        
+        return self._points
         
     def _find_buoy_pose(self, left_img, right_img, buoy_index):
         self._debug(f'buoy_index: {buoy_index}')
@@ -96,9 +101,9 @@ class BuoyStereo(NodeHelper):
         left_img_rect = cv2.remap(left_img, *self._left_rect_map, cv2.INTER_LANCZOS4)
         right_img_rect = cv2.remap(right_img, *self._right_rect_map, cv2.INTER_LANCZOS4)
 
-        self._debug_pub_indexed('/perception/stereo/debug/left_cam/rectified', buoy_index,
+        self._debug_pub_indexed('/perception/stereo/debug/left_cam/rectified_buoy', buoy_index,
             self._cv_bridge.cv2_to_imgmsg(left_img_rect, encoding='mono8'))
-        self._debug_pub_indexed('/perception/stereo/debug/right_cam/rectified', buoy_index,
+        self._debug_pub_indexed('/perception/stereo/debug/right_cam/rectified_buoy', buoy_index,
             self._cv_bridge.cv2_to_imgmsg(right_img_rect, encoding='mono8'))
 
         midpoints = PixelMatcher.midpoints(left_img_rect, right_img_rect)
