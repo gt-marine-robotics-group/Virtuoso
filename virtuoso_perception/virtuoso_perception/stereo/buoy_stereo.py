@@ -2,7 +2,8 @@ from rclpy.node import Node
 from ..utils.node_helper import NodeHelper
 import numpy as np
 import cv2
-from virtuoso_msgs.msg import Contours
+from virtuoso_msgs.msg import Contours, Buoy, BuoyArray
+from geometry_msgs.msg import Point
 from .utils import unflatten_contours, img_points_to_physical_xy
 from multiprocessing import Process, Array
 from sensor_msgs.msg import CameraInfo
@@ -37,7 +38,7 @@ class BuoyStereo(NodeHelper):
             return
         self._node.update_debug_pub_sizes(num)
     
-    def find_buoy_poses(self):
+    def find_buoys(self):
 
         contours = [
             unflatten_contours(self._left_contours.contour_points, 
@@ -57,7 +58,7 @@ class BuoyStereo(NodeHelper):
 
         if len(buoy_pairs) == 0:
             self._debug('no contours')
-            return list()
+            return BuoyArray()
         
         self._update_debug_pub_sizes(len(buoy_pairs))
 
@@ -88,7 +89,12 @@ class BuoyStereo(NodeHelper):
             for p in processes:
                 p.close()
         
-        return self._points
+        buoys = BuoyArray()
+        for i in range(len(self._points) // 2):
+            buoy = Buoy(location=Point(x=self._points[i * 2], y=self._points[(i * 2) + 1]))
+            buoys.buoys.append(buoy)
+        
+        return buoys
         
     def _find_buoy_pose(self, left_img, right_img, buoy_index):
         self._debug(f'buoy_index: {buoy_index}')

@@ -1,5 +1,5 @@
 from sensor_msgs.msg import CameraInfo, PointCloud2
-from virtuoso_msgs.msg import Contours
+from virtuoso_msgs.msg import Contours, BuoyArray
 import numpy as np
 from rclpy.node import Node
 import cv2
@@ -29,7 +29,18 @@ class Stereo(NodeHelper):
         self._right_rect_map:np.ndarray = None
         self._Q:np.ndarray = None
 
-        self.pcd = None
+        self.buoys:BuoyArray = None
+    
+    def _debug_pcd(self, buoys:BuoyArray):
+        pcd = PointCloud2()
+        pcd.header.frame_id = 'wamv/lidar_wamv_link'
+        pcd_points = list()
+        for buoy in buoys.buoys:
+            pcd_points.append([buoy.location.x, buoy.location.y, 0])
+        
+        pcd = create_cloud_xyz32(pcd.header, pcd_points)
+
+        self._debug_pub('/perception/stereo/debug/points', pcd)
     
     def _find_intrinsics(cam_info:CameraInfo):
         k = cam_info.k
@@ -56,17 +67,9 @@ class Stereo(NodeHelper):
         left_matrix, left_distortion = Stereo._find_intrinsics(self.left_cam_info)
         right_matrix, right_distortion = Stereo._find_intrinsics(self.right_cam_info)
 
-        # self._debug(f'left matrix: {left_matrix}')
-        # self._debug(f'left distortion: {left_distortion}')
-        # self._debug(f'right matrix: {right_matrix}')
-        # self._debug(f'right')
-
         R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(left_matrix, left_distortion,
             right_matrix, right_distortion, image_size, self.cam_transform[1], self.cam_transform[0],
             cv2.CALIB_ZERO_DISPARITY)
-        # R1, R2, P1, P2, Q, roi1, roi2 = cv2.stereoRectify(left_matrix, left_distortion,
-        #     right_matrix, right_matrix, image_size, np.array([0.1,0.1,0.1]), np.array([0.1,0.1,0.2]),
-        #     cv2.CALIB_ZERO_DISPARITY)
 
         self._Q = Q
 
@@ -101,14 +104,7 @@ class Stereo(NodeHelper):
             right_rect_map=self._right_rect_map, left_cam_info=self.left_cam_info,
             right_cam_info=self.right_cam_info)
         
-        buoy_poses = buoy_stereo.find_buoy_poses()
+        self.buoys = buoy_stereo.find_buoys()
 
-        self.pcd = PointCloud2()
-        self.pcd.header.frame_id = 'wamv/lidar_wamv_link'
-        pcd_points = list()
-        for i in range(len(buoy_poses) // 2):
-            self._debug(str([buoy_poses[i * 2], buoy_poses[(i * 2) + 1]]))
-            pcd_points.append([buoy_poses[i * 2], buoy_poses[(i * 2) + 1], 0])
-        
-        self.pcd = create_cloud_xyz32(self.pcd.header, pcd_points)
+        self._debug_pcd(self.buoys)
 

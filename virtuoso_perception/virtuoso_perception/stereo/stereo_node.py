@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from .stereo import Stereo
-from virtuoso_msgs.msg import Contours
+from virtuoso_msgs.msg import Contours, BuoyArray
 from sensor_msgs.msg import CameraInfo, PointCloud2, Image
 from geometry_msgs.msg import TransformStamped
 from tf2_ros.buffer import Buffer
@@ -46,10 +46,13 @@ class StereoNode(Node):
             ],
             '/perception/stereo/debug/right_cam/rectified_buoy': [
                 self.create_publisher(Image, '/perception/stereo/debug/right_cam/rectified1', 10)
-            ],
-            '/perception/stereo/debug/points': [
-                self.create_publisher(PointCloud2, '/perception/stereo/debug/points', 10)
             ]
+        }
+
+        self.single_debug_pubs = {
+            '/perception/stereo/debug/points': self.create_publisher(PointCloud2,
+                '/perception/stereo/debug/points', 10)
+            
         }
 
         self.tf_buffer = Buffer()
@@ -71,6 +74,9 @@ class StereoNode(Node):
     
     def debug_pub_indexed(self, base:str, num:int, msg):
         self.debug_pubs[base][num].publish(msg)
+    
+    def debug_pub(self, name:str, msg):
+        self.single_debug_pubs[name].publish(msg)
     
     def left_buoy_contours_callback(self, msg:Contours):
         self.stereo.left_buoy_img_contours = msg
@@ -106,12 +112,9 @@ class StereoNode(Node):
             return
         
         self.stereo.run()
-
-        if self.stereo.pcd is None:
-            return
         
         # self.pcd_pub.publish(self.stereo.pcd)     
-        self.debug_pubs['/perception/stereo/debug/points'][0].publish(self.stereo.pcd)
+        # self.debug_pubs['/perception/stereo/debug/points'][0].publish(self.stereo.pcd)
 
 
 def main(args=None):
