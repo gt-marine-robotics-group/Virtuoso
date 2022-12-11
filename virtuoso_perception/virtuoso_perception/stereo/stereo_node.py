@@ -16,7 +16,9 @@ class StereoNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('base_topics', []),
-            ('frames', [])
+            ('frames', []), 
+            ('debug', False),
+            ('multiprocessing', True)
         ])
 
         self.frames = self.get_parameter('frames').value
@@ -58,7 +60,11 @@ class StereoNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        self.stereo = Stereo(node=self, multiprocessing=True)
+        if self.get_parameter('debug').value:
+            node = self
+        else:
+            node = None
+        self.stereo = Stereo(node=node, multiprocessing=self.get_parameter('multiprocessing').value)
 
         self.create_timer(1.0, self.execute)
     

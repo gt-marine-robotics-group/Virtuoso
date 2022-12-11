@@ -16,6 +16,7 @@ def generate_launch_description():
     usv_config = LaunchConfiguration('usv')
 
     buoys_param_file = (pkg_share, '/config/', usv_config, '/buoys.yaml')
+    stereo_param_file = (pkg_share, '/config/', usv_config, '/stereo.yaml')
 
     usv_config_str = None
     for arg in sys.argv:
@@ -76,7 +77,8 @@ def generate_launch_description():
             executable='stereo',
             parameters=[
                 {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
-                {'frames': camera_data['camera_config']['bow_camera_frames']}
+                {'frames': camera_data['camera_config']['bow_camera_frames']}, 
+                stereo_param_file
             ]
         )
     )
