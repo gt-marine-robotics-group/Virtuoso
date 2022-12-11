@@ -44,10 +44,10 @@ class StereoNode(Node):
                 self.create_publisher(Image, '/perception/stereo/debug/right_cam/contoured_buoy1', 10)
             ],
             '/perception/stereo/debug/left_cam/rectified_buoy': [
-                self.create_publisher(Image, '/perception/stereo/debug/left_cam/rectified1', 10)
+                self.create_publisher(Image, '/perception/stereo/debug/left_cam/rectified_buoy1', 10)
             ],
             '/perception/stereo/debug/right_cam/rectified_buoy': [
-                self.create_publisher(Image, '/perception/stereo/debug/right_cam/rectified1', 10)
+                self.create_publisher(Image, '/perception/stereo/debug/right_cam/rectified_buoy1', 10)
             ]
         }
 

@@ -65,6 +65,25 @@ class BuoyStereo(NodeHelper):
 
         self._debug(f'pub length: {len(buoy_pairs)}')
 
+        if self._multiprocessing:
+            self._find_poses_multiprocessing(buoy_pairs)
+        else:
+            self._find_poses_singleprocessing(buoy_pairs)
+        
+        buoys = BuoyArray()
+        for i in range(len(self._points) // 2):
+            buoy = Buoy(location=Point(x=self._points[i * 2], y=self._points[(i * 2) + 1]))
+            buoys.buoys.append(buoy)
+        
+        return buoys
+    
+    def _find_poses_singleprocessing(self, buoy_pairs:list):
+        self._points = list(0.0 for _ in range(len(buoy_pairs) * 2))
+
+        for i, pair in enumerate(buoy_pairs):
+            self._find_buoy_pose(pair[0], pair[1], i) 
+    
+    def _find_poses_multiprocessing(self, buoy_pairs:list):
         self._points = Array(typecode_or_type='d', size_or_initializer=len(buoy_pairs)*2)
 
         contours_remaining = True
@@ -102,13 +121,6 @@ class BuoyStereo(NodeHelper):
             
             for p in processes:
                 p.close()
-        
-        buoys = BuoyArray()
-        for i in range(len(self._points) // 2):
-            buoy = Buoy(location=Point(x=self._points[i * 2], y=self._points[(i * 2) + 1]))
-            buoys.buoys.append(buoy)
-        
-        return buoys
         
     def _find_buoy_pose(self, left_img, right_img, buoy_index):
         self._debug(f'buoy_index: {buoy_index}')
