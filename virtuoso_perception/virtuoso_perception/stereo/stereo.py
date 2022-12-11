@@ -107,6 +107,7 @@ class Stereo(NodeHelper):
         self.pcd.header.frame_id = 'wamv/lidar_wamv_link'
         pcd_points = list()
         for i in range(len(buoy_poses) // 2):
+            self._debug(str([buoy_poses[i * 2], buoy_poses[(i * 2) + 1]]))
             pcd_points.append([buoy_poses[i * 2], buoy_poses[(i * 2) + 1], 0])
         
         self.pcd = create_cloud_xyz32(self.pcd.header, pcd_points)

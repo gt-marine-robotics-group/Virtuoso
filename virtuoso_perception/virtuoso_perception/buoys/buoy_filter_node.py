@@ -8,7 +8,7 @@ from ..utils.code_identification import find_contours
 import numpy as np
 from scipy import stats
 import random
-from virtuoso_msgs.msg import BuoyFilteredImage, Contours
+from virtuoso_msgs.msg import Contours
 
 class BuoyColorFilterNode(Node):
 
