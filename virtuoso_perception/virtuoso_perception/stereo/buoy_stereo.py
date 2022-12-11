@@ -9,6 +9,7 @@ from multiprocessing import Process, Array
 from sensor_msgs.msg import CameraInfo
 from cv_bridge import CvBridge
 from .pixel_matcher import PixelMatcher
+import time
 
 class BuoyStereo(NodeHelper):
 
@@ -82,6 +83,19 @@ class BuoyStereo(NodeHelper):
             else:
                 contours_remaining = True
                 count += 1
+            
+            start = time.time()
+            while time.time() - start <= 5:
+                self._debug('waiting for processes')
+                if any(p.is_alive() for p in processes):
+                    break
+                time.sleep(1.0)
+            else:
+                self._debug('process took to long')
+                for p in processes:
+                    p.terminate()
+                    p.join()
+                return BuoyArray()
             
             for p in processes:
                 p.join()
