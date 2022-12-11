@@ -21,11 +21,13 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Buoy.msg"
+  "msg/BuoyArray.msg"
   "msg/Contours.msg"
-  DEPENDENCIES geometry_msgs
+  DEPENDENCIES geometry_msgs std_msgs
  )
 
 if(BUILD_TESTING)
