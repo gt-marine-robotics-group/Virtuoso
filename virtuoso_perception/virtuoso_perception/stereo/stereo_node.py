@@ -34,8 +34,6 @@ class StereoNode(Node):
         self.right_cam_info_sub = self.create_subscription(CameraInfo,
             f'{base_topics[1]}/camera_info', self.right_cam_info_callback, 10)
         
-        # self.pcd_pub = self.create_publisher(PointCloud2, '/perception/stereo/points', 10)
-
         self.debug_pubs = {
             '/perception/stereo/debug/left_cam/contoured_buoy': [
                 self.create_publisher(Image, '/perception/stereo/debug/left_cam/contoured_buoy1', 10)
@@ -54,8 +52,9 @@ class StereoNode(Node):
         self.single_debug_pubs = {
             '/perception/stereo/debug/points': self.create_publisher(PointCloud2,
                 '/perception/stereo/debug/points', 10)
-            
         }
+
+        self.buoys_pub = self.create_publisher(BuoyArray, '/perception/stereo/buoys', 10)
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -119,6 +118,7 @@ class StereoNode(Node):
         
         self.stereo.run()
         
+        self.buoys_pub.publish(self.stereo.buoys)
         # self.pcd_pub.publish(self.stereo.pcd)     
         # self.debug_pubs['/perception/stereo/debug/points'][0].publish(self.stereo.pcd)
 
