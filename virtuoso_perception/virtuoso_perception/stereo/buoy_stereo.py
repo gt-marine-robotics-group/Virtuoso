@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from virtuoso_msgs.msg import Contours, Buoy, BuoyArray
 from geometry_msgs.msg import Point
-from .utils import unflatten_contours, img_points_to_physical_xy
+from .utils import unflatten_contours, img_points_to_physical_xy, contour_average_yx
 from multiprocessing import Process, Array
 from sensor_msgs.msg import CameraInfo
 from cv_bridge import CvBridge
@@ -39,6 +39,13 @@ class BuoyStereo(NodeHelper):
             return
         self._node.update_debug_pub_sizes(num)
     
+    def sort_contours(self, images_contours:list):
+        for contours in images_contours:
+            contours_list = list(contours)
+            contours_list.sort(key=lambda c: contour_average_yx(c)[0])
+            for i in range(len(contours_list)):
+                contours[i] = contours_list[i]
+    
     def find_buoys(self):
 
         contours = [
@@ -47,6 +54,7 @@ class BuoyStereo(NodeHelper):
             unflatten_contours(self._right_contours.contour_points, 
                 self._right_contours.contour_offsets)
         ]
+        self.sort_contours(contours)
 
         buoy_pairs = list()
         for cnt_num in range(len(self._left_contours.contour_offsets)):

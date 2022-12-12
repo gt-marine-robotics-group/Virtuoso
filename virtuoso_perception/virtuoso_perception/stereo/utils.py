@@ -25,6 +25,14 @@ def unflatten_contours(flat_contours:list, contour_offsets:list):
     
     return contours
 
+def contour_average_yx(contour:np.ndarray):
+    average = [0, 0]
+    for point in contour:
+        point = point[0]
+        average[0] += point[0]
+        average[1] += point[1]
+    return (average[0] // len(contour), average[1] // len(contour))
+
 def _find_left_cam_x_angle(point:tuple, f:float, center:tuple):
     if point[1] > center[1]:
         return math.atan(f / (point[1] - center[1]))
