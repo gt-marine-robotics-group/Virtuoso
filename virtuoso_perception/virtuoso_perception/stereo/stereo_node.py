@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from .stereo import Stereo
+from .buoy_stereo import BuoyStereo
 from virtuoso_msgs.msg import Contours, BuoyArray
 from sensor_msgs.msg import CameraInfo, PointCloud2, Image
 from geometry_msgs.msg import TransformStamped
@@ -63,9 +63,10 @@ class StereoNode(Node):
             node = self
         else:
             node = None
-        self.stereo = Stereo(node=node, multiprocessing=self.get_parameter('multiprocessing').value)
+        self.buoy_stereo = BuoyStereo(node=node,
+            multiprocessing=self.get_parameter('multiprocessing').value)
 
-        self.create_timer(1.0, self.execute)
+        self.create_timer(1.0, self.execute_buoy_stereo)
     
     def update_debug_pub_sizes(self, size:int):
         for base_name, pubs in self.debug_pubs.items():
@@ -84,16 +85,16 @@ class StereoNode(Node):
         self.single_debug_pubs[name].publish(msg)
     
     def left_buoy_contours_callback(self, msg:Contours):
-        self.stereo.left_buoy_img_contours = msg
+        self.buoy_stereo.left_img_contours = msg
     
     def right_buoy_contours_callback(self, msg:Contours):
-        self.stereo.right_buoy_img_contours = msg
+        self.buoy_stereo.right_img_contours = msg
 
     def left_cam_info_callback(self, msg:CameraInfo):
-        self.stereo.left_cam_info = msg
+        self.buoy_stereo.left_cam_info = msg
     
     def right_cam_info_callback(self, msg:CameraInfo):
-         self.stereo.right_cam_info = msg
+         self.buoy_stereo.right_cam_info = msg
         
     def find_cam_transform(self):
         trans:TransformStamped = None
@@ -109,16 +110,19 @@ class StereoNode(Node):
         
         cv2_trans = tf_transform_to_cv2_transform(trans)
         
-        self.stereo.cam_transform = cv2_trans
+        self.buoy_stereo.cam_transform = cv2_trans
         
-    def execute(self):
-        if self.stereo.cam_transform is None:
+    def execute_buoy_stereo(self):
+        if self.buoy_stereo.cam_transform is None:
             self.find_cam_transform()
             return
         
-        self.stereo.run()
+        self.buoy_stereo.run()
+
+        if self.buoy_stereo.buoys is None:
+            return
         
-        self.buoys_pub.publish(self.stereo.buoys)
+        self.buoys_pub.publish(self.buoy_stereo.buoys)
         # self.pcd_pub.publish(self.stereo.pcd)     
         # self.debug_pubs['/perception/stereo/debug/points'][0].publish(self.stereo.pcd)
 

@@ -1,5 +1,5 @@
 from rclpy.node import Node
-from ..utils.node_helper import NodeHelper
+from .stereo import Stereo
 import numpy as np
 import cv2
 from virtuoso_msgs.msg import Contours, Buoy, BuoyArray
@@ -11,28 +11,15 @@ from cv_bridge import CvBridge
 from .pixel_matcher import PixelMatcher
 import time
 
-class BuoyStereo(NodeHelper):
+class BuoyStereo(Stereo):
 
-    def __init__(self, node:Node, multiprocessing:bool, 
-        left_contours:Contours, right_contours:Contours,
-        left_rect_map:np.ndarray, right_rect_map:np.ndarray,
-        left_cam_info:CameraInfo, right_cam_info:CameraInfo):
+    def __init__(self, node:Node, multiprocessing:bool):
+        super().__init__(node, multiprocessing)
 
-        self._multiprocessing = multiprocessing
-        self._node = node
+        self.left_img_contours:Contours = None
+        self.right_img_contours:Contours = None
 
-        self._left_contours = left_contours
-        self._right_contours = right_contours
-
-        self._left_rect_map = left_rect_map
-        self._right_rect_map = right_rect_map
-
-        self._left_cam_info = left_cam_info
-        self._right_cam_info = right_cam_info
-
-        self._points = list()
-
-        self._cv_bridge = CvBridge()
+        self.buoys:BuoyArray = None
 
     def _update_debug_pub_sizes(self, num:int):
         if self._node is None:
@@ -46,21 +33,44 @@ class BuoyStereo(NodeHelper):
             for i in range(len(contours_list)):
                 contours[i] = contours_list[i]
     
-    def find_buoys(self):
+    def run(self):
+        self._debug('executing')
+
+        if (self.left_img_contours is None or self.left_cam_info is None 
+            or self.right_img_contours is None or self.right_cam_info is None):
+            self._debug('something is none')
+            return
+
+        self._find_rect_maps()
+        if self._left_rect_map is None or self._right_rect_map is None:
+            return
+        self._debug('got rect maps')
+
+        if (len(self.left_img_contours.contour_offsets) != 
+            len(self.right_img_contours.contour_offsets)):
+            return
+        
+        self._debug('got cv2 contours')
+        
+        self.buoys = self._find_buoys()
+
+        self._debug_pcd(self.buoys)
+    
+    def _find_buoys(self):
 
         contours = [
-            unflatten_contours(self._left_contours.contour_points, 
-                self._left_contours.contour_offsets),
-            unflatten_contours(self._right_contours.contour_points, 
-                self._right_contours.contour_offsets)
+            unflatten_contours(self.left_img_contours.contour_points, 
+                self.left_img_contours.contour_offsets),
+            unflatten_contours(self.right_img_contours.contour_points, 
+                self.right_img_contours.contour_offsets)
         ]
         self.sort_contours(contours)
 
         buoy_pairs = list()
-        for cnt_num in range(len(self._left_contours.contour_offsets)):
+        for cnt_num in range(len(self.left_img_contours.contour_offsets)):
             pair = list()
             for img_num in range(2):
-                blank = np.zeros((self._left_cam_info.height, self._left_cam_info.width))
+                blank = np.zeros((self.left_cam_info.height, self.left_cam_info.width))
                 filled = cv2.drawContours(blank, contours[img_num], cnt_num, 255, 1).astype('uint8')
                 pair.append(filled)
             buoy_pairs.append(pair)
@@ -151,7 +161,7 @@ class BuoyStereo(NodeHelper):
         self._debug(f'midpoints: {midpoints}')
 
         x, y = img_points_to_physical_xy(midpoints[0], midpoints[1], 
-            self._left_cam_info.k[0], self._right_cam_info.k[0], 
+            self.left_cam_info.k[0], self.right_cam_info.k[0], 
             (len(left_img_rect) // 2, len(left_img_rect[0]) // 2)
         )
 

@@ -5,7 +5,7 @@ from rclpy.node import Node
 import cv2
 from ..utils.node_helper import NodeHelper
 from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
-from .buoy_stereo import BuoyStereo
+from cv_bridge import CvBridge
 
 class Stereo(NodeHelper):
 
@@ -14,11 +14,10 @@ class Stereo(NodeHelper):
         self._node = node 
         self._multiprocessing = multiprocessing
 
+        self._cv_bridge = CvBridge()
+
         self.left_cam_info:CameraInfo = None
         self.right_cam_info:CameraInfo = None
-
-        self.left_buoy_img_contours:Contours = None
-        self.right_buoy_img_contours:Contours = None
 
         # 2 x 3 matrix
         # [ [x translation, y translation, z translation],
@@ -28,8 +27,6 @@ class Stereo(NodeHelper):
         self._left_rect_map:np.ndarray = None
         self._right_rect_map:np.ndarray = None
         self._Q:np.ndarray = None
-
-        self.buoys:BuoyArray = None
     
     def _debug_pcd(self, buoys:BuoyArray):
         pcd = PointCloud2()
@@ -78,33 +75,3 @@ class Stereo(NodeHelper):
             
         self._right_rect_map = cv2.initUndistortRectifyMap(right_matrix, right_distortion, 
             R2, P2, image_size, cv2.CV_32F)
-    
-    def run(self):
-        self._debug('executing')
-
-        if (self.left_buoy_img_contours is None or self.left_cam_info is None 
-            or self.right_buoy_img_contours is None or self.right_cam_info is None):
-            self._debug('something is none')
-            return
-
-        self._find_rect_maps()
-        if self._left_rect_map is None or self._right_rect_map is None:
-            return
-        self._debug('got rect maps')
-        
-        if (len(self.left_buoy_img_contours.contour_offsets) != 
-            len(self.right_buoy_img_contours.contour_offsets)):
-            return
-        
-        self._debug('got cv2 contours')
-
-        buoy_stereo = BuoyStereo(node=self._node, multiprocessing=self._multiprocessing, 
-            left_contours=self.left_buoy_img_contours, 
-            right_contours=self.right_buoy_img_contours, left_rect_map=self._left_rect_map,
-            right_rect_map=self._right_rect_map, left_cam_info=self.left_cam_info,
-            right_cam_info=self.right_cam_info)
-        
-        self.buoys = buoy_stereo.find_buoys()
-
-        self._debug_pcd(self.buoys)
-
