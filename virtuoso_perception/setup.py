@@ -37,7 +37,7 @@ setup(
             'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main',
 
             'buoy_filter = virtuoso_perception.buoys.buoy_filter_node:main',
-            'downscale = virtuoso_perception.camera_processing.downscale_node:main',
+            'resize = virtuoso_perception.camera_processing.resize_node:main',
             'grayscale = virtuoso_perception.camera_processing.grayscale_node:main',
             'buoy_stereo = virtuoso_perception.stereo.buoy_stereo_node:main',
             'stereo_filter = virtuoso_perception.stereo.stereo_filter_node:main',

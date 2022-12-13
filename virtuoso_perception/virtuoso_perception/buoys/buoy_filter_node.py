@@ -30,7 +30,7 @@ class BuoyColorFilterNode(Node):
         base_topic = self.get_parameter('base_topic').value
 
         self.image_sub = self.create_subscription(Image, 
-            f'{base_topic}/image_raw', self.image_callback, 10)
+            f'{base_topic}/resized', self.image_callback, 10)
 
         self.filter_pub = self.create_publisher(Contours,
             f'{base_topic}/buoy_filter', 10)

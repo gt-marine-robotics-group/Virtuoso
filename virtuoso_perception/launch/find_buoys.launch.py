@@ -56,13 +56,16 @@ def generate_launch_description():
                 ]
             )
         )
-
-    ld.append(
-        Node(
-            package='virtuoso_perception',
-            executable='downscale'
+        ld.append(
+            Node(
+                package='virtuoso_perception',
+                executable='resize',
+                name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
+                parameters=[
+                    {'base_topic': topic}
+                ]
+            )
         )
-    )
 
     ld.append(
         Node(

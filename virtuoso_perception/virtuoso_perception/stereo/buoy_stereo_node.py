@@ -27,12 +27,12 @@ class BuoyStereoNode(Node):
         self.left_buoy_contours_sub = self.create_subscription(Contours,
             f'{base_topics[0]}/buoy_filter', self.left_buoy_contours_callback, 10)
         self.left_cam_info_sub = self.create_subscription(CameraInfo, 
-            f'{base_topics[0]}/camera_info', self.left_cam_info_callback, 10)
+            f'{base_topics[0]}/resized/camera_info', self.left_cam_info_callback, 10)
         
         self.right_buoy_contours_sub = self.create_subscription(Contours,
             f'{base_topics[1]}/buoy_filter', self.right_buoy_contours_callback, 10)
         self.right_cam_info_sub = self.create_subscription(CameraInfo,
-            f'{base_topics[1]}/camera_info', self.right_cam_info_callback, 10)
+            f'{base_topics[1]}/resized/camera_info', self.right_cam_info_callback, 10)
         
         self.debug_pubs = {
             '/perception/stereo/debug/left_cam/contoured_buoy': [
