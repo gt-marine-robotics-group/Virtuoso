@@ -26,12 +26,18 @@ class BuoyStereo(Stereo):
             return
         self._node.update_debug_pub_sizes(num)
     
-    def sort_contours(self, images_contours:list):
-        for contours in images_contours:
-            contours_list = list(contours)
-            contours_list.sort(key=lambda c: contour_average_yx(c)[0])
-            for i in range(len(contours_list)):
-                contours[i] = contours_list[i]
+    def _sort_contours(self, images_contours:list, images_contour_colors:list):
+        for i in range(len(images_contours)):
+            combo = list(zip(images_contours[i], images_contour_colors[i]))
+            combo.sort(key=lambda x: contour_average_yx(x[0])[0])
+            for j in range(len(combo)):
+                images_contours[i][j] = combo[j][0]
+                images_contour_colors[i][j] = combo[j][1]
+        # for contours in images_contours:
+        #     contours_list = list(contours)
+        #     contours_list.sort(key=lambda c: contour_average_yx(c)[0])
+        #     for i in range(len(contours_list)):
+        #         contours[i] = contours_list[i]
     
     def run(self):
         self._debug('executing')
@@ -62,9 +68,15 @@ class BuoyStereo(Stereo):
             unflatten_contours(self.left_img_contours.contour_points, 
                 self.left_img_contours.contour_offsets),
             unflatten_contours(self.right_img_contours.contour_points, 
-                self.right_img_contours.contour_offsets)
+                self.right_img_contours.contour_offsets),
         ]
-        self.sort_contours(contours)
+        contour_colors = [
+            self.left_img_contours.contour_colors,
+            self.right_img_contours.contour_colors
+        ]
+        self._sort_contours(contours, contour_colors)
+
+        self._debug(f'sorted colors: {contour_colors}')
 
         buoy_pairs = list()
         for cnt_num in range(len(self.left_img_contours.contour_offsets)):
