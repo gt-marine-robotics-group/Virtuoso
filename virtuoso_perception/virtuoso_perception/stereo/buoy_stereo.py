@@ -102,7 +102,8 @@ class BuoyStereo(Stereo):
         
         buoys = BuoyArray()
         for i in range(len(self._points) // 2):
-            buoy = Buoy(location=Point(x=self._points[i * 2], y=self._points[(i * 2) + 1]))
+            buoy = Buoy(location=Point(x=self._points[i * 2], y=self._points[(i * 2) + 1]),
+                color=contour_colors[0][i])
             buoys.buoys.append(buoy)
         
         return buoys

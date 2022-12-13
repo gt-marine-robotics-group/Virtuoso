@@ -122,6 +122,8 @@ class BuoyStereoNode(Node):
         if self.buoy_stereo.buoys is None:
             return
         
+        self.buoy_stereo.buoys.header.stamp = self.get_clock().now().to_msg()
+        self.buoy_stereo.buoys.header.frame_id = self.frames[0]
         self.buoys_pub.publish(self.buoy_stereo.buoys)
 
 
