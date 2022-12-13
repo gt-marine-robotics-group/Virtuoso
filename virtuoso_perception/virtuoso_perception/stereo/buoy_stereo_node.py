@@ -9,10 +9,10 @@ from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from .utils import tf_transform_to_cv2_transform
 
-class StereoNode(Node):
+class BuoyStereoNode(Node):
 
     def __init__(self):
-        super().__init__('perception_stereo')
+        super().__init__('perception_buoy_stereo')
 
         self.declare_parameters(namespace='', parameters=[
             ('base_topics', []),
@@ -123,15 +123,13 @@ class StereoNode(Node):
             return
         
         self.buoys_pub.publish(self.buoy_stereo.buoys)
-        # self.pcd_pub.publish(self.stereo.pcd)     
-        # self.debug_pubs['/perception/stereo/debug/points'][0].publish(self.stereo.pcd)
 
 
 def main(args=None):
     
     rclpy.init(args=args)
 
-    node = StereoNode()
+    node = BuoyStereoNode()
 
     rclpy.spin(node)
 

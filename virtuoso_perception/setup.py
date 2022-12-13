@@ -39,7 +39,7 @@ setup(
             'buoy_filter = virtuoso_perception.buoys.buoy_filter_node:main',
             'downscale = virtuoso_perception.camera_processing.downscale_node:main',
             'grayscale = virtuoso_perception.camera_processing.grayscale_node:main',
-            'stereo = virtuoso_perception.stereo.stereo_node:main',
+            'buoy_stereo = virtuoso_perception.stereo.buoy_stereo_node:main',
             'stereo_filter = virtuoso_perception.stereo.stereo_filter_node:main',
         ],
     },

@@ -74,7 +74,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='stereo',
+            executable='buoy_stereo',
             parameters=[
                 {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
                 {'frames': camera_data['camera_config']['bow_camera_frames']}, 
