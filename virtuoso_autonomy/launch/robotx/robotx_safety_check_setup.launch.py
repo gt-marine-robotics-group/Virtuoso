@@ -19,6 +19,7 @@ def generate_launch_description():
     localization = get_package_share_directory('virtuoso_localization')
     perception = get_package_share_directory('virtuoso_perception')
     controller = get_package_share_directory('virtuoso_controller')
+    mapping = get_package_share_directory('virtuoso_mapping')
 
     return LaunchDescription([
         sim_time_arg,
@@ -35,6 +36,9 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(mapping, 'launch', 'main.launch.py')),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py')),
