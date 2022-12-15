@@ -2,7 +2,9 @@ import rclpy
 from rclpy.node import Node
 from virtuoso_msgs.msg import BuoyArray
 from geometry_msgs.msg import PointStamped
+from sensor_msgs.msg import PointCloud2
 from virtuoso_perception.utils.geometry_msgs import do_transform_point
+from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
 from collections import deque
 from tf2_ros import TransformStamped
 from tf2_ros.buffer import Buffer
@@ -13,8 +15,8 @@ class BuoyMapNode(Node):
 
     cam_fov = 0.54
     frames = [
-        "wamv/front_left_camera_link_optical",
-        "wamv/front_right_camera_link_optical"
+        "wamv/front_left_camera_link",
+        "wamv/front_right_camera_link"
     ]
 
     def __init__(self):
@@ -22,6 +24,11 @@ class BuoyMapNode(Node):
 
         self.buoys_sub = self.create_subscription(BuoyArray, 
             '/perception/stereo/buoys', self.buoys_callback, 10)
+        
+        self.debug_pubs = {
+            '/mapping/debug/raw_buoy_points': self.create_publisher(PointCloud2, 
+                '/mapping/debug/raw_buoy_points', 10)
+        }
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -63,14 +70,25 @@ class BuoyMapNode(Node):
             trans_ps = do_transform_point(ps, trans)
             buoy.location = trans_ps.point
     
+    def debug_pcd(self, buoys:BuoyArray):
+        pcd = PointCloud2()
+        pcd.header.frame_id = 'map'
+        pcd_points = list()
+        for buoy in buoys.buoys:
+            pcd_points.append([buoy.location.x, buoy.location.y, 0])
+        
+        pcd = create_cloud_xyz32(pcd.header, pcd_points)
+
+        self.debug_pubs['/mapping/debug/raw_buoy_points'].publish(pcd)
+    
     def execute(self):
 
-        self.get_logger().info(f'original: {self.curr_buoys}') 
         try:
             self.transform_curr_buoys_to_map_frame()
         except Exception:
             return
-        self.get_logger().info(f'transformed: {self.curr_buoys}')
+
+        self.debug_pcd(self.curr_buoys)
 
 
 def main(args=None):
