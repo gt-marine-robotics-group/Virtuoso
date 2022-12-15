@@ -22,6 +22,7 @@ class BuoyMapNode(Node):
         "wamv/front_left_camera_link",
         "wamv/front_right_camera_link"
     ]
+    colors = ['red', 'green', 'yellow', 'black']
 
     def __init__(self):
         super().__init__('mapping_buoy_map')
@@ -124,13 +125,18 @@ class BuoyMapNode(Node):
 
         return abs(angle) <= BuoyMapNode.cam_fov
 
-    def mapped_buoys_in_view(self):
+    def mapped_buoys_in_view(self) -> List[MappedBuoy]:
         left_cam_orientation = BuoyMapNode.find_euler(self.left_camera_pose.orientation)
         right_cam_orientation = BuoyMapNode.find_euler(self.right_camera_pose.orientation)
 
-        for buoy in self.curr_buoys.buoys:
-            self.is_buoy_in_view(buoy, self.left_camera_pose.position, 
-                left_cam_orientation)
+        in_view = list()
+        for buoy in self.mapped_buoys:
+            if (self.is_buoy_in_view(buoy, self.left_camera_pose.position, 
+                left_cam_orientation) and self.is_buoy_in_view(buoy, 
+                self.right_camera_pose.position, right_cam_orientation)):
+                in_view.append(buoy)
+        
+        return in_view
     
     def update_mapped_buoys(self):
         try:
@@ -142,7 +148,19 @@ class BuoyMapNode(Node):
         
         unmapped_indeces = set(i for i in range(len(self.curr_buoys.buoys)))
 
-        self.mapped_buoys_in_view()
+        buoys_in_view = self.mapped_buoys_in_view()
+        
+        color_maps = dict()
+        for color in BuoyMapNode.colors:
+            color_maps[color] = [list(), list()] # [old, new]
+        
+        for buoy in buoys_in_view:
+            color_maps[buoy.color][0].append(buoy)
+        
+        for buoy in self.curr_buoys.buoys:
+            color_maps[buoy.color][1].append(MappedBuoy(buoy=buoy))
+
+        self.get_logger().info(f'# in view: {len(buoys_in_view)}')
 
     def execute(self):
 
