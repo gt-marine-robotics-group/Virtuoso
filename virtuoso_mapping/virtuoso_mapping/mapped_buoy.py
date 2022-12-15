@@ -12,7 +12,7 @@ class MappedBuoy:
     def compute_new_avg(current:float, new:float, weight:float):
         return (current * (1 - weight)) + (new * weight)
     
-    def add_detected_buoy(self, buoy:Buoy, distance_from_usv:float):
+    def add_detected_buoy(self, buoy, distance_from_usv:float):
         if self.color != buoy.color:
             raise Exception('Buoy color cannot change')
         
@@ -26,4 +26,7 @@ class MappedBuoy:
             buoy.location.x, weight)
         self.location.y = MappedBuoy.compute_new_avg(self.location.y, 
             buoy.location.y, weight)
+    
+    def __repr__(self):
+        return f'MappedBuoy(location={self.location}, color={self.color})'
         

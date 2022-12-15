@@ -92,6 +92,9 @@ class BuoyMapNode(Node):
     def buoy_distance(buoy:Buoy):
         return math.sqrt(buoy.location.x**2 + buoy.location.y**2)
     
+    def point_distance(p1:Point, p2:Point):
+        return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
+    
     def find_euler(quat:Quaternion):
         q = [quat.x, quat.y, quat.z, quat.w]
 
@@ -138,7 +141,52 @@ class BuoyMapNode(Node):
         
         return in_view
     
+    def find_new_to_old_mapping(self, maps:List[List[MappedBuoy]]):
+
+        if len(maps[1]) == 0:
+            return dict()
+
+        index_maps = list(dict() for _ in maps[1]) 
+        distances = list(0 for _ in maps[1])
+
+        start_index = 0
+        while start_index < len(maps[1]):
+            index_map = dict()
+            distance = 0
+            unused_indices = set(i for i in range(len(maps[0])))
+            for index, buoy in enumerate(maps[1]):
+                min_dist = math.inf
+                min_dist_index = -1
+                for i in unused_indices:
+                    dist = BuoyMapNode.point_distance(buoy.location, 
+                        maps[0][i].location)
+                    if dist < min_dist:
+                        min_dist = dist
+                        min_dist_index = i
+
+                index_map[index] = min_dist_index
+                if min_dist_index != -1:
+                    distance += min_dist
+                    unused_indices.remove(min_dist_index)
+
+            index_maps[start_index] = index_map
+            distances[start_index] = distance
+                
+            start_index += 1
+
+        min_dist = math.inf
+        min_dist_index = -1
+        for i, dist in enumerate(distances):
+            if dist < min_dist:
+                min_dist = dist
+                min_dist_index = i
+        
+        return index_maps[min_dist_index]
+    
     def update_mapped_buoys(self):
+        if len(self.curr_buoys.buoys) == 0:
+            return
+
         try:
             self.find_camera_poses()
         except Exception as e:
@@ -146,8 +194,6 @@ class BuoyMapNode(Node):
             self.get_logger().info(str(e))
             return
         
-        unmapped_indeces = set(i for i in range(len(self.curr_buoys.buoys)))
-
         buoys_in_view = self.mapped_buoys_in_view()
         
         color_maps = dict()
@@ -159,14 +205,28 @@ class BuoyMapNode(Node):
         
         for buoy in self.curr_buoys.buoys:
             color_maps[buoy.color][1].append(MappedBuoy(buoy=buoy))
+        
+        for color in BuoyMapNode.colors:
+            index_map = self.find_new_to_old_mapping(color_maps[color])
+            for i in index_map.keys():
+                if index_map[i] != -1:
+                    color_maps[color][0][index_map[i]].add_detected_buoy(
+                        color_maps[color][1][i],
+                        BuoyMapNode.point_distance(
+                            color_maps[color][1][i].location,
+                            self.left_camera_pose.position
+                        )
+                    )
+                else:
+                    self.mapped_buoys.append(color_maps[color][1][i])
 
         self.get_logger().info(f'# in view: {len(buoys_in_view)}')
+        self.get_logger().info(f'index map: {index_map}')
+        self.get_logger().info(f'full map: {self.mapped_buoys}')
 
     def execute(self):
 
         self.filter_curr_buoys()
-
-        camera_buoy_locs = self.curr_buoys.buoys.copy()
 
         try:
             self.transform_curr_buoys_to_map_frame()
