@@ -154,11 +154,13 @@ class BuoyMapNode(Node):
             index_map = dict()
             distance = 0
             unused_indices = set(i for i in range(len(maps[0])))
-            for index, buoy in enumerate(maps[1]):
+
+            index = start_index
+            while len(index_map.keys()) != len(maps[1]):
                 min_dist = math.inf
                 min_dist_index = -1
                 for i in unused_indices:
-                    dist = BuoyMapNode.point_distance(buoy.location, 
+                    dist = BuoyMapNode.point_distance(maps[1][index].location, 
                         maps[0][i].location)
                     if dist < min_dist:
                         min_dist = dist
@@ -168,6 +170,8 @@ class BuoyMapNode(Node):
                 if min_dist_index != -1:
                     distance += min_dist
                     unused_indices.remove(min_dist_index)
+                
+                index = (index + 1) % len(maps[1])
 
             index_maps[start_index] = index_map
             distances[start_index] = distance
@@ -221,7 +225,6 @@ class BuoyMapNode(Node):
                     self.mapped_buoys.append(color_maps[color][1][i])
 
         self.get_logger().info(f'# in view: {len(buoys_in_view)}')
-        self.get_logger().info(f'index map: {index_map}')
         self.get_logger().info(f'full map: {self.mapped_buoys}')
 
     def execute(self):
