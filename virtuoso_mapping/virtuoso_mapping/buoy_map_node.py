@@ -17,7 +17,7 @@ import tf_transformations
 
 class BuoyMapNode(Node):
 
-    cam_fov = 0.54
+    cam_fov = 0.70
     frames = [
         "wamv/front_left_camera_link",
         "wamv/front_right_camera_link"
