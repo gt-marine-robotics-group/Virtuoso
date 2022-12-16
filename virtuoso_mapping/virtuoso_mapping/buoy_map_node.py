@@ -35,6 +35,9 @@ class BuoyMapNode(Node):
                 '/mapping/debug/filtered_buoy_points', 10)
         }
 
+        self.buoy_map_pub = self.create_publisher(BuoyArray, 
+            '/mapping/buoy_map', 10)
+
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
@@ -226,6 +229,17 @@ class BuoyMapNode(Node):
 
         self.get_logger().info(f'# in view: {len(buoys_in_view)}')
         self.get_logger().info(f'full map: {self.mapped_buoys}')
+    
+    def publish_full_map(self):
+        msg = BuoyArray()
+        msg.header.frame_id = 'map'
+        msg.header.stamp = self.get_clock().now().to_msg()
+
+        for buoy in self.mapped_buoys:
+            msg.buoys.append(Buoy(location=buoy.location, color=buoy.color, 
+                id=id(buoy)))
+        
+        self.buoy_map_pub.publish(msg)
 
     def execute(self):
 
@@ -240,6 +254,8 @@ class BuoyMapNode(Node):
         self.debug_pcd(self.curr_buoys)
 
         self.update_mapped_buoys()
+
+        self.publish_full_map()
 
 
 def main(args=None):
