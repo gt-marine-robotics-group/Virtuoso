@@ -90,9 +90,6 @@ class ChannelNavNode(Node):
         
         buoy_poses = list(point_to_pose_stamped(b.location) for b in filtered_buoys)
 
-        # self.get_logger().info(f'buoy_poses: {buoy_poses}')
-
-        # NEED TO CONVERT BUOY POSES TO THE MAP FRAME
         trans = self.find_transform()
         if trans is None: 
             return
@@ -101,7 +98,6 @@ class ChannelNavNode(Node):
 
         channel = self.channel_nav.find_channel(buoy_poses, self.robot_pose)
 
-        self.get_logger().info(f'channel: {channel}')
         if channel is None:
             return
 
