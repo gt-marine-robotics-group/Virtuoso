@@ -6,4 +6,3 @@ float32 max_dist_from_usv
 std_msgs/Header header
 geometry_msgs/Point left
 geometry_msgs/Point right
-string rotate_direction
