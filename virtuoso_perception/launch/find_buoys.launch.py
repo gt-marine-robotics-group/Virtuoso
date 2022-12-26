@@ -89,7 +89,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='stereo_filter'
+            executable='channel'
         )
     )
         
