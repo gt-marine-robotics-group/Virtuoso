@@ -160,6 +160,9 @@ class BuoyMapNode(Node):
 
             index = start_index
             while len(index_map.keys()) != len(maps[1]):
+                # could make it so that if distance > 3 do not include it in 
+                # calculations. We would then need to remove buoy outliers in 
+                # the future tho.
                 min_dist = math.inf
                 min_dist_index = -1
                 for i in unused_indices:
