@@ -32,6 +32,7 @@ setup(
             'waypoints = virtuoso_navigation.waypoints_node:main',
             'translate = virtuoso_navigation.translate_node:main',
             'station_keeping = virtuoso_navigation.station_keeping_node:main',
+            'rotate = virtuoso_navigation.rotate_node:main',
 
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',
             'test_change_goal = virtuoso_navigation.testing.change_goal:main',

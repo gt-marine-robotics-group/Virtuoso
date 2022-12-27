@@ -1,13 +1,14 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import PoseStamped, Point
+from geometry_msgs.msg import PoseStamped, Point, Vector3
 from std_msgs.msg import Empty
 from virtuoso_msgs.msg import BuoyArray
-from virtuoso_msgs.srv import Channel
+from virtuoso_msgs.srv import Channel, Rotate
 from .channel_nav_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+import time
 
 class ChannelNavNode(Node):
 
@@ -29,6 +30,9 @@ class ChannelNavNode(Node):
 
         self.channel_client = self.create_client(Channel, 'channel')
         self.channel_call = None
+
+        self.rotate_client = self.create_client(Rotate, 'rotate')
+        self.rotate_call = None
         
         self.robot_pose:PoseStamped = None
         self.buoys:BuoyArray = None
@@ -59,6 +63,10 @@ class ChannelNavNode(Node):
         if self.state == State.FINDING_NEXT_GATE:
             self.nav_to_next_midpoint()
             return
+        if self.state == State.ROTATING_TO_FIND_NEXT_GATE:
+            return
+        if self.state == State.NAVIGATING:
+            return
     
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED
@@ -80,14 +88,43 @@ class ChannelNavNode(Node):
 
         self.channel_call = self.channel_client.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
+
+    def rotate(self, angle:float):
+        self.state = State.ROTATING_TO_FIND_NEXT_GATE
+        req = Rotate.Request()
+        req.goal = Vector3(z=angle)
+        
+        self.rotate_call = self.rotate_client.call_async(req)
+        self.rotate_call.add_done_callback(self.rotate_response)
+    
+    def rotate_response(self, future):
+        result:Rotate.Response = future.result()
+        self.get_logger().info(f'rotate response: {result}')
+        time.sleep(10.0) 
+        self.state = State.FINDING_NEXT_GATE
     
     def channel_response(self, future):
         result:Channel.Response = future.result()
         self.get_logger().info(f'response: {result}')
-        self.channel_call = None
 
-        if (result.left == Point(x=0.0,y=0.0,z=0.0) or
-            result.right == Point(x=0.0,y=0.0,z=0.0)):
+        null_point = Point(x=0.0,y=0.0,z=0.0)
+
+        # if (result.left == null_point and
+        #     result.right == null_point):
+        #     self.channel_call = None
+        #     return
+        
+        if result.left == null_point:
+            self.channel_call = None
+            if result.right == null_point:
+                self.get_logger().info('BOTH NULL POINTS')
+                return 
+            self.get_logger().info('ROTATING LEFT')
+            self.rotate(0.523599) 
+            return
+        elif result.right == null_point:
+            self.get_logger().info('ROTATING RIGHT')
+            self.rotate(-0.523599)
             return
 
         buoy_poses = [
@@ -106,6 +143,7 @@ class ChannelNavNode(Node):
         path.poses.append(mid)
 
         self.state = State.NAVIGATING
+        self.channel_call = None
         self.path_pub.publish(path)
 
 
