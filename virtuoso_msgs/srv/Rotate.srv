@@ -1,0 +1,5 @@
+
+geometry_msgs/Vector3 goal
+---
+bool success
+bool failure

@@ -28,6 +28,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BuoyArray.msg"
   "msg/Contours.msg"
   "srv/Channel.srv"
+  "srv/Rotate.srv"
   DEPENDENCIES geometry_msgs std_msgs
  )
 
