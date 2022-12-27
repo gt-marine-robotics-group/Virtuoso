@@ -1,16 +1,13 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Point
 from std_msgs.msg import Empty
 from virtuoso_msgs.msg import BuoyArray
+from virtuoso_msgs.srv import Channel
 from .channel_nav_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-from rclpy.time import Time
-from virtuoso_perception.utils.geometry_msgs import do_transform_pose_stamped
 
 class ChannelNavNode(Node):
 
@@ -29,12 +26,12 @@ class ChannelNavNode(Node):
         
         self.state = State.START
         self.channel_nav = ChannelNavigation()
+
+        self.channel_client = self.create_client(Channel, 'channel')
+        self.channel_call = None
         
         self.robot_pose:PoseStamped = None
         self.buoys:BuoyArray = None
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.create_timer(1.0, self.execute)
 
@@ -67,34 +64,36 @@ class ChannelNavNode(Node):
         self.state = State.STATION_KEEPING_ENABLED
         self.station_keeping_pub.publish(Empty())
     
-    def find_transform(self):
-        try:
-            trans = self.tf_buffer.lookup_transform(
-                'map', "wamv/front_left_camera_link", Time()
-            )
-            return trans
-        except Exception:
-            return None
-    
     def nav_to_next_midpoint(self):
 
         if self.robot_pose is None:
             return
         if self.buoys is None:
             return
-
-        filtered_buoys = list(b for b in self.buoys.buoys if b.color == 'red' or b.color == 'green')
-        
-        if len(filtered_buoys) < 2:
+        if self.channel_call is not None:
             return
         
-        buoy_poses = list(point_to_pose_stamped(b.location) for b in filtered_buoys)
+        req = Channel.Request()
+        req.left_color = 'red'
+        req.right_color = 'green'
+        req.max_dist_from_usv = 100.0
 
-        trans = self.find_transform()
-        if trans is None: 
+        self.channel_call = self.channel_client.call_async(req)
+        self.channel_call.add_done_callback(self.channel_response)
+    
+    def channel_response(self, future):
+        result:Channel.Response = future.result()
+        self.get_logger().info(f'response: {result}')
+        self.channel_call = None
+
+        if (result.left == Point(x=0.0,y=0.0,z=0.0) or
+            result.right == Point(x=0.0,y=0.0,z=0.0)):
             return
-        
-        buoy_poses = list(do_transform_pose_stamped(p, trans) for p in buoy_poses)
+
+        buoy_poses = [
+            point_to_pose_stamped(result.left),
+            point_to_pose_stamped(result.right)
+        ]
 
         channel = self.channel_nav.find_channel(buoy_poses, self.robot_pose)
 
@@ -108,6 +107,7 @@ class ChannelNavNode(Node):
 
         self.state = State.NAVIGATING
         self.path_pub.publish(path)
+
 
 def main(args=None):
     
