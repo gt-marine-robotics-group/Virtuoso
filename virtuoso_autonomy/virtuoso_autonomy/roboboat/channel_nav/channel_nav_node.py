@@ -109,10 +109,6 @@ class ChannelNavNode(Node):
 
         null_point = Point(x=0.0,y=0.0,z=0.0)
 
-        # if (result.left == null_point and
-        #     result.right == null_point):
-        #     self.channel_call = None
-        #     return
         self.channel_call = None
         
         if result.left == null_point:

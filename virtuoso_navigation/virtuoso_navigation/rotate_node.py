@@ -23,12 +23,10 @@ class RotateNode(Node):
         self.odom = msg
     
     def rotate_callback(self, req:Rotate.Request, res:Rotate.Response):
-        self.get_logger().info('ROTATE CALLBACK')
         res.success = False
         res.failure = False
 
         if self.odom is None:
-            self.get_logger().info('NO ODOM')
             res.failure = True
             return res 
         
@@ -52,7 +50,6 @@ class RotateNode(Node):
         path = Path()
         path.poses.append(PoseStamped(pose=goal_pose))
 
-        self.get_logger().info('SENDING ROTATE PATH')
         self.path_pub.publish(path)
 
         res.success = True
