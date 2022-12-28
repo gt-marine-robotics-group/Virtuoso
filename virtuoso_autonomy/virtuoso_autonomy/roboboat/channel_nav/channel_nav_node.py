@@ -84,7 +84,7 @@ class ChannelNavNode(Node):
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
-        req.max_dist_from_usv = 100.0
+        req.max_dist_from_usv = 15.0
 
         self.channel_call = self.channel_client.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
@@ -113,9 +113,9 @@ class ChannelNavNode(Node):
         #     result.right == null_point):
         #     self.channel_call = None
         #     return
+        self.channel_call = None
         
         if result.left == null_point:
-            self.channel_call = None
             if result.right == null_point:
                 self.get_logger().info('BOTH NULL POINTS')
                 return 

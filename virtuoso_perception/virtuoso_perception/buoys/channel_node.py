@@ -63,6 +63,8 @@ class ChannelNode(Node):
         left_buoys:List[Buoy] = list()
         right_buoys:List[Buoy] = list()
         for buoy in self.buoys.buoys:
+            if math.sqrt(buoy.location.x**2 + buoy.location.y**2) > req.max_dist_from_usv:
+                continue
             if buoy.color == req.left_color:
                 left_buoys.append(buoy)
             elif buoy.color == req.right_color:
