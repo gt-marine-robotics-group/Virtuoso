@@ -3,7 +3,8 @@ from typing import List
 
 class ColorRange:
 
-    def __init__(self, node:Node, colors=List[str]):
+    def __init__(self, node:Node, colors=List[str],
+        prefix=''):
 
         self.ranges = {
             'red': {
@@ -35,5 +36,5 @@ class ColorRange:
         for color in colors:
             for bound in self.ranges[color]:
                 self.ranges[color][bound] = node.get_parameter(
-                    f'{color}.{bound}'
+                    f'{prefix}{color}.{bound}'
                 ).value

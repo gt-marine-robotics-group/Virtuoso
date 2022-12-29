@@ -11,10 +11,11 @@ from scipy import stats
 
 class BuoyFilter:
 
-    def __init__(self, color_bounds, buoy_border_px:int,
-        buoy_px_color_sample_size:float):
+    def __init__(self, color_filter_bounds, color_label_bounds, 
+        buoy_border_px:int, buoy_px_color_sample_size:float):
         
-        self._color_bounds:ColorRange = color_bounds
+        self._color_filter_bounds:ColorRange = color_filter_bounds
+        self._color_label_bounds:ColorRange =  color_label_bounds
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
@@ -35,7 +36,7 @@ class BuoyFilter:
             self.image
         )
 
-        ranges = self._color_bounds.ranges
+        ranges = self._color_filter_bounds.ranges
 
         red_filtered = color_filter.red_orange_filter(
             hsv_lower1=ranges['red']['lower1'], hsv_upper1=ranges['red']['upper1'], 
@@ -43,10 +44,9 @@ class BuoyFilter:
         green_filtered = color_filter.green_filter(
             hsv_lower=ranges['green']['lower'], hsv_upper=ranges['green']['upper']
         )
-        # black_filtered = color_filter.black_filter(
-        #     hsv_lower=ranges['black']['lower'], hsv_upper=ranges['black']['upper']
-        # )
-        black_filtered = color_filter.black_filter()
+        black_filtered = color_filter.black_filter(
+            hsv_lower=ranges['black']['lower'], hsv_upper=ranges['black']['upper']
+        )
         yellow_filtered = color_filter.yellow_filter(
             hsv_lower=ranges['yellow']['lower'], hsv_upper=ranges['yellow']['upper']
         )
@@ -180,8 +180,8 @@ class BuoyFilter:
     
     def _pixel_color(self, pixel:np.ndarray):
 
-        for color in self._color_bounds.range_colors:
-            bounds = list(self._color_bounds.ranges[color].values())
+        for color in self._color_label_bounds.range_colors:
+            bounds = list(self._color_label_bounds.ranges[color].values())
             for i in range(0, len(bounds), 2):
                 for j in range(len(bounds[i])):
                     if (pixel[j] < bounds[i][j] or pixel[j] > bounds[i + 1][j]):

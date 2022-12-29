@@ -21,23 +21,36 @@ class BuoyColorFilterNode(Node):
             ('debug', False),
             ('base_topic', ''), # comes from camera_config.yaml
 
-            ('red.lower1', [0,0,0]),
-            ('red.upper1', [0,0,0]),
-            ('red.lower2', [0,0,0]),
-            ('red.upper2', [0,0,0]),
-            ('green.lower', [0,0,0]),
-            ('green.upper', [0,0,0]),
-            ('yellow.lower', [0,0,0]),
-            ('yellow.upper', [0,0,0]),
-            ('black.lower', [0,0,0]),
-            ('black.upper', [0,0,0]),
+            ('filter_bounds.red.lower1', [0,0,0]),
+            ('filter_bounds.red.upper1', [0,0,0]),
+            ('filter_bounds.red.lower2', [0,0,0]),
+            ('filter_bounds.red.upper2', [0,0,0]),
+            ('filter_bounds.green.lower', [0,0,0]),
+            ('filter_bounds.green.upper', [0,0,0]),
+            ('filter_bounds.yellow.lower', [0,0,0]),
+            ('filter_bounds.yellow.upper', [0,0,0]),
+            ('filter_bounds.black.lower', [0,0,0]),
+            ('filter_bounds.black.upper', [0,0,0]),
+
+            ('label_bounds.red.lower1', [0,0,0]),
+            ('label_bounds.red.upper1', [0,0,0]),
+            ('label_bounds.red.lower2', [0,0,0]),
+            ('label_bounds.red.upper2', [0,0,0]),
+            ('label_bounds.green.lower', [0,0,0]),
+            ('label_bounds.green.upper', [0,0,0]),
+            ('label_bounds.yellow.lower', [0,0,0]),
+            ('label_bounds.yellow.upper', [0,0,0]),
+            ('label_bounds.black.lower', [0,0,0]),
+            ('label_bounds.black.upper', [0,0,0]),
 
             ('buoy_border_px', 0),
             ('buoy_px_color_sample_size', 0)
         ])
 
-        self.buoy_filter = BuoyFilter(color_bounds=ColorRange(self, 
-            ['red', 'green', 'black', 'yellow']), 
+        self.buoy_filter = BuoyFilter(color_filter_bounds=ColorRange(self, 
+            ['red', 'green', 'black', 'yellow'], prefix='filter_bounds.'), 
+            color_label_bounds=ColorRange(self, 
+                ['red', 'green', 'black', 'yellow'], prefix='label_bounds.'),
             buoy_border_px=self.get_parameter('buoy_border_px').value,
             buoy_px_color_sample_size=self.get_parameter('buoy_px_color_sample_size').value
         )
