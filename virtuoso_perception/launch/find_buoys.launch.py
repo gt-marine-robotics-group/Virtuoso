@@ -26,6 +26,14 @@ def generate_launch_description():
     camera_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
         camera_data = yaml.safe_load(stream)
+    
+    buoys_data = None
+    with open(f'{pkg_share}/config/{usv_config_str}/buoys.yaml', 'r') as stream:
+        buoys_data = yaml.safe_load(stream)
+    
+    buoy_filter_params = []
+    for key, value in buoys_data['perception_buoy_filter']['ros__parameters'].items():
+        buoy_filter_params.append({key: value})
 
     ld = list()
 
@@ -52,7 +60,8 @@ def generate_launch_description():
                 executable='buoy_filter',
                 name=f'perception_buoy_filter_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
-                    {'base_topic': topic}
+                    {'base_topic': topic},
+                    *buoy_filter_params
                 ]
             )
         )
