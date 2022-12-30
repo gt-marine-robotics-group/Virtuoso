@@ -35,16 +35,20 @@ setup(
         'console_scripts': [
             'find_buoys = virtuoso_perception.buoys.find_buoys_node:main',
             'classify_buoys = virtuoso_perception.buoys.classify_buoys_node:main',
+            'buoy_filter = virtuoso_perception.buoys.buoy_filter_node:main',
+            'channel = virtuoso_perception.buoys.channel_node:main',
+
             'scan_code = virtuoso_perception.code.scan_code_node:main',
+
             'find_dock_codes = virtuoso_perception.dock.find_dock_codes_node:main',
             'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main',
 
-            'buoy_filter = virtuoso_perception.buoys.buoy_filter_node:main',
-            'resize = virtuoso_perception.camera_processing.resize_node:main',
-            'grayscale = virtuoso_perception.camera_processing.grayscale_node:main',
             'buoy_stereo = virtuoso_perception.stereo.buoy_stereo_node:main',
 
-            'channel = virtuoso_perception.buoys.channel_node:main'
+            'resize = virtuoso_perception.camera_processing.resize_node:main',
+
+            'self_filter = virtuoso_perception.lidar_processing.self_filter_node:main',
+            'shore_filter = virtuoso_perception.lidar_processing.shore_filter_node:main'
         ],
     },
 )

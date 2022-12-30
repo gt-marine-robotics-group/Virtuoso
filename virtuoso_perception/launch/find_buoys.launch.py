@@ -40,7 +40,9 @@ def generate_launch_description():
     ld.append(usv_arg)
 
     ld.append(IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py')),
+            PythonLaunchDescriptionSource(
+                os.path.join(pkg_share, 'launch/processing.launch.py')
+            ),
             launch_arguments={'usv': usv_config}.items()
         )
     )
@@ -65,23 +67,6 @@ def generate_launch_description():
                 ]
             )
         )
-        ld.append(
-            Node(
-                package='virtuoso_perception',
-                executable='resize',
-                name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
-                parameters=[
-                    {'base_topic': topic}
-                ]
-            )
-        )
-
-    ld.append(
-        Node(
-            package='virtuoso_perception',
-            executable='grayscale'
-        )
-    )
 
     ld.append(
         Node(
