@@ -4,7 +4,7 @@ from virtuoso_msgs.msg import BuoyArray, Buoy
 from geometry_msgs.msg import PointStamped, Pose, Point, Quaternion, Vector3
 from sensor_msgs.msg import PointCloud2
 from virtuoso_perception.utils.geometry_msgs import do_transform_point, do_transform_pose
-from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
+from virtuoso_perception.utils.pointcloud import create_cloud_xyz32
 from collections import deque
 from tf2_ros import TransformStamped
 from tf2_ros.buffer import Buffer

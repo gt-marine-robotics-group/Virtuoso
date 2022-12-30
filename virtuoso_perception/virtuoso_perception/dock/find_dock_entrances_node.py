@@ -7,7 +7,7 @@ from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
 from rclpy.time import Time
 from .find_dock_entrances import FindDockEntrances
-from virtuoso_processing.utils.pointcloud import read_points, create_cloud_xyz32
+from virtuoso_perception.utils.pointcloud import read_points, create_cloud_xyz32
 from virtuoso_perception.utils.geometry_msgs import do_transform_point
 
 class FindDockEntrancesNode(Node):

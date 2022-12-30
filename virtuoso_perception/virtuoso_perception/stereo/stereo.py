@@ -4,7 +4,7 @@ import numpy as np
 from rclpy.node import Node
 import cv2
 from ..utils.node_helper import NodeHelper
-from virtuoso_processing.utils.pointcloud import create_cloud_xyz32
+from virtuoso_perception.utils.pointcloud import create_cloud_xyz32
 from cv_bridge import CvBridge
 
 class Stereo(NodeHelper):

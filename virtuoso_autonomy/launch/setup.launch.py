@@ -16,7 +16,7 @@ def generate_launch_description():
     sim_path_config = LaunchConfiguration('sim_path', default='')
     usv_config = LaunchConfiguration('usv')
 
-    processing = get_package_share_directory('virtuoso_processing')
+    perception = get_package_share_directory('virtuoso_perception')
     navigation = get_package_share_directory('virtuoso_navigation')
     localization = get_package_share_directory('virtuoso_localization')
     controller = get_package_share_directory('virtuoso_controller')
@@ -27,7 +27,9 @@ def generate_launch_description():
         usv,
 
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(processing, 'launch', 'main.launch.py')),
+            PythonLaunchDescriptionSource(
+                os.path.join(perception, 'launch', 'processing.launch.py')
+            ),
             launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
