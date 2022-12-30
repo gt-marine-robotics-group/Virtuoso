@@ -15,6 +15,12 @@ class ChannelNavNode(Node):
     def __init__(self):
         super().__init__('autonomy_channel_nav')
 
+        self.declare_parameters(namespace='', parameters=[
+            ('num_channels', 0),
+            ('gate_buoy_max_dist', 0.0),
+            ('rotation_theta', 0.0)
+        ])
+
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
