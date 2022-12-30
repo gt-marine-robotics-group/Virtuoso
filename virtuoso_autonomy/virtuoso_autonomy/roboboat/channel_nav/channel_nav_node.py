@@ -47,7 +47,8 @@ class ChannelNavNode(Node):
 
     def nav_success_callback(self, msg:PoseStamped):
         self.buoys = None
-        if len(self.channel_nav.channels) == 2:
+        if (len(self.channel_nav.channels) ==
+            self.get_parameter('num_channels').value - 1):
             self.state = State.COMPLETE
         else:
             self.state = State.FINDING_NEXT_GATE
@@ -90,7 +91,7 @@ class ChannelNavNode(Node):
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
-        req.max_dist_from_usv = 15.0
+        req.max_dist_from_usv = self.get_parameter('gate_buoy_max_dist').value
 
         self.channel_call = self.channel_client.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
@@ -122,11 +123,11 @@ class ChannelNavNode(Node):
                 self.get_logger().info('BOTH NULL POINTS')
                 return 
             self.get_logger().info('ROTATING LEFT')
-            self.rotate(0.523599) 
+            self.rotate(self.get_parameter('rotation_theta').value) 
             return
         elif result.right == null_point:
             self.get_logger().info('ROTATING RIGHT')
-            self.rotate(-0.523599)
+            self.rotate(-self.get_parameter('rotation_theta').value)
             return
 
         buoy_poses = [
