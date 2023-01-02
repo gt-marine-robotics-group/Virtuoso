@@ -1,0 +1,10 @@
+
+camera_config:
+  bow_camera_base_topics: [
+      "/cameras/front_left_camera",
+      "/cameras/front_right_camera"
+    ]
+  bow_camera_frames: [
+    "/front_left_camera_link_optical",
+    "/front_right_camera_link_optical"
+  ]
