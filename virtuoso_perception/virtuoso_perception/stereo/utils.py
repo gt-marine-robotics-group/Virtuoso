@@ -81,7 +81,7 @@ def tf_transform_to_cv2_transform(tf_transform:TransformStamped):
     trans = tf_transform.transform.translation
     rot = tf_transform.transform.rotation
 
-    cv2_transform[0] = np.array([float(trans.x), float(trans.y), float(trans.z)])
+    cv2_transform[0] = np.array([-float(trans.y), float(trans.x), float(trans.z)])
     cv2_transform[1] = Rotation.from_quat([rot.x, rot.y, rot.z, rot.w]).as_mrp()
 
     return cv2_transform
