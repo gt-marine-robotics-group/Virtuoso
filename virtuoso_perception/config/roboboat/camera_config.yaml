@@ -12,11 +12,16 @@ camera_config:
     [1.0, 0.1, 1.0], # [x, y, z] translation, assume no rotation
     [1.0, -0.1, 1.0]
   ]
+  all_camera_frames: [
+    "front_left_camera_link",
+    "front_right_camera_link"
+  ]
+
   bow_camera_base_topics: [
     "/cameras/front_left_camera",
     "/cameras/front_right_camera"
   ]
   bow_camera_frames: [
-    "/front_left_camera_link",
-    "/front_right_camera_link"
+    "front_left_camera_link",
+    "front_right_camera_link"
   ]

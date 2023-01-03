@@ -65,5 +65,18 @@ def generate_launch_description():
                     ]
                 )
             )
+        
+        for i, frame in enumerate(camera_data['camera_config']['all_camera_frames']):
+            ld.append(
+                Node(
+                    package='tf2_ros',
+                    executable='static_transform_publisher',
+                    name=f'base_link_to_{frame}',
+                    arguments=[
+                        *(str(d) for d in camera_data['camera_config']['all_camera_transforms'][i]),
+                        '0', '0', '0', 'base_link', frame
+                    ]
+                )
+            )
 
     return LaunchDescription(ld)
