@@ -8,8 +8,9 @@ camera_config:
     [442.373, 0.0, 303.131, 0.0, 442.373, 226.466, 0.0, 0.0, 1.0],
     [442.373, 0.0, 303.131, 0.0, 442.373, 226.466, 0.0, 0.0, 1.0]
   ]
-  all_camera_transforms: [ # to base_link
-    
+  all_camera_transforms: [ # from base_link
+    [1.0, 0.1, 1.0] # [x, y, z] translation, assume no rotation
+    [1.0, -0.1, 1.0]
   ]
   bow_camera_base_topics: [
     "/cameras/front_left_camera",
