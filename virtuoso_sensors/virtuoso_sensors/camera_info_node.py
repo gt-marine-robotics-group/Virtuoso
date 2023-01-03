@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+from sensor_msgs.msg import CameraInfo
 
 class CameraInfoNode(Node):
 
@@ -8,8 +9,22 @@ class CameraInfoNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('base_topic', ''),
+            ('frame', ''),
             ('matrix', [])
         ])
+
+        self.empty_info_sub = self.create_subscription(CameraInfo, 
+            f'{self.get_parameter("base_topic").value}/empty_camera_info',
+            self.callback, 10)
+
+        self.info_pub = self.create_publisher(CameraInfo,
+            f'{self.get_parameter("base_topic").value}/camera_info', 10)
+        
+    def callback(self, msg:CameraInfo):
+        msg.header.frame_id = self.get_parameter('frame').value
+        msg.k = self.get_parameter('matrix').value
+
+        self.info_pub.publish(msg)
 
 
 def main(args=None):

@@ -65,6 +65,18 @@ def generate_launch_description():
                     ]
                 )
             )
+            ld.append(
+                Node(
+                    package='virtuoso_sensors',
+                    executable='camera_info',
+                    name=f'{topic[topic.rfind("/") + 1:]}_info',
+                    parameters=[
+                        {'base_topic': topic},
+                        {'frame': camera_data['camera_config']['all_camera_frames'][i]},
+                        {'matrix': camera_data['camera_config']['all_camera_matrices'][i]}
+                    ]
+                )
+            )
         
         for i, frame in enumerate(camera_data['camera_config']['all_camera_frames']):
             ld.append(
