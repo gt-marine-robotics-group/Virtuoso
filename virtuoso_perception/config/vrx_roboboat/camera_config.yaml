@@ -5,6 +5,6 @@ camera_config:
       "/wamv/sensors/cameras/front_right_camera"
     ]
   bow_camera_frames: [
-    "wamv/front_left_camera_link_optical",
-    "wamv/front_right_camera_link_optical"
+    "wamv/front_left_camera_link",
+    "wamv/front_right_camera_link"
   ]
