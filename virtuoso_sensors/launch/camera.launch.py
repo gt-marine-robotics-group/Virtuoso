@@ -61,7 +61,7 @@ def generate_launch_description():
                     ],
                     remappings=[
                         ('/image_raw', f'{topic}/image_raw'),
-                        ('/camera_info', f'{topic}/camera_info')
+                        ('/camera_info', f'{topic}/empty_camera_info')
                     ]
                 )
             )
