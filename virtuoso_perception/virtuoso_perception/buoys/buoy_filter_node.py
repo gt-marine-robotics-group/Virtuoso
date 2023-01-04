@@ -80,6 +80,8 @@ class BuoyColorFilterNode(Node):
         self.buoy_filter.image = bgr_image
         self.buoy_filter.run()
 
+        self.buoy_filter.contours.header.stamp = self.get_clock().now().to_msg()
+
         return self.buoy_filter.contours
     
     def image_callback(self, msg:Image):

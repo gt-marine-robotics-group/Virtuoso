@@ -9,6 +9,7 @@ from rclpy.time import Time
 from typing import List
 import math
 from ..utils.geometry_msgs import do_transform_point
+from std_msgs.msg import Bool
 
 class ChannelNode(Node):
 
@@ -18,9 +19,13 @@ class ChannelNode(Node):
         self.channel_srv = self.create_service(Channel, 'channel', 
             self.channel_callback)
         
+        self.active_pub = self.create_publisher(Bool, 
+            '/perception/camera/activate_processing', 10)
+        
         self.buoys_sub = self.create_subscription(BuoyArray, '/perception/stereo/buoys',
             self.buoys_callback, 10)
         
+        self.active = False
         self.buoys:BuoyArray = None
 
         self.tf_buffer = Buffer()
@@ -36,6 +41,8 @@ class ChannelNode(Node):
             return None
 
     def buoys_callback(self, msg:BuoyArray):
+        if not self.active:
+            return
         self.buoys = msg
     
     def find_closest_buoy(buoys:List[Buoy]):
@@ -54,6 +61,9 @@ class ChannelNode(Node):
         res.right = Point(x=0.0,y=0.0,z=0.0)
 
         if self.buoys is None:
+            if not self.active:
+                self.active = True
+                self.active_pub.publish(Bool(data=self.active))
             return res
         
         trans = self.find_transform()
@@ -81,6 +91,10 @@ class ChannelNode(Node):
             res.right.x = closest.location.x
             res.right.y = closest.location.y
             res.right = ChannelNode.transform_point(trans, res.right)
+        
+        self.buoys = None
+        self.active = False
+        self.active_pub.publish(Bool(data=self.active))
         
         return res
 

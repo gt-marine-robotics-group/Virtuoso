@@ -3,6 +3,7 @@ from rclpy.node import Node
 import cv2
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
+from std_msgs.msg import Bool
 import numpy as np
 import time
 
@@ -19,13 +20,25 @@ class NoiseFilterNode(Node):
 
         self.image_sub = self.create_subscription(Image, 
             f'{base_topic}/image_raw', self.image_callback, 10)
+        
+        self.activate_sub = self.create_subscription(Bool, 
+            f'/perception/camera/activate_processing', self.activate_callback, 10)
 
         self.filtered_pub = self.create_publisher(Image,
             f'{base_topic}/noise_filtered', 10)
+
+        self.active = False
         
         self.cv_bridge = CvBridge()
     
+    def activate_callback(self, msg:Bool):
+        self.active = msg.data
+    
     def image_callback(self, msg:Image):
+
+        if not self.active:
+            return
+
         bgr:np.ndarray = self.cv_bridge.imgmsg_to_cv2(msg, 'bgr8')
 
         start_time = time.time()

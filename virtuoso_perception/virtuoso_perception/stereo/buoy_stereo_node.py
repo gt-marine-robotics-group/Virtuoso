@@ -59,6 +59,8 @@ class BuoyStereoNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
+        self.prev_timestamp = None
+
         if self.get_parameter('debug').value:
             node = self
         else:
@@ -113,6 +115,14 @@ class BuoyStereoNode(Node):
         self.buoy_stereo.cam_transform = cv2_trans
         
     def execute_buoy_stereo(self):
+        if (self.buoy_stereo.left_img_contours is None or
+            self.prev_timestamp == self.buoy_stereo.left_img_contours.header.stamp):
+            self.get_logger().info('old data')
+            return
+
+        if self.buoy_stereo.left_img_contours:
+            self.prev_timestamp = self.buoy_stereo.left_img_contours.header.stamp
+
         if self.buoy_stereo.cam_transform is None:
             self.find_cam_transform()
             return

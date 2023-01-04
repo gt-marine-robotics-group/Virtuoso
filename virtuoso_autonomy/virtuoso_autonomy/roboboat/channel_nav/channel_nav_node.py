@@ -83,8 +83,6 @@ class ChannelNavNode(Node):
 
         if self.robot_pose is None:
             return
-        if self.buoys is None:
-            return
         if self.channel_call is not None:
             return
         

@@ -1,4 +1,6 @@
 
+std_msgs/Header header
+
 # All the contour points flattened into a 1d array
 int32[] contour_points
 
