@@ -1,5 +1,24 @@
 
 camera_config:
+  # Needed for virtuoso_sensors
+  all_camera_base_topics: [
+    "/cameras/front_left_camera", # /dev/video0
+    "/cameras/front_right_camera" # /dev/video1
+  ]
+  all_camera_matrices: [
+    [442.373, 0.0, 303.131, 0.0, 442.373, 226.466, 0.0, 0.0, 1.0],
+    [442.373, 0.0, 303.131, 0.0, 442.373, 226.466, 0.0, 0.0, 1.0]
+  ]
+  all_camera_transforms: [ # from base_link
+    [1.0, 0.1, 1.0], # [x, y, z] translation, assume no rotation
+    [1.0, -0.1, 1.0]
+  ]
+  all_camera_frames: [
+    "front_left_camera_link",
+    "front_right_camera_link"
+  ]
+
+  # Needed for virtuoso_perception
   bow_camera_base_topics: [
       "/wamv/sensors/cameras/front_left_camera",
       "/wamv/sensors/cameras/front_right_camera"

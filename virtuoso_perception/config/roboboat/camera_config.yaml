@@ -1,5 +1,6 @@
 
 camera_config:
+  # Needed for virtuoso_sensors
   all_camera_base_topics: [
     "/cameras/front_left_camera", # /dev/video0
     "/cameras/front_right_camera" # /dev/video1
@@ -17,6 +18,7 @@ camera_config:
     "front_right_camera_link"
   ]
 
+  # Needed for virtuoso_perception
   bow_camera_base_topics: [
     "/cameras/front_left_camera",
     "/cameras/front_right_camera"
