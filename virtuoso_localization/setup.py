@@ -23,7 +23,8 @@ setup(
         (os.path.join('share', package_name, 'config/vrx_roboboat'),
             glob(os.path.join('config', 'vrx_roboboat', '*.yaml'))),
 
-        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.yml')))
+        (os.path.join('share', package_name, 'config/roboboat'),
+            glob(os.path.join('config', 'roboboat', '*.yaml'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
