@@ -93,7 +93,8 @@ def generate_launch_description():
                 executable='resize',
                 name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
-                    {'base_topic': topic}
+                    {'base_topic': topic},
+                    camera_processing_param_file
                 ]
             )
         )

@@ -12,7 +12,10 @@ class ResizeNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('base_topic', ''),
+            ('resize_factor', 1)
         ])
+
+        self.resize_factor = self.get_parameter('resize_factor').value
 
         base_topic = self.get_parameter('base_topic').value
 
@@ -31,18 +34,20 @@ class ResizeNode(Node):
     def resize(self, img:Image):
         bgr:np.ndarray = self.cv_bridge.imgmsg_to_cv2(img, 'bgr8')
 
-        resize = cv2.resize(bgr, (bgr.shape[1] // 2, bgr.shape[0] // 2), 
-            interpolation=cv2.INTER_AREA)
+        resize = cv2.resize(bgr, (bgr.shape[1] // self.resize_factor, 
+            bgr.shape[0] // self.resize_factor), 
+            interpolation=cv2.INTER_AREA
+        )
         
         return self.cv_bridge.cv2_to_imgmsg(resize, encoding='bgr8')
     
     def resize_info(self, info:CameraInfo):
-        info.k[0] /= 2
-        info.k[2] /= 2
-        info.k[4] /= 2
-        info.k[5] /= 2
-        info.width //= 2
-        info.height //= 2
+        info.k[0] /= self.resize_factor
+        info.k[2] /= self.resize_factor
+        info.k[4] /= self.resize_factor
+        info.k[5] /= self.resize_factor
+        info.width //= self.resize_factor
+        info.height //= self.resize_factor
         return info
     
     def image_callback(self, msg:Image):
