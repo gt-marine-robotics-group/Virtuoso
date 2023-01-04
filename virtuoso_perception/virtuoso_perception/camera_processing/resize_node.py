@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image, CameraInfo
+from std_msgs.msg import Bool
 from cv_bridge import CvBridge
 import numpy as np
 import cv2
@@ -19,6 +20,9 @@ class ResizeNode(Node):
 
         base_topic = self.get_parameter('base_topic').value
 
+        self.activate_sub = self.create_subscription(Bool, 
+            f'/perception/camera/activate_processing', self.activate_callback, 10)
+
         self.image_sub = self.create_subscription(Image, 
             f'{base_topic}/noise_filtered', self.image_callback, 10)
         self.cam_info_sub = self.create_subscription(CameraInfo, 
@@ -28,8 +32,13 @@ class ResizeNode(Node):
             f'{base_topic}/resized', 10)
         self.resized_info_pub = self.create_publisher(CameraInfo, 
             f'{base_topic}/resized/camera_info', 10) 
+
+        self.active = False
         
         self.cv_bridge = CvBridge()
+    
+    def activate_callback(self, msg:Bool):
+        self.active = msg.data
 
     def resize(self, img:Image):
         bgr:np.ndarray = self.cv_bridge.imgmsg_to_cv2(img, 'bgr8')
@@ -51,9 +60,13 @@ class ResizeNode(Node):
         return info
     
     def image_callback(self, msg:Image):
+        if not self.active:
+            return
         self.resized_pub.publish(self.resize(msg))
     
     def cam_info_callback(self, msg:CameraInfo):
+        if not self.active:
+            return
         self.resized_info_pub.publish(self.resize_info(msg))
 
 
