@@ -14,6 +14,8 @@ class NoiseFilterNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('base_topic', ''),
+            ('debug', False),
+            ('denoising_params', [])
         ])
 
         base_topic = self.get_parameter('base_topic').value
@@ -42,8 +44,11 @@ class NoiseFilterNode(Node):
         bgr:np.ndarray = self.cv_bridge.imgmsg_to_cv2(msg, 'bgr8')
 
         start_time = time.time()
-        filtered = cv2.fastNlMeansDenoisingColored(bgr, None, 20, 20, 7, 21)
-        self.get_logger().info(f'Noise execution time: {time.time() - start_time}')
+        filtered = cv2.fastNlMeansDenoisingColored(bgr, None, 
+            *self.get_parameter('denoising_params').value
+        )
+        if self.get_parameter('debug').value:
+            self.get_logger().info(f'Noise execution time: {time.time() - start_time}')
 
         self.filtered_pub.publish(self.cv_bridge.cv2_to_imgmsg(
             filtered, encoding='bgr8'))

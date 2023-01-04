@@ -1,0 +1,7 @@
+
+/**:
+  ros__parameters:
+    debug: True
+
+    # For noise_filter_node
+    denoising_params: [20, 20, 7, 21] # [h, hColor, templateWindowSize, searchWindowSize]

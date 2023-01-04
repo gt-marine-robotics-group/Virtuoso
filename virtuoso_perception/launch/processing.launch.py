@@ -37,6 +37,8 @@ def generate_launch_description():
 
     lidar_processing_param_file = (pkg_share, '/config/', 
         usv_config, '/lidar_processing.yaml')
+    camera_processing_param_file = (pkg_share, '/config/', usv_config,
+        '/camera_processing.yaml')
     
     ld = list()
 
@@ -101,7 +103,8 @@ def generate_launch_description():
                 executable='noise_filter',
                 name=f'perception_noise_filter_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
-                    {'base_topic': topic}
+                    {'base_topic': topic},
+                    camera_processing_param_file
                 ]
             )
         )
