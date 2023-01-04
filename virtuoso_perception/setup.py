@@ -49,6 +49,7 @@ setup(
             'buoy_stereo = virtuoso_perception.stereo.buoy_stereo_node:main',
 
             'resize = virtuoso_perception.camera_processing.resize_node:main',
+            'noise_filter = virtuoso_perception.camera_processing.noise_filter_node:main',
 
             'self_filter = virtuoso_perception.lidar_processing.self_filter_node:main',
             'shore_filter = virtuoso_perception.lidar_processing.shore_filter_node:main'

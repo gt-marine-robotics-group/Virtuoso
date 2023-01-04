@@ -95,5 +95,15 @@ def generate_launch_description():
                 ]
             )
         )
+        ld.append(
+            Node(
+                package='virtuoso_perception',
+                executable='noise_filter',
+                name=f'perception_noise_filter_{topic[topic.rfind("/") + 1:]}',
+                parameters=[
+                    {'base_topic': topic}
+                ]
+            )
+        )
 
     return LaunchDescription(ld)

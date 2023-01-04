@@ -17,7 +17,7 @@ class ResizeNode(Node):
         base_topic = self.get_parameter('base_topic').value
 
         self.image_sub = self.create_subscription(Image, 
-            f'{base_topic}/image_raw', self.image_callback, 10)
+            f'{base_topic}/noise_filtered', self.image_callback, 10)
         self.cam_info_sub = self.create_subscription(CameraInfo, 
             f'{base_topic}/camera_info', self.cam_info_callback, 10)
         
