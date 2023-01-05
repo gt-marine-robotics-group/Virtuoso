@@ -70,6 +70,7 @@ sudo apt-get install -y libblosc-dev
 ```
 git clone git@github.com:AcademySoftwareFoundation/openvdb.git
 cd openvdb
+git checkout d5e9ff99457362a98609e709d20473905971f390
 mkdir build
 cd build
 cmake ..
