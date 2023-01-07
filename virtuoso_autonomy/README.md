@@ -15,6 +15,7 @@
 - [Parameters](#parameters)
   - [docking.yaml](#dockingyaml)
   - [gymkhana.yaml](#gymkhanayaml)
+  - [channel_nav.yaml](#channel\_navyaml)
 
 ## Launching Tasks
 
@@ -110,4 +111,12 @@ Handles the Channel Navigation task. USV procedure:
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
 | autonomy_gymkhana | num_channels | int | Number of channels to navigate through before stopping. |
+
+### channel_nav.yaml
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| autonomy_channel_nav | num_channels | int | Number of channels to navigate through before stopping. |
+| autonomy_channel_nav | gate_buoy_max_dist | float | The number of meters a buoy for a next gate can be from the USV. |
+| autonomy_channel_nav | rotation_theta | float | The amount of radians to turn by when searching for a gate. |
 
