@@ -18,6 +18,7 @@
   - [dock/find_dock_entrances_node.py](#dockfind\_dock\_entrances\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
+- [External Services](#external-services)
 - [Parameters](#parameters)
   - [ray_ground_classifier.yaml](#ray\_ground\_classifieryaml)
   - [lidar_processing.yaml](#lidar\_processingyaml)
@@ -91,8 +92,9 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 | /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | 2 Points representing the 2 endpoints of the entrance ahead. |
 
 ## External Services
-| Service | Request Type | Frame | Purpose |
-| 
+| Service | Service Type | Frame | Purpose |
+|---------|--------------|-------|---------|
+| channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | front_left_camera_link | Finds the next channel. |
 
 ## Parameters
 
