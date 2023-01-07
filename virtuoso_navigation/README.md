@@ -6,8 +6,10 @@
   - [waypoints_node.py](#waypoints\_nodepy)
   - [translate_node.py](#translate\_nodepy)
   - [station_keeping_node.py](#station\_keeping\_nodepy)
+  - [rotate_node.py](#rotate\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
+- [External Services](#external-services)
 - [Parameters](#parameters)
   - [nav2.yaml](#nav2yaml)
 
@@ -26,6 +28,9 @@ This node takes in a point in the base_link frame the USV needs to translate to.
 ### station_keeping_node.py
 This node upon request publishes a path with a single waypoint (the current pose) to the controller. The controller will then attempt to hold that pose.
 
+### rotate_node.py
+This node upon request rotates the USV by a requested number of radians.
+
 ## External Subscribed Topics
 
 | Topic | Message Type | Frame | Purpose |
@@ -43,6 +48,12 @@ This node upon request publishes a path with a single waypoint (the current pose
 | /navigation/plan | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | The global plan the USV should follow. Used by the controller server. |
 | /navigation/success | [geometry_msgs/PoseStamped](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html) | map | Final pose the USV successfully navigates to from waypoint navigation. |
 | /navigation/translate_success | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Point USV successfully translates to. |
+
+## External Services 
+
+| Service | Service Type | Frame | Purpose |
+|---------|--------------|-------|---------|
+| rotate | [virtuoso_msgs/Rotate](/virtuoso_msgs/srv/Rotate.srv) | base_link | Rotates the USV a certain number of radians. |
 
 ## Parameters
 

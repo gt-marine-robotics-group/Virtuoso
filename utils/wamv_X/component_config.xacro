@@ -2,9 +2,9 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro" name="wam-v-components">
   <xacro:macro name="yaml_components">
     <!-- === wamv_camera === -->
-      <xacro:wamv_camera name="front_left_camera" x="0.75" y="0.1" P="${radians(15)}" />
-      <xacro:wamv_camera name="front_right_camera" x="0.75" y="-0.1" P="${radians(15)}" />
-      <xacro:wamv_camera name="middle_right_camera" x="0.75" y="0.3" P="${radians(15)}" />
+      <xacro:wamv_camera name="front_left_camera" x="0.75" y="0.1" />
+      <xacro:wamv_camera name="front_right_camera" x="0.75" y="-0.1" />
+      <xacro:wamv_camera name="middle_right_camera" x="0.75" y="0.3" />
 
     <!-- === wamv_gps === -->
       <xacro:wamv_gps name="gps_wamv" x="-0.85" />

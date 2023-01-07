@@ -11,6 +11,8 @@ class ColorFilter():
         lower = np.array(hsv_lower)
         upper = np.array(hsv_upper)
 
+        # return self.filter(lower, upper)
+
         # Could apply a bitwise_not to the mask to make the cone
         # actually appear black instead of white when returned.
         # However this would mean an extra case to consider when filtering for finding shapes
@@ -49,6 +51,12 @@ class ColorFilter():
         upper_blue = np.array(hsv_upper)
 
         return self.filter(lower_blue, upper_blue)
+    
+    def yellow_filter(self, hsv_lower=[20, 100, 100], hsv_upper=[30, 255, 255]):
+        lower_yellow = np.array(hsv_lower)
+        upper_yellow = np.array(hsv_upper)
+
+        return self.filter(lower_yellow, upper_yellow)
     
     def filter(self, lower, upper):
 

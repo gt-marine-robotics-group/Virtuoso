@@ -23,6 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'buoy_map = virtuoso_mapping.buoy_map_node:main'
         ],
     },
 )

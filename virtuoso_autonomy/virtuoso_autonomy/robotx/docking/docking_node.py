@@ -4,7 +4,7 @@ from std_msgs.msg import Int8, Int32MultiArray
 from nav_msgs.msg import Path
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import PointCloud2
-from virtuoso_processing.utils.pointcloud import read_points
+from virtuoso_perception.utils.pointcloud import read_points
 from std_msgs.msg import Empty
 from .docking_states import State
 from .docking import Docking

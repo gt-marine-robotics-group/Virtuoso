@@ -15,7 +15,7 @@
   <exec_depend>usb_cam</exec_depend>
   <exec_depend>microstrain_inertial_driver</exec_depend>
   <exec_depend>microstrain_inertial_rqt</exec_depend>
-  <exec_depend>ublox_dgnss</exec_depend>
+  <!-- <exec_depend>ublox_dgnss</exec_depend> -->
   <exec_depend>velodyne</exec_depend>
 
   <export>

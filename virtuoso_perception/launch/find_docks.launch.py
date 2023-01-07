@@ -29,7 +29,9 @@ def generate_launch_description():
         voxel_grid_node_param,
 
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/euclidean_clustering.launch.py')),
+            PythonLaunchDescriptionSource(
+                os.path.join(pkg_share, 'launch/procesing.launch.py')
+            ),
             launch_arguments={'usv': usv_config}.items()
         ),
         Node(

@@ -27,7 +27,8 @@ setup(
             'f9p_gps_republish = virtuoso_sensors.f9p_gps_republish:main',
             'gx3_republish = virtuoso_sensors.gx3_republish:main',
             'lidar_republish = virtuoso_sensors.lidar_republish:main',
-            'camera_republish = virtuoso_sensors.camera_republish:main'
+            'camera_republish = virtuoso_sensors.camera_republish:main',
+            'camera_info = virtuoso_sensors.camera_info_node:main'
         ],
     },
 )

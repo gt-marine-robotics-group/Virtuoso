@@ -1,0 +1,53 @@
+
+perception_find_buoys:
+  ros__parameters:
+    buoy_max_side_length: 1.0
+    tall_buoy_min_z: 0.2
+    buoy_loc_noise: 3.0
+  
+perception_buoy_filter:
+  ros__parameters:
+    debug: True
+
+    filter_bounds:
+      red:
+        # lower1: [0, 50, 50]
+        # upper1: [10, 255, 255]
+        # lower2: [160, 50, 50]
+        # upper2: [180, 255, 255]
+        lower1: [0,0,0]
+        upper1: [0,0,0]
+        lower2: [0,0,0]
+        upper2: [0,0,0]
+      green:
+        lower: [40, 50, 20]
+        upper: [86, 255, 255]
+      black:
+        # lower: [0 ,0, 0]
+        # upper: [100,50,200]
+        lower: [0,0,0]
+        upper: [0,0,0]
+      yellow:
+        # lower: [20, 100, 100]
+        # upper: [30, 255, 255]
+        lower: [0,0,0]
+        upper: [0,0,0]
+    
+    label_bounds: 
+      red:
+        lower1: [0, 50, 50]
+        upper1: [10, 255, 255]
+        lower2: [160, 50, 50]
+        upper2: [180, 255, 255]
+      green:
+        lower: [40, 50, 20]
+        upper: [86, 255, 255]
+      black:
+        lower: [0, 0, 255]
+        upper: [255, 255, 255]
+      yellow:
+        lower: [20, 100, 100]
+        upper: [30, 255, 255]
+    
+    buoy_border_px: 5
+    buoy_px_color_sample_size: 0.1 # between 0 and 1
