@@ -8,8 +8,10 @@
   - [robotx/gymkhana_node.py](#robotxgymkhana\_nodepy)
   - [robotx/safety_check_node.py](#robotxsafety\_check\_nodepy)
   - [robotx/scan_code_node.py](#robotxscan\_code\_nodepy)
+  - [roboboat/channel_nav_node.py](#roboboatchannel\_nav\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
+- [External Service Requests](#external-service-requests)
 - [Parameters](#parameters)
   - [docking.yaml](#dockingyaml)
   - [gymkhana.yaml](#gymkhanayaml)
@@ -60,6 +62,14 @@ Handles the Scan the Code task. USV procedure:
 1. Enable station keeping
 2. Request code scan
 
+### roboboat/channel_nav_node.py
+
+Handles the Channel Navigation task. USV procedure:
+1. Enable station keeping
+2. Search for next gate
+3. Navigate to next gate
+4. Repeat steps 2 and 3 until navigated through all gates (customizable)
+
 ## External Subscribed Topics
 
 | Topic | Message Type | Frame | Purpose |
@@ -79,6 +89,12 @@ Handles the Scan the Code task. USV procedure:
 | /navigation/station_keep | [std_msgs/Empty](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Empty.html) | N/A | Enables station keeping. |
 | /navigation/set_path | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Path USV should navigate along. |
 | /navigation/translate | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Point USV should translate to. |
+
+## External Service Requests
+
+| Service | Service Type | Frame | Purpose |
+|---------|--------------|-------|---------|
+| channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | map | Finds the next channel. |
 
 ## Parameters
 
