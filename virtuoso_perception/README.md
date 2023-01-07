@@ -96,7 +96,7 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 ## External Services
 | Service | Service Type | Frame | Purpose |
 |---------|--------------|-------|---------|
-| channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | front_left_camera_link | Finds the next channel. |
+| channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | map | Finds the next channel. |
 
 ## Parameters
 
