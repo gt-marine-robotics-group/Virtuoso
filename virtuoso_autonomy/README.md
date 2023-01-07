@@ -96,6 +96,7 @@ Handles the Channel Navigation task. USV procedure:
 | Service | Service Type | Frame | Purpose |
 |---------|--------------|-------|---------|
 | channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | map | Finds the next channel. |
+| rotate | [virtuoso_msgs/Rotate](/virtuoso_msgs/srv/Rotate.srv) | base_link | Rotates the USV by a certain number of radians. |
 
 ## Parameters
 
