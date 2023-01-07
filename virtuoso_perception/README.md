@@ -20,12 +20,14 @@
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
 - [Parameters](#parameters)
+  - [camera_config.yaml](#camera\_configyaml)
   - [ray_ground_classifier.yaml](#ray\_ground\_classifieryaml)
   - [lidar_processing.yaml](#lidar\_processingyaml)
   - [camera_processing.yaml](#camera\_processingyaml)
   - [euclidean_clustering.yaml](#euclidean\_clusteringyaml)
   - [voxel_grid_node.yaml](#voxel\_grid\_nodeyaml)
   - [buoys.yaml](#buoysyaml)
+  - [stereo.yaml](#stereoyaml)
   - [code.yaml](#codeyaml)
   - [dock.yaml](#dockyaml)
 
@@ -98,6 +100,16 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 
 ## Parameters
 
+### camera_config.yaml
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| For multiple nodes | all_camera_base_topics | string[] | Base topics for all cameras. Will be used to determine publishers and subscribers for all camera data (e.g. base_camera_topic/image_raw, base_camera_topic/camera_info, base_camera_topic/resized, etc.).
+| For multiple nodes | all_camera_matrices | float\[]\[9] | K matrix for [sensor_msgs/CameraInfo](#http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html). |
+| For multiple nodes | all_camera_transforms | float\[]\[3] | X, Y, and Z translation from base_link to each camera. |
+| For multiple nodes | all_camera_frames | string[] | Frames of each of the cameras. |
+| For multiple nodes | bow_camera_base_topics | string[] | Base topics for cameras on the bow of the USV. Used by stereo nodes. |
+| For multiple nodes | bow_camera_frames | string[] | Frames of cameras on bow of the USV. Used by stereo nodes. |
+
 ### ray_ground_classifier.yaml
 Key parameter here is sensor_height_m, as this will defintely change between USVs. Unfortunately, no documentation for the parameters found online.
 
@@ -131,6 +143,33 @@ Unfortunately, no documentation for the parameters found online.
 | perception_find_buoys | buoy_max_side_length | float | Any clusters with a length larger than this value will not be treated as a buoy. |
 | perception_find_buoys | tall_buoy_min_z | float | Any buoys located with a top (of this buoy) above this value will be classified as a tall buoy. Note that this is the top relative to the lidar_link, not the base_link. |
 | perception_find_buoys | buoy_loc_noise | float | Any clusters within this distance of each other will be treated as the same buoy. |
+| perception_buoy_filter| debug | bool | If true, debug messages will be published. |
+| perception_buoy_filter | filter_bounds.red.lower1 | int[3] | First lower bound for the red hsv filter. |
+| perception_buoy_filter | filter_bounds.red.upper1 | int[3] | First upper bound for the red hsv filter. |
+| perception_buoy_filter | filter_bounds.red.lower2 | int[3] | Second lower bound for the red hsv filter. |
+| perception_buoy_filter | filter_bounds.red.upper2 | int[3] | Second upper bound for the red hsv filter. |
+| perception_buoy_filter | filter_bounds.green.lower | int[3] | Lower bound for the green hsv filter. |
+| perception_buoy_filter | filter_bounds.green.upper | int[3] | Upper bound for the green hsv filter. |
+| perception_buoy_filter | filter_bounds.black.lower | int[3] | Lower bounds for the black hsv filter. |
+| perception_buoy_filter | filter_bounds.black.upper | int[3] | Upper bound for the black hsv filter. |
+| perception_buoy_filter | filter_bounds.yellow.lower | int[3] | Lower bound for the yellow hsv filter. |
+| perception_buoy_filter | filter_bounds.yellow.upper | int[3] | Upper bound for the yellow hsv filter. |
+| perception_buoy_filter | label_bounds.red.lower1 | int[3] | First lower bound for the red hsv classifier. |
+| perception_buoy_filter | label_bounds.red.upper1 | int[3] | First upper bound for the red hsv classifier. |
+| perception_buoy_filter | label_bounds.red.lower2 | int[3] | Second lower bound for the red hsv classifier. |
+| perception_buoy_filter | label_bounds.red.upper2 | int[3] | Second upper bound for the red hsv classifier. |
+| perception_buoy_filter | label_bounds.green.lower | int[3] | Lower bound for the green hsv classifier. |
+| perception_buoy_filter | label_bounds.green.upper | int[3] | Upper bound for the green hsv classifier. |
+| perception_buoy_filter | label_bounds.black.lower | int[3] | Lower bounds for the black hsv classifier. |
+| perception_buoy_filter | label_bounds.black.upper | int[3] | Upper bounds for the black hsv classifier. |
+| perception_buoy_filter | label_bounds.yellow.lower | int[3] | Lower bounds for the yellow hsv classifier. |
+| perception_buoy_filter | label_bounds.yellow.upper | int[3] | Upper bounds for the yellow hsv classifier. |
+
+### stereo.yaml
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| perception_buoy_stereo | debug | bool | If true, debug messages will be published. |
+| perception_buoy_stereo | multiprocessing | bool | If true, each pair of contours will have its location in 3d space found in separate processes rather than sequentially. If true while debug is true, certain debug topics will not be published to. |
 
 ### code.yaml
 
