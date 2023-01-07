@@ -39,6 +39,8 @@ Follow [this installation guide](http://wiki.ros.org/noetic/Installation/Ubuntu)
 ## 5. Install VRX
 Follow [this installation guide](https://github.com/osrf/vrx/wiki/system_setup_tutorials) to install VRX. For step 1, select Option A: Configure your host machine. 
 
+**Note:** Instead of cloning the VRX repository in step 2, please clone our [version](https://github.com/gt-marine-robotics-group/VRX). Our version contains custom models we have created to prepare for other competitions other than VRX.
+
 Before running any commands in a terminal for this installation, you need to source ROS Noetic:
 ```
 source /opt/ros/noetic/setup.bash
@@ -68,6 +70,7 @@ sudo apt-get install -y libblosc-dev
 ```
 git clone git@github.com:AcademySoftwareFoundation/openvdb.git
 cd openvdb
+git checkout d5e9ff99457362a98609e709d20473905971f390
 mkdir build
 cd build
 cmake ..
