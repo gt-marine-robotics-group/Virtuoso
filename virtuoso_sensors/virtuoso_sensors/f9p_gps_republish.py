@@ -108,7 +108,9 @@ class f9pGPSRepublish(Node):
         self.get_logger().info('north_diff: ' + str(north_diff))   	
         self.get_logger().info('e_diff: ' + str(east_diff))   
         self.get_logger().info('head: ' + str(heading))   
-        self.attitudePublisher.publish(imu_msg)
+        if(msg.diff_soln):
+             self.get_logger().info('VALID')   
+             self.attitudePublisher.publish(imu_msg)
                  
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def publish_gps(self):
