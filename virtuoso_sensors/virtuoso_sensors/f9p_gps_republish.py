@@ -1,9 +1,10 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import NavSatFix
-from geometry_msgs.msg import TwistWithCovarianceStamped
+from sensor_msgs.msg import Imu
+from geometry_msgs.msg import TwistWithCovarianceStamped, Quaternion
 from ublox_ubx_msgs.msg import UBXNavHPPosLLH, UBXNavVelNED
-from ublox_ubx_msgs.msg import UBXNavCov
+from ublox_ubx_msgs.msg import UBXNavCov, UBXNavRelPosNED
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 
@@ -14,6 +15,8 @@ from tf2_ros import TransformBroadcaster
 
 
 from geometry_msgs.msg import TransformStamped
+
+import math
 
 class f9pGPSRepublish(Node):
 
@@ -30,6 +33,7 @@ class f9pGPSRepublish(Node):
 
         
         self.gpsPublisher = self.create_publisher(NavSatFix, '/wamv/sensors/gps/gps/fix', 10)
+        self.attitudePublisher = self.create_publisher(Imu, '/wamv/sensors/gps/heading', 10)
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
             history=QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_KEEP_LAST,
@@ -52,6 +56,11 @@ class f9pGPSRepublish(Node):
             UBXNavVelNED,
             '/ubx_nav_vel_ned',
             self.gps_vel_callback,
+            qos_profile=qos_profile)   
+        self.gps_rel_vel_subscriber = self.create_subscription(
+            UBXNavRelPosNED,
+            '/ubx_nav_rel_pos_ned',
+            self.gps_rel_vel_callback,
             qos_profile=qos_profile)   
         self.gps_fix_subscriber
         self.gps_cov_subscriber
@@ -77,6 +86,29 @@ class f9pGPSRepublish(Node):
         self.gps_vel = msg
         self.GPS_vel_ready = True
         self.publish_gps()
+        
+    def gps_rel_vel_callback(self, msg):
+        imu_msg = Imu()
+        imu_msg.header.stamp = self.get_clock().now().to_msg()
+        imu_msg.header.frame_id = 'ubx_utm'
+        
+        imu_msg.orientation_covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+        
+        north_diff = float(msg.rel_pos_n) + float(msg.rel_pos_hp_n)*10**(-2)
+        east_diff = float(msg.rel_pos_e) + float(msg.rel_pos_hp_e)*10**(-2)    
+        
+        heading = math.atan2(north_diff, east_diff)
+        
+        quat = Quaternion()
+        quat.z = math.sin(heading/2.0)
+        quat.w = math.cos(heading/2.0)
+        
+        imu_msg.orientation = quat
+        
+        self.get_logger().info('north_diff: ' + str(north_diff))   	
+        self.get_logger().info('e_diff: ' + str(east_diff))   
+        self.get_logger().info('head: ' + str(heading))   
+        self.attitudePublisher.publish(imu_msg)
                  
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def publish_gps(self):
