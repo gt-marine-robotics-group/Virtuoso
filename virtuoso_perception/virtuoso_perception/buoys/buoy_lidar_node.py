@@ -1,16 +1,20 @@
 import rclpy
 from rclpy.node import Node
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
-from .find_buoys import FindBuoys
+from std_msgs.msg import Bool
+from .buoy_lidar import FindBuoys
 
-class FindBuoysNode(Node):
+class BuoyLidarNode(Node):
 
     def __init__(self):
-        super().__init__('perception_find_buoys')
+        super().__init__('perception_buoy_lidar')
 
         self.boxes_sub = self.create_subscription(BoundingBoxArray, 'lidar_bounding_boxes', 
             self.lidar_bounding_boxes_callback, 10)
         self.boxes_pub = self.create_publisher(BoundingBoxArray, '/buoys/bounding_boxes', 10)
+
+        # self.activate_sub = self.create_subscription(Bool, 
+        #     '/perception/buoys/')
 
         self.declare_parameters(namespace='', parameters=[
             ('buoy_max_side_length', 0.0),
@@ -38,7 +42,7 @@ def main(args=None):
     
     rclpy.init(args=args)
 
-    node = FindBuoysNode()
+    node = BuoyLidarNode()
 
     rclpy.spin(node)
 
