@@ -60,16 +60,6 @@ class ChannelNode(Node):
             return
         self.channel.lidar_buoys = msg
     
-    def find_closest_buoy(buoys:List[Buoy]):
-        return min(buoys, key=lambda b: math.sqrt(b.location.x**2 + b.location.y**2))
-    
-    def transform_point(trans:TransformStamped, point:Point):
-        ps = PointStamped(point=point)
-
-        trans_ps = do_transform_point(ps, trans)
-
-        return trans_ps.point
-    
     def channel_callback(self, req:Channel.Request, res:Channel.Response):
         res.header.frame_id = 'map'
         res.left = Point(x=0.0,y=0.0,z=0.0)
@@ -84,27 +74,7 @@ class ChannelNode(Node):
             return res
         self.channel.cam_to_map_trans = trans
         
-        left_buoys:List[Buoy] = list()
-        right_buoys:List[Buoy] = list()
-        for buoy in self.buoys.buoys:
-            if math.sqrt(buoy.location.x**2 + buoy.location.y**2) > req.max_dist_from_usv:
-                continue
-            if buoy.color == req.left_color:
-                left_buoys.append(buoy)
-            elif buoy.color == req.right_color:
-                right_buoys.append(buoy)
-        
-        if len(left_buoys) > 0:
-            closest = ChannelNode.find_closest_buoy(left_buoys)
-            res.left.x = closest.location.x
-            res.left.y = closest.location.y
-            res.left = ChannelNode.transform_point(trans, res.left)
-        
-        if len(right_buoys) > 0:
-            closest = ChannelNode.find_closest_buoy(right_buoys)
-            res.right.x = closest.location.x
-            res.right.y = closest.location.y
-            res.right = ChannelNode.transform_point(trans, res.right)
+        res = self.channel.execute(req, res)
         
         if res.left == res.right:
             return res
