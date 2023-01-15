@@ -89,6 +89,8 @@ class ChannelNavNode(Node):
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
+        req.use_lidar = False
+        req.use_camera = True
         req.max_dist_from_usv = self.get_parameter('gate_buoy_max_dist').value
 
         self.channel_call = self.channel_client.call_async(req)
