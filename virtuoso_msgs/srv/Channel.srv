@@ -3,6 +3,7 @@ string left_color
 string right_color
 float32 max_dist_from_usv
 bool use_lidar
+bool use_camera
 ---
 std_msgs/Header header
 geometry_msgs/Point left
