@@ -26,11 +26,14 @@ class ChannelNode(Node):
         
         self.camera_buoys_sub = self.create_subscription(BuoyArray, 
             '/perception/stereo/buoys', self.camera_buoys_callback, 10)
+        self.lidar_buoys_sub = self.create_subscription(BoundingBoxArray,
+            '/buoys/bounding_boxes', self.lidar_buoys_callback, 10)
 
         self.odom_sub = self.create_subscription(Odometry, 
             '/localization/odometry', self.odom_callback, 10)
         
         self.channel = FindChannel()
+        self.channel.node = self
         
         self.active = False
 

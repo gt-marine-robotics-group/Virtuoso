@@ -1,5 +1,5 @@
 from geometry_msgs.msg import TransformStamped, Point, PointStamped
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
+from autoware_auto_perception_msgs.msg import BoundingBoxArray, BoundingBox
 from virtuoso_msgs.msg import BuoyArray, Buoy
 from virtuoso_msgs.srv import Channel
 from nav_msgs.msg import Odometry
@@ -12,6 +12,8 @@ class FindChannel:
     null_point = Point(x=0.0,y=0.0,z=0.0)
     
     def __init__(self):
+
+        self.node = None
 
         self.cam_to_map_trans:TransformStamped = None
         
@@ -37,6 +39,9 @@ class FindChannel:
     def _distance(p1:Point, p2:Point):
         return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
     
+    def _box_to_point(box:BoundingBox):
+        return Point(x=box.centroid.x, y=box.centroid.y, z=box.centroid.z)
+    
     def reset(self):
         self.lidar_buoys = None
         self.camera_buoys = None
@@ -46,6 +51,7 @@ class FindChannel:
         if self.cam_to_map_trans is None:
             return res
         
+        cam_channel = None
         if req.use_camera:
             cam_channel = self._find_cam_channel(req)
 
@@ -84,8 +90,12 @@ class FindChannel:
         if cam_channel is not None:
             min_left_dists_index = min(range(len(left_dists)), key=left_dists.__getitem__)
             min_right_dists_index = min(range(len(right_dists)), key=right_dists.__getitem__)
-            channel[0] = self.lidar_buoys.boxes[min_left_dists_index]
-            channel[1] = self.lidar_buoys.boxes[min_right_dists_index]
+            channel[0] = FindChannel._box_to_point(
+                self.lidar_buoys.boxes[min_left_dists_index]
+            )
+            channel[1] = FindChannel._box_to_point(
+                self.lidar_buoys.boxes[min_right_dists_index]
+            )
         else:
             mins = [[math.inf, 0], [math.inf, 0]]
             for i, dist in enumerate(usv_dists):
@@ -94,8 +104,12 @@ class FindChannel:
                     mins[0] = [dist, i]
                 elif dist < mins[1][0]:
                     mins[1][0] = [dist, i]
-            channel[0] = self.lidar_buoys.boxes[mins[0][1]]
-            channel[1] = self.lidar_buoys.boxes[mins[1][1]]
+            channel[0] = FindChannel._box_to_point(
+                self.lidar_buoys.boxes[mins[0][1]]
+            )
+            channel[1] = FindChannel._box_to_point(
+                self.lidar_buoys.boxes[mins[1][1]]
+            )
 
         return channel
     
