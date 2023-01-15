@@ -2,7 +2,8 @@ from geometry_msgs.msg import TransformStamped, Point, PointStamped
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from virtuoso_msgs.msg import BuoyArray, Buoy
 from virtuoso_msgs.srv import Channel
-from typing import List, Tuple
+from nav_msgs.msg import Odometry
+from typing import List
 import math
 from ..utils.geometry_msgs import do_transform_point
 
@@ -17,6 +18,8 @@ class FindChannel:
         self.lidar_buoys:BoundingBoxArray = None
         self.camera_buoys:BuoyArray = None
 
+        self.odom:Odometry = None
+
         # When count becomes greater than some number, just fall back to 
         # using LIDAR only if that is an option
         self.iteration_count = 0
@@ -30,6 +33,9 @@ class FindChannel:
         trans_ps = do_transform_point(ps, trans)
 
         return trans_ps.point
+    
+    def _distance(p1:Point, p2:Point):
+        return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
     
     def reset(self):
         self.lidar_buoys = None
@@ -57,6 +63,39 @@ class FindChannel:
         cam_channel:List[Point]):
 
         channel = [FindChannel.null_point, FindChannel.null_point]
+
+        if self.lidar_buoys is None or self.odom is None:
+            return cam_channel or channel
+        
+        left_dists = list()
+        right_dists = list()
+        usv_dists = list()
+
+        for buoy in self.lidar_buoys.boxes:
+            if cam_channel is not None:
+                left_dists.append(FindChannel._distance(buoy.centroid, channel[0]))
+                right_dists.append(FindChannel._distance(buoy.centroid, channel[1]))
+            usv_dists.append(FindChannel._distance(buoy.centroid, 
+                self.odom.pose.pose.position))
+        
+        if len(usv_dists) < 2:
+            return cam_channel or channel
+
+        if cam_channel is not None:
+            min_left_dists_index = min(range(len(left_dists)), key=left_dists.__getitem__)
+            min_right_dists_index = min(range(len(right_dists)), key=right_dists.__getitem__)
+            channel[0] = self.lidar_buoys.boxes[min_left_dists_index]
+            channel[1] = self.lidar_buoys.boxes[min_right_dists_index]
+        else:
+            mins = [[math.inf, 0], [math.inf, 0]]
+            for i, dist in enumerate(usv_dists):
+                if dist < mins[0][0]:
+                    mins[1] = mins[0]
+                    mins[0] = [dist, i]
+                elif dist < mins[1][0]:
+                    mins[1][0] = [dist, i]
+            channel[0] = self.lidar_buoys.boxes[mins[0][1]]
+            channel[1] = self.lidar_buoys.boxes[mins[1][1]]
 
         return channel
     

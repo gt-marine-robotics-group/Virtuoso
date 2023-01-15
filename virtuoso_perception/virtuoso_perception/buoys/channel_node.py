@@ -1,15 +1,13 @@
 import rclpy
 from rclpy.node import Node
 from virtuoso_msgs.srv import Channel
-from virtuoso_msgs.msg import BuoyArray, Buoy
-from geometry_msgs.msg import Point, TransformStamped, PointStamped
+from virtuoso_msgs.msg import BuoyArray
+from geometry_msgs.msg import Point
 from autoware_auto_perception_msgs.msg import BoundingBoxArray
+from nav_msgs.msg import Odometry
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
-from typing import List
-import math
-from ..utils.geometry_msgs import do_transform_point
 from std_msgs.msg import Bool
 from .channel import FindChannel
 
@@ -28,6 +26,9 @@ class ChannelNode(Node):
         
         self.camera_buoys_sub = self.create_subscription(BuoyArray, 
             '/perception/stereo/buoys', self.camera_buoys_callback, 10)
+
+        self.odom_sub = self.create_subscription(Odometry, 
+            '/localization/odometry', self.odom_callback, 10)
         
         self.channel = FindChannel()
         
@@ -59,6 +60,9 @@ class ChannelNode(Node):
         if not self.active:
             return
         self.channel.lidar_buoys = msg
+    
+    def odom_callback(self, msg:Odometry):
+        self.channel.odom = msg
     
     def channel_callback(self, req:Channel.Request, res:Channel.Response):
         res.header.frame_id = 'map'
