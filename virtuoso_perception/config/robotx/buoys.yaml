@@ -1,5 +1,5 @@
 
-perception_find_buoys:
+perception_buoy_lidar:
   ros__parameters:
     buoy_max_side_length: 1.0
     tall_buoy_min_z: 0.2

@@ -50,7 +50,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='find_buoys',
+            executable='buoy_lidar',
             parameters=[buoys_param_file]
         )
     )
