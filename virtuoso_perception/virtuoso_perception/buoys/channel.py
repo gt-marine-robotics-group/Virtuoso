@@ -51,10 +51,22 @@ class FindChannel:
         if self.cam_to_map_trans is None:
             return res
         
+        self.iteration_count += 1
+        
         cam_channel = None
         if req.use_camera:
             cam_channel = self._find_cam_channel(req)
-
+            if cam_channel[0] == FindChannel.null_point:
+                if cam_channel[1] == FindChannel.null_point and self.iteration_count < 9:
+                    return res
+                res.left = cam_channel[0]
+                res.right = cam_channel[1]
+                return res
+            elif cam_channel[1] == FindChannel.null_point:
+                res.left = cam_channel[0]
+                res.right = cam_channel[1]
+                return res
+        
         if req.use_lidar:
             lidar_channel = self._find_lidar_channel(req, cam_channel)
             res.left = lidar_channel[0]
