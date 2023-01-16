@@ -117,7 +117,7 @@ class FindChannel:
                     mins[1] = mins[0]
                     mins[0] = [dist, i]
                 elif dist < mins[1][0]:
-                    mins[1][0] = [dist, i]
+                    mins[1] = [dist, i]
             channel[0] = FindChannel._box_to_point(
                 self.lidar_buoys.boxes[mins[0][1]]
             )
