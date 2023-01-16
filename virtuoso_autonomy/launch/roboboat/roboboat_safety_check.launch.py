@@ -12,11 +12,14 @@ def generate_launch_description():
 
     usv_config = LaunchConfiguration('usv')
 
+    safety_check_config_file = (pkg_share, '/config/', usv_config, '/safety_check.yaml')
+
     return LaunchDescription([
         usv_arg, 
 
         Node(
             package='virtuoso_autonomy',
-            executable='roboboat_safety_check'
+            executable='roboboat_safety_check',
+            parameters=[safety_check_config_file]
         )
     ])

@@ -16,7 +16,9 @@ class SafetyCheckNode(Node):
         super().__init__('autonomy_safety_check')
 
         self.declare_parameters(namespace='', parameters=[
-            ('gate_buoy_max_dist', 15.0),
+            ('gate_buoy_max_dist', 0.0),
+            ('use_lidar', False),
+            ('use_camera', False)
         ])
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
@@ -81,8 +83,8 @@ class SafetyCheckNode(Node):
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
-        req.use_lidar = True
-        req.use_camera = False # MAKE A PARAM
+        req.use_lidar = self.get_parameter('use_lidar').value
+        req.use_camera = self.get_parameter('use_camera').value
         req.max_dist_from_usv = self.get_parameter('gate_buoy_max_dist').value
 
         self.channel_call = self.channel_client.call_async(req)

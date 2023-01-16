@@ -71,7 +71,7 @@ class FindChannel:
             lidar_channel = self._find_lidar_channel(req, cam_channel)
             res.left = lidar_channel[0]
             res.right = lidar_channel[1]
-        else:
+        elif req.use_camera:
             res.left = cam_channel[0]
             res.right = cam_channel[1]
         
@@ -102,6 +102,8 @@ class FindChannel:
         if cam_channel is not None:
             min_left_dists_index = min(range(len(left_dists)), key=left_dists.__getitem__)
             min_right_dists_index = min(range(len(right_dists)), key=right_dists.__getitem__)
+            if min_left_dists_index == min_right_dists_index:
+                return channel
             channel[0] = FindChannel._box_to_point(
                 self.lidar_buoys.boxes[min_left_dists_index]
             )
