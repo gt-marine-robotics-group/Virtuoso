@@ -80,7 +80,7 @@ class FindChannel:
     def _find_lidar_channel(self, req:Channel.Request, 
         cam_channel:List[Point]):
 
-        channel = [FindChannel.null_point, FindChannel.null_point]
+        channel = [Point(x=0.0,y=0.0,z=0.0), Point(x=0.0,y=0.0,z=0.0)]
 
         if self.lidar_buoys is None or self.odom is None:
             return cam_channel or channel
@@ -91,8 +91,8 @@ class FindChannel:
 
         for buoy in self.lidar_buoys.boxes:
             if cam_channel is not None:
-                left_dists.append(FindChannel._distance(buoy.centroid, channel[0]))
-                right_dists.append(FindChannel._distance(buoy.centroid, channel[1]))
+                left_dists.append(FindChannel._distance(buoy.centroid, cam_channel[0]))
+                right_dists.append(FindChannel._distance(buoy.centroid, cam_channel[1]))
             usv_dists.append(FindChannel._distance(buoy.centroid, 
                 self.odom.pose.pose.position))
         
@@ -129,7 +129,7 @@ class FindChannel:
     
     def _find_cam_channel(self, req:Channel.Request):
 
-        channel = [FindChannel.null_point, FindChannel.null_point]
+        channel = [Point(x=0.0,y=0.0,z=0.0), Point(x=0.0,y=0.0,z=0.0)]
 
         if self.camera_buoys is None:
             return channel
