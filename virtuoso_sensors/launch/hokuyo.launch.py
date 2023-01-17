@@ -24,5 +24,9 @@ def generate_launch_description():
             package='urg_node',
             executable='urg_node_driver',
             parameters=[urg_params_file]
+        ),
+        Node(
+            package='virtuoso_sensors',
+            executable='laser_to_pcd'
         )
     ])
