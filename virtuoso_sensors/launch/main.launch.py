@@ -18,7 +18,7 @@ def generate_launch_description():
         usv_arg,
 
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/vlp16.launch.py')),
+            PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/lidar.launch.py')),
             launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
