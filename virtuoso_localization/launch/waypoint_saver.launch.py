@@ -11,5 +11,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_localization',
             executable='keyboard_listener'
+        ),
+        Node(
+            package='virtuoso_localization',
+            executable='waypoint_saver'
         )
     ])

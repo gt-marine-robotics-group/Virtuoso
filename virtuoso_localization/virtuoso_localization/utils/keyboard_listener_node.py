@@ -33,7 +33,8 @@ class KeystrokeListen:
         self.node.declare_parameter('exit_on_esc', True)
 
         if self.exit_on_esc:
-            self.logger.info('To end this node, press the escape key')
+            # self.logger.info('To end this node, press the escape key')
+            pass
 
     def spin(self):
         with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
@@ -71,7 +72,7 @@ class KeystrokeListen:
         try:
             char = getattr(key, 'char', None)
             if isinstance(char, str):
-                self.logger.info('pressed ' + char)
+                # self.logger.info('pressed ' + char)
                 self.pub_glyph.publish(self.pub_glyph.msg_type(data=char))
             else:
                 try:
@@ -82,7 +83,7 @@ class KeystrokeListen:
                     # unknown keys like headphones skip song button
                     name = 'UNKNOWN'
                     vk = key.vk
-                self.logger.info('pressed {} ({})'.format(name, vk))
+                # self.logger.info('pressed {} ({})'.format(name, vk))
                 # todo: These values are not cross-platform. When ROS2 supports Enums, use them instead
                 self.pub_code.publish(self.pub_code.msg_type(data=vk))
         except Exception as e:
@@ -90,7 +91,7 @@ class KeystrokeListen:
             raise
 
         if key == keyboard.Key.esc and self.exit_on_esc:
-            self.logger.info('stopping listener')
+            # self.logger.info('stopping listener')
             raise keyboard.Listener.StopException
 
 
