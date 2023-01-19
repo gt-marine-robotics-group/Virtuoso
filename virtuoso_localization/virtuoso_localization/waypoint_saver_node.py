@@ -75,7 +75,14 @@ class WaypointSaverNode(Node):
         self.get_logger().info('Added Waypoint')
     
     def remove_waypoint(self):
-        self.get_logger().info('removing waypoint')
+        if len(self.ll_points) == 0:
+            self.get_logger().info('No Waypoints to Remove')
+            return
+        
+        self.ll_points.pop()
+        self.orientations.pop()
+
+        self.get_logger().info('Removed Waypoint')
 
 def main(args=None):
     rclpy.init(args=args)
