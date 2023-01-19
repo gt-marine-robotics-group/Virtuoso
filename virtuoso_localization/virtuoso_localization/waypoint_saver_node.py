@@ -4,6 +4,8 @@ from std_msgs.msg import String
 from sensor_msgs.msg import NavSatFix
 from nav_msgs.msg import Odometry
 from typing import List
+import os
+from pathlib import Path
 
 class WaypointSaverNode(Node):
 
@@ -53,6 +55,27 @@ class WaypointSaverNode(Node):
     
     def save_to_yaml(self):
         self.get_logger().info('saving to yaml')
+
+        all_files = os.listdir(f'{Path.home()}/mrg/waypoints_raw')
+
+        max_num = -1
+        for name in all_files:
+            name_parts = name.split('.')[0].split('_')
+            if len(name_parts) < 2: continue
+            num = name_parts[1]
+            if not num.isnumeric(): continue
+            num = int(num)
+            if num > max_num:
+                max_num = num
+        
+        with open(f'{Path.home()}/mrg/waypoints_raw/points_{max_num + 1}.yaml', 'w') as file:
+            file.writelines([
+                '/**:\n',
+                '\tros__parameters:\n',
+                f'\t\tll_points: {self.ll_points}\n',
+                f'\t\torientations: {self.orientations}\n'
+            ])
+
         self.get_logger().info('destroying node')
         self.destroy_node()
     
