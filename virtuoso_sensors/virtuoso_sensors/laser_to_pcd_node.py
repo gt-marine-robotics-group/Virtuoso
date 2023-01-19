@@ -8,6 +8,8 @@ class LaserToPcdNode(Node):
     def __init__(self):
         super().__init__('laser_to_pcd')
 
+        self.declare_parameter('frame', '')
+
         self.input_sub = self.create_subscription(LaserScan, '/scan', 
             self.input_callback, 10)
         
@@ -15,7 +17,9 @@ class LaserToPcdNode(Node):
     
     def input_callback(self, msg:LaserScan):
 
-        pcd = LaserProjection().projectLaser(msg)
+        pcd:PointCloud2 = LaserProjection().projectLaser(msg)
+
+        pcd.header.frame_id = self.get_parameter('frame').value
 
         self.output_pub.publish(pcd)
 

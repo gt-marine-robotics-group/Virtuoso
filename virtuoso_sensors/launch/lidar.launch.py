@@ -73,7 +73,8 @@ def generate_launch_description():
                 remappings=[
                     ('/scan', f'{lidars["lidar_config"]["all_lidar_base_topics"][i]}/laser'),
                     ('/output', f'{lidars["lidar_config"]["all_lidar_base_topics"][i]}/points')
-                ]
+                ],
+                parameters=[{'frame': lidars['lidar_config']['all_lidar_frames'][i]}]
             ))
             ld.append(Node(
                 package='tf2_ros',
