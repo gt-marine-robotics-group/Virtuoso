@@ -36,13 +36,13 @@ def generate_launch_description():
         Node(
             package='virtuoso_controller',
             executable='motor_cmd_generator',
-            parameters=[
+            parameters=[pid_params_file,
                 {'sim_time', sim_time_config}
             ]
         ),
         Node(
             package='virtuoso_controller',
-            executable='cmd_vel_generator',
+            executable='cmd_vel_generator'
        ),
         Node(
             package='virtuoso_controller',

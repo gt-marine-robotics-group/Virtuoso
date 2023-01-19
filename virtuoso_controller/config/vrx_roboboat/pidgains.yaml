@@ -14,3 +14,7 @@ controller_velocity_PID:
     velocity_kp: 1.0
     velocity_kd: 1.0
     velocity_ki: 1.0
+
+controller_motor_cmd_generator:
+  ros__parameters:
+    motor_config: "H"
