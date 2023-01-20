@@ -71,9 +71,9 @@ class WaypointSaverNode(Node):
         with open(f'{Path.home()}/mrg/waypoints_raw/points_{max_num + 1}.yaml', 'w') as file:
             file.writelines([
                 '/**:\n',
-                '\tros__parameters:\n',
-                f'\t\tll_points: {self.ll_points}\n',
-                f'\t\torientations: {self.orientations}\n'
+                '  ros__parameters:\n',
+                f'    ll_points: {self.ll_points}\n',
+                f'    orientations: {self.orientations}\n'
             ])
 
         self.get_logger().info('destroying node')
