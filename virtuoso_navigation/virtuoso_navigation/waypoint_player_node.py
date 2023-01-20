@@ -1,11 +1,12 @@
 import rclpy
 from rclpy.node import Node
 import os
+import time
 from pathlib import Path
 import yaml
 from nav_msgs.msg import Path as NavPath
 from robot_localization.srv import FromLL
-from geographic_msgs.msg import GeoPoseStamped
+from geographic_msgs.msg import GeoPoint
 from geometry_msgs.msg import PoseStamped
 
 class WaypointPlayerNode(Node):
@@ -23,6 +24,8 @@ class WaypointPlayerNode(Node):
         self.fromLL_cli = self.create_client(FromLL, '/fromLL')
 
         self.path_pub = self.create_publisher(NavPath, '/navigation/set_path', 10)
+
+        self.send_next_waypoint()
     
     def populate_waypoints(self):
         file_num = self.get_parameter('file_num').value
@@ -63,6 +66,10 @@ class WaypointPlayerNode(Node):
     
     def send_next_waypoint(self):
 
+        while not self.fromLL_cli.service_is_ready():
+            self.get_logger().info('waiting for service')
+            time.sleep(1.0)
+
         if self.waypoint_num >= len(self.ll_points):
             return
         
@@ -84,9 +91,9 @@ class WaypointPlayerNode(Node):
             self.path_pub.publish(path)
 
         self.req = FromLL.Request() 
-        self.req.ll_point = GeoPoseStamped()
-        self.req.ll_point.pose.position.latitude = self.ll_points[self.waypoint_num][0]
-        self.req.ll_point.pose.position.longitude = self.ll_points[self.waypoint_num][1]
+        self.req.ll_point = GeoPoint()
+        self.req.ll_point.latitude = self.ll_points[self.waypoint_num][0]
+        self.req.ll_point.longitude = self.ll_points[self.waypoint_num][1]
 
         map_dest = self.fromLL_cli.call_async(self.req)
         map_dest.add_done_callback(ll_callback) 
