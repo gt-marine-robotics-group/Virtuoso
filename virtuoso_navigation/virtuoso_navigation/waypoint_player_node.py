@@ -21,6 +21,9 @@ class WaypointPlayerNode(Node):
 
         self.populate_waypoints()
 
+        self.nav_success_sub = self.create_subscription(PoseStamped,
+            '/navigation/success', self.nav_success_callback ,10)
+
         self.fromLL_cli = self.create_client(FromLL, '/fromLL')
 
         self.path_pub = self.create_publisher(NavPath, '/navigation/set_path', 10)
@@ -97,6 +100,10 @@ class WaypointPlayerNode(Node):
 
         map_dest = self.fromLL_cli.call_async(self.req)
         map_dest.add_done_callback(ll_callback) 
+    
+    def nav_success_callback(self, msg:PoseStamped):
+        self.waypoint_num += 1
+        self.send_next_waypoint()
 
 
 def main(args=None):
