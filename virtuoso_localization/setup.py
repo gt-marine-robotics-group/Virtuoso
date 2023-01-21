@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 from glob import glob
 
@@ -7,7 +7,7 @@ package_name = 'virtuoso_localization'
 setup(
     name=package_name,
     version='0.0.0',
-    packages=[package_name],
+    packages=find_packages(exclude=['test']),
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
@@ -36,7 +36,10 @@ setup(
     entry_points={
         'console_scripts': [
             'republisher = virtuoso_localization.republisher_node:main',
-            'test_pub = virtuoso_localization.test_data_publisher:main'
+            'test_pub = virtuoso_localization.test_data_publisher:main',
+
+            'keyboard_listener = virtuoso_localization.utils.keyboard_listener_node:main',
+            'waypoint_saver = virtuoso_localization.waypoint_saver_node:main'
         ],
     },
 )
