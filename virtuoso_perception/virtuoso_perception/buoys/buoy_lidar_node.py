@@ -19,10 +19,11 @@ class BuoyLidarNode(Node):
         self.declare_parameters(namespace='', parameters=[
             ('buoy_max_side_length', 0.0),
             ('tall_buoy_min_z', 0.0),
-            ('buoy_loc_noise', 0.0)
+            ('buoy_loc_noise', 0.0),
+            ('start_active', False)
         ])
 
-        self.find_buoys:FindBuoys = None
+        self.activate_callback(Bool(data=self.get_parameter('start_active').value))
 
         self.create_timer(0.1, self.execute)
     
