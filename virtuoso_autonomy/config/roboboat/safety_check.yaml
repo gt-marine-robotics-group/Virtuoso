@@ -1,6 +1,6 @@
 
-autonomy_channel_nav:
+autonomy_safety_check:
   ros__parameters:
-    num_channels: 2
     gate_buoy_max_dist: 15.0
-    rotation_theta: 0.523599
+    use_lidar: True
+    use_camera: True

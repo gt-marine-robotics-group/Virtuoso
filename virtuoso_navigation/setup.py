@@ -40,6 +40,8 @@ setup(
             'station_keeping = virtuoso_navigation.station_keeping_node:main',
             'rotate = virtuoso_navigation.rotate_node:main',
 
+            'waypoint_player = virtuoso_navigation.waypoint_player_node:main',
+
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',
             'test_change_goal = virtuoso_navigation.testing.change_goal:main',
             'test_waypoints = virtuoso_navigation.testing.waypoints:main',
