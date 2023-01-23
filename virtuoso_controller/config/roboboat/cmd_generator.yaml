@@ -1,0 +1,5 @@
+
+controller_motor_cmd_generator:
+  ros__parameters:
+    sim_time: False
+    motor_config: "H"
