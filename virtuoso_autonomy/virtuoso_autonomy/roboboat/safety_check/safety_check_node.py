@@ -3,7 +3,6 @@ from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
 from geometry_msgs.msg import PoseStamped, Point
 from std_msgs.msg import Empty
-from virtuoso_msgs.msg import BuoyArray
 from virtuoso_msgs.srv import Channel, Rotate
 from .safety_check_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
@@ -30,7 +29,7 @@ class SafetyCheckNode(Node):
             self.odom_callback, 10)
         
         self.state = State.START
-        self.channel_nav = ChannelNavigation()
+        self.channels_completed = 0
 
         self.channel_client = self.create_client(Channel, 'channel')
         self.channel_call = None
@@ -40,7 +39,7 @@ class SafetyCheckNode(Node):
         self.create_timer(1.0, self.execute)
 
     def nav_success_callback(self, msg:PoseStamped):
-        if len(self.channel_nav.channels) == 1:
+        if self.channels_completed == 2:
             self.state = State.COMPLETE
         else:
             self.state = State.FINDING_NEXT_GATE
@@ -101,15 +100,10 @@ class SafetyCheckNode(Node):
             self.get_logger().info('No Gate Found')
             return
 
-        buoy_poses = [
+        channel = (
             point_to_pose_stamped(result.left),
             point_to_pose_stamped(result.right)
-        ]
-
-        channel = self.channel_nav.find_channel(buoy_poses, self.robot_pose)
-
-        if channel is None:
-            return
+        )
 
         mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
 
@@ -118,6 +112,7 @@ class SafetyCheckNode(Node):
 
         self.state = State.NAVIGATING
         self.channel_call = None
+        self.channels_completed += 1
         self.path_pub.publish(path)
 
 
