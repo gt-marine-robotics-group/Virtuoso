@@ -2,23 +2,23 @@ import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32
 
-class TestLeft(Node):
+class TestStop(Node):
 
     def __init__(self):
-        super().__init__('test_controller_left')
+        super().__init__('test_controller_right')
 
         self.navigateToPoint = Bool()
         self.navigateToPoint.data = True
         self.basicTargetForceX = Float32()
         self.basicTargetForceX.data = 0.0
         self.basicTargetForceY = Float32()
-        self.basicTargetForceY.data = 1.0
+        self.basicTargetForceY.data = 0.0
         self.basicTorque = Float32()
         self.basicTorque.data = 0.0
         self.velForceX = Float32()
         self.velForceX.data = 0.0
         self.velForceY = Float32()
-        self.velForceY.data = 1.0
+        self.velForceY.data = 0.0
         self.velTorque = Float32()
         self.velTorque.data = 0.0
 
@@ -45,7 +45,7 @@ class TestLeft(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    test = TestLeft()
+    test = TestStop()
 
     rclpy.spin(test)
 

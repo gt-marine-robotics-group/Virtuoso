@@ -11,10 +11,11 @@ class MotorCmdGeneratorNode(Node):
         super().__init__('controller_motor_cmd_generator')
 
         self.declare_parameters(namespace='', parameters=[
-            ('sim_time', False)
+            ('sim_time', False),
+            ('motor_config', "X")
         ])
 
-        self.generator = MotorCmdGenerator(sim_time=self.get_parameter('sim_time').value)
+        self.generator = MotorCmdGenerator(sim_time=self.get_parameter('sim_time').value, motor_config=self.get_parameter('motor_config').value)
         
         self.navigate_to_point_subscriber = self.create_subscription(
             Bool,
@@ -60,7 +61,11 @@ class MotorCmdGeneratorNode(Node):
             '/wamv/thrusters/left_rear_thrust_angle', 10)
         self.right_rear_pub_angle = self.create_publisher(Float32, 
             '/wamv/thrusters/right_rear_thrust_angle', 10)
-
+        self.left_middle_pub_angle = self.create_publisher(Float32, 
+            '/wamv/thrusters/left_middle_thrust_angle', 10)
+        self.right_middle_pub_angle = self.create_publisher(Float32, 
+            '/wamv/thrusters/right_middle_thrust_angle', 10)
+            
         self.left_front_pub_cmd = self.create_publisher(Float32, 
             '/wamv/thrusters/left_front_thrust_cmd', 10)
         self.right_front_pub_cmd = self.create_publisher(Float32, 
@@ -69,7 +74,11 @@ class MotorCmdGeneratorNode(Node):
             '/wamv/thrusters/left_rear_thrust_cmd', 10)
         self.right_rear_pub_cmd = self.create_publisher(Float32, 
             '/wamv/thrusters/right_rear_thrust_cmd', 10)
-        
+        self.left_middle_pub_cmd = self.create_publisher(Float32, 
+            '/wamv/thrusters/left_middle_thrust_cmd', 10)
+        self.right_middle_pub_cmd = self.create_publisher(Float32, 
+            '/wamv/thrusters/right_middle_thrust_cmd', 10)
+                
         self.create_timer(0.1, self.timer_callback)
 
     def navigate_to_point_callback(self, msg:Bool):
@@ -103,12 +112,15 @@ class MotorCmdGeneratorNode(Node):
         self.left_rear_pub_angle.publish(commands['left_rear_angle'])
         self.left_front_pub_angle.publish(commands['left_front_angle'])
         self.right_rear_pub_angle.publish(commands['right_rear_angle'])     
-    
+        self.left_middle_pub_angle.publish(commands['left_middle_angle'])
+        self.right_middle_pub_angle.publish(commands['right_middle_angle'])     
+           
         self.left_front_pub_cmd.publish(commands['left_front_cmd'])
         self.right_rear_pub_cmd.publish(commands['right_rear_cmd'])      
         self.right_front_pub_cmd.publish(commands['right_front_cmd'])
         self.left_rear_pub_cmd.publish(commands['left_rear_cmd'])     
-
+        self.right_middle_pub_cmd.publish(commands['right_middle_cmd'])
+        self.left_middle_pub_cmd.publish(commands['left_middle_cmd'])   
         
 def main(args=None):
     rclpy.init(args=args)

@@ -20,6 +20,8 @@ If you do not have this structure, you will need to modify some commands.
 
 ## 0. Create a Custom WAM-V urdf
 
+Note: Starting with RoboBoat, we are now providing the already built URDF in `utils/roboboat`. You can use this URDF in later steps (just make sure to use the appropriate file path). 
+
 This is a ONE TIME step. 
 
 Inside of `Virtuoso/utils/wamv_X` there are yaml files containing the configuration of our motors and sensors on the WAM-V in simulation. For VRX to recognize this is the configuration we want our WAM-V to have, we need to create a custom urdf file from these configuration yaml files. To do that, run the following commands: 

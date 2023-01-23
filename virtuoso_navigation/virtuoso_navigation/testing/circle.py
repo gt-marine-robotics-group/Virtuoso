@@ -34,7 +34,7 @@ class TestCircle(Node):
     def send_path(self):
         
         is_translation = Bool()
-        is_translation.data = True
+        is_translation.data = False
         self.is_translation_pub.publish(is_translation)
 
         if self.robot_pose is None or self.path_sent:

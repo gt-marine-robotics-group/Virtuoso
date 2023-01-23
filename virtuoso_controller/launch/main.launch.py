@@ -11,16 +11,14 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_controller')
 
-    sim_time_arg = DeclareLaunchArgument('sim_time', default_value='False')
-    sim_time_config = LaunchConfiguration('sim_time', default='False')
-
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
     pid_params_file = (pkg_share, '/config/', usv_config, '/pidgains.yaml')
+    cmd_generator_params_file = (pkg_share, '/config/', usv_config, 
+        '/cmd_generator.yaml')
 
     return LaunchDescription([
-        sim_time_arg,
         usv_arg,
 
         Node(
@@ -36,13 +34,11 @@ def generate_launch_description():
         Node(
             package='virtuoso_controller',
             executable='motor_cmd_generator',
-            parameters=[
-                {'sim_time', sim_time_config}
-            ]
+            parameters=[cmd_generator_params_file]
         ),
         Node(
             package='virtuoso_controller',
-            executable='cmd_vel_generator',
+            executable='cmd_vel_generator'
        ),
         Node(
             package='virtuoso_controller',

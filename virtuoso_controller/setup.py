@@ -43,6 +43,7 @@ setup(
 
             'test_waypoint_generator = virtuoso_controller.testing.test_waypoint_generator:main',       
             'test_vel_generator = virtuoso_controller.testing.test_vel_generator:main',
+            'test_stop = virtuoso_controller.testing.test_stop:main',
             'test_forward = virtuoso_controller.testing.test_forward:main',
             'test_backward = virtuoso_controller.testing.test_backward:main',
             'test_left = virtuoso_controller.testing.test_left:main',
