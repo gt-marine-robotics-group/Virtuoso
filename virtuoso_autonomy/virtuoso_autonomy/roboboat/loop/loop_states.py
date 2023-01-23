@@ -1,0 +1,11 @@
+from enum import Enum
+
+class State(Enum):
+    START = 1
+    STATION_KEEPING_ENABLED = 2
+    FINDING_GATE = 3
+    NAVIGATING_TO_MIDPOINT = 4
+    CHECKING_FOR_LOOP_BUOY = 5
+    NAVIGATING_STRAIGHT = 6
+    LOOPING = 7
+    COMPLETE = 8

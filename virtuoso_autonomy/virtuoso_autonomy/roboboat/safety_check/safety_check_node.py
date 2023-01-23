@@ -28,8 +28,6 @@ class SafetyCheckNode(Node):
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
-        self.buoys_sub = self.create_subscription(BuoyArray, '/perception/stereo/buoys', 
-            self.buoys_callback, 10)
         
         self.state = State.START
         self.channel_nav = ChannelNavigation()
@@ -38,12 +36,10 @@ class SafetyCheckNode(Node):
         self.channel_call = None
         
         self.robot_pose:PoseStamped = None
-        self.buoys:BuoyArray = None
 
         self.create_timer(1.0, self.execute)
 
     def nav_success_callback(self, msg:PoseStamped):
-        self.buoys = None
         if len(self.channel_nav.channels) == 1:
             self.state = State.COMPLETE
         else:
@@ -51,9 +47,6 @@ class SafetyCheckNode(Node):
     
     def odom_callback(self, msg:Odometry):
         self.robot_pose = PoseStamped(pose=msg.pose.pose)
-    
-    def buoys_callback(self, msg:BuoyArray):
-        self.buoys = msg
     
     def execute(self):
         self.get_logger().info(str(self.state))
