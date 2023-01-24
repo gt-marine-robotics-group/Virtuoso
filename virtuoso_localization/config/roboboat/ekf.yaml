@@ -87,6 +87,7 @@ ekf_filter_node:
 # default values, and must be specified.
         odom0: /odometry/gps
         imu0: /navsat/imu
+        imu1: /wamv/sensors/gps/heading
         twist0: /wamv/sensors/gps/gps/vel
 
 # Each sensor reading updates some or all of the filter's state. These options give you greater control over which
@@ -149,6 +150,23 @@ ekf_filter_node:
                       true,  true,  true,
                       false, false, false,
                       true,  true,  true,
+                      false,  false,  false]
+
+        #        [x_pos   , y_pos    , z_pos,
+        #         roll    , pitch    , yaw,
+        #         x_vel   , y_vel    , z_vel,
+        #         roll_vel, pitch_vel, yaw_vel,
+        #         x_accel , y_accel  , z_accel]
+        
+        imu0_nodelay: false
+        imu0_differential: false
+        imu0_relative: false
+        imu0_queue_size: 7
+        
+        imu0_config: [false, false, false,
+                      true,  true,  true,
+                      false, false, false,
+                      false,  false,  false,
                       false,  false,  false]
 
         #        [x_pos   , y_pos    , z_pos,
