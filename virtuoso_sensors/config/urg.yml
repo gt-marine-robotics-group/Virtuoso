@@ -12,7 +12,7 @@ urg_node:
     diagnostics_window_time: 5.0
     error_limit: 4
     get_detailed_status: false
-    publish_intensity: false
+    publish_intensity: true
     publish_multiecho: false
     cluster: 1
     skip: 0

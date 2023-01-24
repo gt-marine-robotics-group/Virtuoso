@@ -17,7 +17,8 @@ class LaserToPcdNode(Node):
     
     def input_callback(self, msg:LaserScan):
 
-        pcd:PointCloud2 = LaserProjection().projectLaser(msg)
+        pcd:PointCloud2 = LaserProjection().projectLaser(msg, 
+            channel_options=LaserProjection.ChannelOption.INTENSITY)
 
         pcd.header.frame_id = self.get_parameter('frame').value
 
