@@ -1,0 +1,6 @@
+
+autonomy_safety_check:
+  ros__parameters:
+    gate_buoy_max_dist: 15.0
+    use_lidar: True
+    use_camera: True

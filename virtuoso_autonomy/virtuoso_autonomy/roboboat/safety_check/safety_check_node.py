@@ -1,24 +1,24 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import PoseStamped, Point, Vector3
+from geometry_msgs.msg import PoseStamped, Point
 from std_msgs.msg import Empty
 from virtuoso_msgs.msg import BuoyArray
 from virtuoso_msgs.srv import Channel, Rotate
-from .channel_nav_states import State
+from .safety_check_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
 import time
 
-class ChannelNavNode(Node):
+class SafetyCheckNode(Node):
 
     def __init__(self):
-        super().__init__('autonomy_channel_nav')
+        super().__init__('autonomy_safety_check')
 
         self.declare_parameters(namespace='', parameters=[
-            ('num_channels', 0),
             ('gate_buoy_max_dist', 0.0),
-            ('rotation_theta', 0.0)
+            ('use_lidar', False),
+            ('use_camera', False)
         ])
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
@@ -36,9 +36,6 @@ class ChannelNavNode(Node):
 
         self.channel_client = self.create_client(Channel, 'channel')
         self.channel_call = None
-
-        self.rotate_client = self.create_client(Rotate, 'rotate')
-        self.rotate_call = None
         
         self.robot_pose:PoseStamped = None
         self.buoys:BuoyArray = None
@@ -47,8 +44,7 @@ class ChannelNavNode(Node):
 
     def nav_success_callback(self, msg:PoseStamped):
         self.buoys = None
-        if (len(self.channel_nav.channels) ==
-            self.get_parameter('num_channels').value - 1):
+        if len(self.channel_nav.channels) == 1:
             self.state = State.COMPLETE
         else:
             self.state = State.FINDING_NEXT_GATE
@@ -70,8 +66,6 @@ class ChannelNavNode(Node):
         if self.state == State.FINDING_NEXT_GATE:
             self.nav_to_next_midpoint()
             return
-        if self.state == State.ROTATING_TO_FIND_NEXT_GATE:
-            return
         if self.state == State.NAVIGATING:
             return
     
@@ -89,21 +83,13 @@ class ChannelNavNode(Node):
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
-        req.use_lidar = False
-        req.use_camera = True
+        req.use_lidar = self.get_parameter('use_lidar').value
+        req.use_camera = self.get_parameter('use_camera').value
         req.max_dist_from_usv = self.get_parameter('gate_buoy_max_dist').value
 
         self.channel_call = self.channel_client.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
 
-    def rotate(self, angle:float):
-        self.state = State.ROTATING_TO_FIND_NEXT_GATE
-        req = Rotate.Request()
-        req.goal = Vector3(z=angle)
-        
-        self.rotate_call = self.rotate_client.call_async(req)
-        self.rotate_call.add_done_callback(self.rotate_response)
-    
     def rotate_response(self, future):
         result:Rotate.Response = future.result()
         self.get_logger().info(f'rotate response: {result}')
@@ -118,16 +104,8 @@ class ChannelNavNode(Node):
 
         self.channel_call = None
         
-        if result.left == null_point:
-            if result.right == null_point:
-                self.get_logger().info('BOTH NULL POINTS')
-                return 
-            self.get_logger().info('ROTATING LEFT')
-            self.rotate(self.get_parameter('rotation_theta').value) 
-            return
-        elif result.right == null_point:
-            self.get_logger().info('ROTATING RIGHT')
-            self.rotate(-self.get_parameter('rotation_theta').value)
+        if result.left == null_point or result.right == null_point:
+            self.get_logger().info('No Gate Found')
             return
 
         buoy_poses = [
@@ -154,7 +132,7 @@ def main(args=None):
     
     rclpy.init(args=args)
 
-    node = ChannelNavNode()
+    node = SafetyCheckNode()
 
     rclpy.spin(node)
 

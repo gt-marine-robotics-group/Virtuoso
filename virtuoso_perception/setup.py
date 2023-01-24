@@ -36,7 +36,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'find_buoys = virtuoso_perception.buoys.find_buoys_node:main',
+            'buoy_lidar = virtuoso_perception.buoys.buoy_lidar_node:main',
             'classify_buoys = virtuoso_perception.buoys.classify_buoys_node:main',
             'buoy_filter = virtuoso_perception.buoys.buoy_filter_node:main',
             'channel = virtuoso_perception.buoys.channel_node:main',
