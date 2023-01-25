@@ -12,13 +12,13 @@ class TestForward(Node):
     def __init__(self):
         super().__init__('test_set_path')
 
-        self.pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
 
         self.path_sent = False
         self.robot_pose = None
 
-        self.declare_parameter('dist', 40.0)
+        self.declare_parameter('dist', 10.0)
 
         self.create_timer(1.0, self.send_path)
     
