@@ -16,6 +16,10 @@ class ChannelNode(Node):
     def __init__(self):
         super().__init__('perception_channel')
 
+        self.declare_parameters(namespace='', parameters=[
+            ('camera_frame', '')
+        ])
+
         self.channel_srv = self.create_service(Channel, 'channel', 
             self.channel_callback)
         
@@ -48,7 +52,7 @@ class ChannelNode(Node):
     def find_transform(self):
         try:
             trans = self.tf_buffer.lookup_transform(
-                'map', "wamv/front_left_camera_link", Time()
+                'map', self.get_parameter('camera_frame').value, Time()
             )
             return trans
         except Exception:
