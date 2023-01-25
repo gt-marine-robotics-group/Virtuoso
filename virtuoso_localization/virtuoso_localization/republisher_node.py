@@ -65,11 +65,15 @@ class RepublisherNode(Node):
     
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def state_estimation(self):
+        if not self.GPS_ready:
+            return
+        self.gpsPublisher.publish(self.gps_fix)
+        
         if not self.GPS_ready or not self.IMU_ready:
             return
 
         self.imuPublisher.publish(self.measured_IMU)
-        self.gpsPublisher.publish(self.gps_fix)
+        
         
 def main(args=None):
     rclpy.init(args=args)

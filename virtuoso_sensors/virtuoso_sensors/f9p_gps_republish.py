@@ -90,7 +90,7 @@ class f9pGPSRepublish(Node):
     def gps_rel_vel_callback(self, msg):
         imu_msg = Imu()
         imu_msg.header.stamp = self.get_clock().now().to_msg()
-        imu_msg.header.frame_id = 'ubx_utm'
+        imu_msg.header.frame_id = 'ubx'
         
         imu_msg.orientation_covariance = [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
         
@@ -174,7 +174,7 @@ class f9pGPSRepublish(Node):
                   
              except TransformException as ex:
                   self.get_logger().info(
-                       f'Could not transform base link to utm: {ex}')
+                       f'Could not transform base link to ubx: {ex}')
                   return
                   
 
