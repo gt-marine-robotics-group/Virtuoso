@@ -83,7 +83,10 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='channel'
+            executable='channel',
+            parameters=[
+                {'camera_frame': camera_data['camera_config']['bow_camera_frames'][0]}
+            ]
         )
     )
         

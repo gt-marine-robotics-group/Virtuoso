@@ -3,9 +3,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped, Pose, Quaternion
 from nav_msgs.msg import Path
 from nav_msgs.msg import Odometry
-from tf2_ros.buffer import Buffer
 from rclpy.time import Time
-from tf2_ros.transform_listener import TransformListener
 from virtuoso_perception.utils.geometry_msgs import do_transform_pose_stamped
 
 class TestBackward(Node):
@@ -13,14 +11,11 @@ class TestBackward(Node):
     def __init__(self):
         super().__init__('testing_backward')
 
-        self.pub = self.create_publisher(Path, '/virtuoso_navigation/set_path', 10)
+        self.pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
 
         self.path_sent = False
         self.robot_pose = None
-
-        self.buffer = Buffer()
-        self.tf_listener = TransformListener(self.buffer, self)
 
         self.declare_parameter('dist', 10.0)
 
@@ -40,29 +35,10 @@ class TestBackward(Node):
 
         path = Path()
 
-        self.robot_pose.pose.position.y += self.get_parameter('dist').value
-        # self.robot_pose.header.frame_id = 'map'
+        self.robot_pose.pose.position.y -= self.get_parameter('dist').value
+        self.robot_pose.header.frame_id = 'map'
 
-        trans = None
-
-        try:
-            now = Time()
-            trans = self.buffer.lookup_transform('map', 'wamv/base_link', now)
-        except Exception as e:
-            pass
-        
-        if trans is None:
-            return
-        
-        self.get_logger().info(str(trans.transform.translation.y))
-
-        ps = PoseStamped()
-        ps.pose.position.x = 0.0
-        ps.pose.position.y = 1.5
-
-        transPoint = do_transform_pose_stamped(ps, trans)
-        
-        path.poses.append(transPoint)
+        path.poses.append(self.robot_pose)
 
         self.get_logger().info('PUBLISHING PATH')
         self.pub.publish(path)
