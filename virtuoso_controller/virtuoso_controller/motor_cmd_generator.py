@@ -91,6 +91,10 @@ class MotorCmdGenerator:
                          right_rear_cmd.data *= 2.5
 
         if (self.motor_config == "H"):        
+             
+             if(abs(target_force_y) > 1.0):
+                  target_force_y = target_force_y/abs(target_force_y)
+             
              left_front_angle.data = 0.785
              left_rear_angle.data = -0.785
              right_front_angle.data = -0.785
@@ -151,3 +155,13 @@ class MotorCmdGenerator:
         # self.right_rear_pub_cmd.publish(right_rear_cmd)      
         # self.right_front_pub_cmd.publish(right_front_cmd)
         # self.left_rear_pub_cmd.publish(left_rear_cmd)     
+if __name__ == "__main__":
+     cmdgen = MotorCmdGenerator(True, "H")
+     cmdgen.vel_force_x = 0.0
+     cmdgen.vel_force_y = -2.0
+     cmdgen.basic_force_x = 0.0
+     cmdgen.basic_force_y = 0.0
+     cmdgen.basic_torque = 0.0  
+     cmdgen.navigate_to_point = False   
+     output = cmdgen.run()
+     print(output['right_middle_cmd'])
