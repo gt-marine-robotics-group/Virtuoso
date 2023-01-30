@@ -103,13 +103,13 @@ class BuoyColorFilterNode(Node):
         self.image_srv_chain.run()
 
         while self.image_srv_chain.running:
-            self.get_logger().info('waiting for image_srv_chain to finish')
+            if self.get_parameter('debug').value:
+                self.get_logger().info('waiting for image_srv_chain to finish')
             time.sleep(0.5) 
         
         res.contours = self.apply_filter(self.image_srv_chain.image)
         res.camera_info = self.image_srv_chain.camera_info
 
-        self.get_logger().info('buoy filter returning')
         return res
 
 

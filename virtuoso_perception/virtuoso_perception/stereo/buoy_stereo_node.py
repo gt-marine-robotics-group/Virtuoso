@@ -171,7 +171,8 @@ class BuoyStereoNode(Node):
         
         while (self.buoy_stereo.left_img_contours is None or
             self.buoy_stereo.right_img_contours is None):
-            self.get_logger().info('Waiting for contours')
+            if self.get_parameter('debug').value:
+                self.get_logger().info('Waiting for contours')
             time.sleep(0.5)
             
         buoys = self.execute_buoy_stereo()

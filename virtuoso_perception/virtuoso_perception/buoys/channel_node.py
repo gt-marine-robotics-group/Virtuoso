@@ -80,7 +80,6 @@ class ChannelNode(Node):
 
         while ((req.use_camera and self.channel.camera_buoys is None) or 
             (req.use_lidar and self.channel.lidar_buoys is None)):
-            self.get_logger().info('channel node waiting for buoys')
             time.sleep(0.5)
 
         trans = self.find_transform()
