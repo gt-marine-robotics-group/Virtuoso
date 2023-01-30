@@ -54,6 +54,8 @@ class ResizeNode(Node):
         image = self.resize(image)
         camera_info = self.resize_info(camera_info)
 
+        goal_handle.succeed()
+
         result = ResizeImage.Result()
         result.image = image
         result.camera_info = camera_info

@@ -41,6 +41,8 @@ class NoiseFilterNode(Node):
         )
         if self.get_parameter('debug').value:
             self.get_logger().info(f'Noise execution time: {time.time() - start_time}')
+        
+        goal_handle.succeed()
 
         result = ImageNoiseFilter.Result()
         result.image = self.cv_bridge.cv2_to_imgmsg(filtered, encoding='bgr8')

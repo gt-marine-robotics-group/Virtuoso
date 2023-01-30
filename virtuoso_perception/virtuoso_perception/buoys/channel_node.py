@@ -1,5 +1,6 @@
 import rclpy
 from rclpy.node import Node
+import time
 from virtuoso_msgs.srv import Channel
 from virtuoso_msgs.msg import BuoyArray
 from geometry_msgs.msg import Point
@@ -10,18 +11,40 @@ from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from std_msgs.msg import Bool
 from .channel import FindChannel
+from rclpy.action import ActionClient
+from sensor_msgs.msg import Image
+from virtuoso_msgs.action import ImageNoiseFilter
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 
 class ChannelNode(Node):
 
     def __init__(self):
         super().__init__('perception_channel')
 
+        self.cb_group_1 = MutuallyExclusiveCallbackGroup()
+        self.cb_group_2 = MutuallyExclusiveCallbackGroup()
+        self.cb_group_3 = MutuallyExclusiveCallbackGroup()
+
+        self.test = None
+        self.test_img1 = None
+        self.test_img2 = None
+
         self.declare_parameters(namespace='', parameters=[
             ('camera_frame', '')
         ])
 
+        self.test_sub = self.create_subscription(Image, 
+            '/wamv/sensors/cameras/front_left_camera/image_raw', 
+            self.test_callback, 10)
+
         self.channel_srv = self.create_service(Channel, 'channel', 
-            self.channel_callback)
+            self.channel_callback, callback_group=self.cb_group_1)
+
+        self.test_client = ActionClient(self, ImageNoiseFilter, 
+            'perception/image_noise_filter', callback_group=self.cb_group_2)
+        self.test_client2 = ActionClient(self, ImageNoiseFilter,
+            'perception/image_noise_filter', callback_group=self.cb_group_3)
         
         self.cam_active_pub = self.create_publisher(Bool, 
             '/perception/camera/activate_processing', 10)
@@ -43,6 +66,9 @@ class ChannelNode(Node):
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+    
+    def test_callback(self, msg:Image):
+        self.test = msg
     
     def activate_all(self, action=True):
         self.active = action
@@ -76,6 +102,26 @@ class ChannelNode(Node):
         res.left = Point(x=0.0,y=0.0,z=0.0)
         res.right = Point(x=0.0,y=0.0,z=0.0)
 
+        msg1 = ImageNoiseFilter.Goal()
+        msg1.image = self.test
+        msg2 = ImageNoiseFilter.Goal()
+        msg2.image = self.test
+        self.get_logger().info('waiting for servers')
+        self.test_client.wait_for_server(timeout_sec=2.0)
+        self.get_logger().info('sending async requests')
+        gf1 = self.test_client.send_goal_async(msg1)
+        gf1.add_done_callback(self.gf1_cb)
+        gf2 = self.test_client2.send_goal_async(msg2)
+        gf2.add_done_callback(self.gf2_cb)
+
+        while self.test_img1 is None or self.test_img2 is None:
+            self.get_logger().info('channel node waiting for images')
+            time.sleep(0.5)
+        
+        self.get_logger().info('sending response')
+
+        return res
+
         if not self.active:
             self.activate_all()
             return res
@@ -96,13 +142,44 @@ class ChannelNode(Node):
         
         return res
 
+    def gf1_cb(self, future):
+        handle = future.result()
+        if not handle.accepted:
+            self.get_logger().info('goal not accepted')
+            return
+        self.get_logger().info('goal accepted')
+
+        self.f1 = handle.get_result_async()
+        self.f1.add_done_callback(self.gf1_cb2)
+    
+    def gf1_cb2(self, future):
+        self.get_logger().info('gf1 done')
+        self.test_img1 = future.result().result.image
+
+    def gf2_cb(self, future):
+        handle = future.result()
+        if not handle.accepted:
+            self.get_logger().info('goal not accepted')
+            return
+        self.get_logger().info('goal accepted')
+
+        self.f1 = handle.get_result_async()
+        self.f1.add_done_callback(self.gf2_cb2)
+    
+    def gf2_cb2(self, future):
+        self.get_logger().info('gf2 done')
+        self.test_img2 = future.result().result.image
+
 
 def main(args=None):
     rclpy.init(args=args)
 
     node = ChannelNode()
+    executor = MultiThreadedExecutor(num_threads=3)
+    executor.add_node(node)
+    executor.spin()
 
-    rclpy.spin(node)
+    # rclpy.spin(node)
 
-    node.destroy_node()
+    # node.destroy_node()
     rclpy.shutdown()
