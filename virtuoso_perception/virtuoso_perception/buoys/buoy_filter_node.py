@@ -76,11 +76,11 @@ class BuoyColorFilterNode(Node):
 
         self.debug_pubs = {
             'black_white': self.create_publisher(Image,
-            f'camera/buoy_filter/debug/black_white', 10),
+            f'{base_topic}/buoy_filter/debug/black_white', 10),
             'full_contours': self.create_publisher(Image,
-            f'camera/buoy_filter/debug/full_contours', 10),
+            f'{base_topic}/buoy_filter/debug/full_contours', 10),
             'filtered_contours': self.create_publisher(Image,
-            f'camera/buoy_filter/debug/filtered_contours', 10)
+            f'{base_topic}/buoy_filter/debug/filtered_contours', 10)
         }
 
     def apply_filter(self, img:Image):
