@@ -18,10 +18,6 @@ def generate_launch_description():
     for arg in sys.argv:
         if arg.startswith('usv:='):
             usv_config_str = arg.split(':=')[1]
-
-    camera_data = None
-    with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
-        camera_data = yaml.safe_load(stream)
     
     lidar_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/lidar_config.yaml', 'r') as stream:
@@ -91,21 +87,14 @@ def generate_launch_description():
         )
     )
 
-    for topic in camera_data['camera_config']['bow_camera_base_topics']:
-        ld.append(
-            Node(
-                package='virtuoso_perception',
-                executable='resize',
-                name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
-                parameters=[
-                    {'base_topic': topic},
-                    camera_processing_param_file
-                ]
-            )
-        )
     ld.append(Node(
         package='virtuoso_perception',
         executable='noise_filter',
+        parameters=[camera_processing_param_file]
+    ))
+    ld.append(Node(
+        package='virtuoso_perception',
+        executable='resize',
         parameters=[camera_processing_param_file]
     ))
 

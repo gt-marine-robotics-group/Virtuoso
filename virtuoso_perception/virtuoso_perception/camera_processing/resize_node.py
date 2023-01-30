@@ -1,10 +1,12 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionServer
 from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import Bool
 from cv_bridge import CvBridge
 import numpy as np
 import cv2
+from virtuoso_msgs.action import ResizeImage
 
 class ResizeNode(Node):
 
@@ -16,31 +18,12 @@ class ResizeNode(Node):
             ('resize_factor', 1)
         ])
 
+        self.action_server = ActionServer(self, ResizeImage, 
+            'perception/image_resize', self.action_callback)
+
         self.resize_factor = self.get_parameter('resize_factor').value
 
-        base_topic = self.get_parameter('base_topic').value
-
-        self.image:Image = None
-
-        self.activate_sub = self.create_subscription(Bool, 
-            f'/perception/camera/activate_processing', self.activate_callback, 10)
-
-        self.image_sub = self.create_subscription(Image, 
-            f'{base_topic}/image_raw', self.image_callback, 10)
-        self.cam_info_sub = self.create_subscription(CameraInfo, 
-            f'{base_topic}/camera_info', self.cam_info_callback, 10)
-        
-        self.resized_pub = self.create_publisher(Image,
-            f'{base_topic}/resized', 10)
-        self.resized_info_pub = self.create_publisher(CameraInfo, 
-            f'{base_topic}/resized/camera_info', 10) 
-
-        self.active = False
-        
         self.cv_bridge = CvBridge()
-    
-    def activate_callback(self, msg:Bool):
-        self.active = msg.data
 
     def resize(self, img:Image):
         bgr:np.ndarray = self.cv_bridge.imgmsg_to_cv2(img, 'bgr8')
@@ -61,16 +44,21 @@ class ResizeNode(Node):
         info.height //= self.resize_factor
         return info
     
-    def image_callback(self, msg:Image):
-        if not self.active:
+    def action_callback(self, goal_handle):
+        image:Image = goal_handle.request.image
+        camera_info:CameraInfo = goal_handle.request.camera_info
+
+        if image is None or camera_info is None:
+            goal_handle.abort()
             return
-        # self.resized_pub.publish(self.resize(msg))
-        self.image = msg
-    
-    def cam_info_callback(self, msg:CameraInfo):
-        if not self.active:
-            return
-        self.resized_info_pub.publish(self.resize_info(msg))
+        
+        image = self.resize(image)
+        camera_info = self.resize_info(camera_info)
+
+        result = ResizeImage.Result()
+        result.image = image
+        result.camera_info = camera_info
+        return result
 
 
 def main(args=None):

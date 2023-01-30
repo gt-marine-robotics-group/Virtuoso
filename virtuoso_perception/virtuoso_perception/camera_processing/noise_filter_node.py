@@ -22,7 +22,7 @@ class NoiseFilterNode(Node):
         ])
         
         self.action_server = ActionServer(self, ImageNoiseFilter, 
-            'perception/noise_filter', self.action_callback)
+            'perception/image_noise_filter', self.action_callback)
 
         self.cv_bridge = CvBridge()
     
