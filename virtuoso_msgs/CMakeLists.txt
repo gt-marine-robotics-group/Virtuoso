@@ -30,7 +30,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Contours.msg"
   "srv/Channel.srv"
   "srv/Rotate.srv"
-  "action/NoiseFilter.action"
+  "action/ImageNoiseFilter.action"
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs
  )
 

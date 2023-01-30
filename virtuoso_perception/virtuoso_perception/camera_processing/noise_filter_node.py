@@ -8,7 +8,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Bool
 import numpy as np
 import time
-from virtuoso_msgs.action import NoiseFilter
+from virtuoso_msgs.action import ImageNoiseFilter
 
 class NoiseFilterNode(Node):
 
@@ -21,8 +21,8 @@ class NoiseFilterNode(Node):
             ('denoising_params', [])
         ])
         
-        self.action_server = ActionServer(self, NoiseFilter, 'perception/noise_filter', 
-            self.action_callback)
+        self.action_server = ActionServer(self, ImageNoiseFilter, 
+            'perception/noise_filter', self.action_callback)
 
         self.cv_bridge = CvBridge()
     
@@ -43,7 +43,7 @@ class NoiseFilterNode(Node):
         if self.get_parameter('debug').value:
             self.get_logger().info(f'Noise execution time: {time.time() - start_time}')
 
-        result = NoiseFilter.Result()
+        result = ImageNoiseFilter.Result()
         result.image = self.cv_bridge.cv2_to_imgmsg(filtered, encoding='bgr8')
         return result
 
