@@ -6,13 +6,13 @@ from cv_bridge import CvBridge
 from ..utils.code_identification import find_contours
 from ..utils.color_range import ColorRange
 from ..utils.image_srv_chain import ImageSrvChain
-from .buoy_filter import BuoyFilter
+from .buoy_cam_filter import BuoyFilter
 from virtuoso_msgs.srv import ImageNoiseFilter, ImageResize, ImageBuoyFilter
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 import time
 
-class BuoyColorFilterNode(Node):
+class BuoyFilterNode(Node):
 
     def __init__(self):
         super().__init__('perception_buoy_filter')
@@ -117,7 +117,7 @@ def main(args=None):
     
     rclpy.init(args=args)
 
-    node = BuoyColorFilterNode()
+    node = BuoyFilterNode()
 
     executor = MultiThreadedExecutor(num_threads=2)
     executor.add_node(node)

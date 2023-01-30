@@ -59,7 +59,7 @@ def generate_launch_description():
         ld.append(
             Node(
                 package='virtuoso_perception',
-                executable='buoy_filter',
+                executable='buoy_cam_filter',
                 name=f'perception_buoy_filter_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
                     {'base_topic': topic},
