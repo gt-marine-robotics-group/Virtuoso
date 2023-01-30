@@ -1,37 +1,43 @@
 import rclpy
 from rclpy.node import Node
+import time
 from virtuoso_msgs.srv import Channel
-from virtuoso_msgs.msg import BuoyArray
 from geometry_msgs.msg import Point
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from nav_msgs.msg import Odometry
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from std_msgs.msg import Bool
 from .channel import FindChannel
+from virtuoso_msgs.srv import ImageBuoyStereo, LidarBuoy
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 
 class ChannelNode(Node):
 
     def __init__(self):
         super().__init__('perception_channel')
 
+        self.cb_group_1 = MutuallyExclusiveCallbackGroup()
+        self.cb_group_2 = MutuallyExclusiveCallbackGroup()
+        self.cb_group_3 = MutuallyExclusiveCallbackGroup()
+
         self.declare_parameters(namespace='', parameters=[
             ('camera_frame', '')
         ])
 
         self.channel_srv = self.create_service(Channel, 'channel', 
-            self.channel_callback)
+            self.channel_callback, callback_group=self.cb_group_1)
+
+        self.stereo_client = self.create_client(ImageBuoyStereo, 
+            'perception/image_buoy_stereo', callback_group=self.cb_group_2)
+        self.lidar_client = self.create_client(LidarBuoy, 
+            'perception/lidar_buoy', callback_group=self.cb_group_3)
         
         self.cam_active_pub = self.create_publisher(Bool, 
             '/perception/camera/activate_processing', 10)
         self.lidar_active_pub = self.create_publisher(Bool,
             '/perception/buoys/buoy_lidar/activate', 10)
-        
-        self.camera_buoys_sub = self.create_subscription(BuoyArray, 
-            '/perception/stereo/buoys', self.camera_buoys_callback, 10)
-        self.lidar_buoys_sub = self.create_subscription(BoundingBoxArray,
-            '/buoys/bounding_boxes', self.lidar_buoys_callback, 10)
 
         self.odom_sub = self.create_subscription(Odometry, 
             '/localization/odometry', self.odom_callback, 10)
@@ -39,15 +45,8 @@ class ChannelNode(Node):
         self.channel = FindChannel()
         self.channel.node = self
         
-        self.active = False
-
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
-    
-    def activate_all(self, action=True):
-        self.active = action
-        self.cam_active_pub.publish(Bool(data=self.active))
-        self.lidar_active_pub.publish(Bool(data=self.active))
 
     def find_transform(self):
         try:
@@ -58,16 +57,6 @@ class ChannelNode(Node):
         except Exception:
             return None
 
-    def camera_buoys_callback(self, msg:BuoyArray):
-        if not self.active:
-            return
-        self.channel.camera_buoys = msg
-    
-    def lidar_buoys_callback(self, msg:BoundingBoxArray):
-        if not self.active:
-            return
-        self.channel.lidar_buoys = msg
-    
     def odom_callback(self, msg:Odometry):
         self.channel.odom = msg
     
@@ -76,10 +65,23 @@ class ChannelNode(Node):
         res.left = Point(x=0.0,y=0.0,z=0.0)
         res.right = Point(x=0.0,y=0.0,z=0.0)
 
-        if not self.active:
-            self.activate_all()
-            return res
-        
+        self.channel.camera_buoys = None
+        self.channel.lidar_buoys = None
+
+        if req.use_camera:
+            stereo_msg = ImageBuoyStereo.Request()
+            stereo_call = self.stereo_client.call_async(stereo_msg)
+            stereo_call.add_done_callback(self.stereo_callback)
+
+        if req.use_lidar:
+            lidar_msg = LidarBuoy.Request()
+            lidar_call = self.lidar_client.call_async(lidar_msg)
+            lidar_call.add_done_callback(self.lidar_callback)
+
+        while ((req.use_camera and self.channel.camera_buoys is None) or 
+            (req.use_lidar and self.channel.lidar_buoys is None)):
+            time.sleep(0.5)
+
         trans = self.find_transform()
         if trans is None:
             return res
@@ -91,18 +93,27 @@ class ChannelNode(Node):
             return res
         
         self.channel.reset()
-        self.active = False
-        self.activate_all(action=False)
         
         return res
+
+    def stereo_callback(self, future):
+        result = future.result()
+        self.channel.camera_buoys = result.buoys
+    
+    def lidar_callback(self, future):
+        result = future.result()
+        self.channel.lidar_buoys = result.buoys
 
 
 def main(args=None):
     rclpy.init(args=args)
 
     node = ChannelNode()
+    executor = MultiThreadedExecutor(num_threads=3)
+    executor.add_node(node)
+    executor.spin()
 
-    rclpy.spin(node)
+    # rclpy.spin(node)
 
-    node.destroy_node()
+    # node.destroy_node()
     rclpy.shutdown()
