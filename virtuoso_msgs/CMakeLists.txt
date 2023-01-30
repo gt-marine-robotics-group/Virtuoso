@@ -23,6 +23,7 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(autoware_auto_perception_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Buoy.msg"
@@ -34,7 +35,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ImageResize.srv"
   "srv/ImageBuoyFilter.srv"
   "srv/ImageBuoyStereo.srv"
-  DEPENDENCIES geometry_msgs std_msgs sensor_msgs
+  "srv/LidarBuoy.srv"
+  DEPENDENCIES geometry_msgs std_msgs sensor_msgs autoware_auto_perception_msgs
  )
 
 if(BUILD_TESTING)
