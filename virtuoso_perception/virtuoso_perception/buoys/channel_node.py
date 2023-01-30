@@ -2,17 +2,14 @@ import rclpy
 from rclpy.node import Node
 import time
 from virtuoso_msgs.srv import Channel
-from virtuoso_msgs.msg import BuoyArray
 from geometry_msgs.msg import Point
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
 from nav_msgs.msg import Odometry
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from std_msgs.msg import Bool
 from .channel import FindChannel
-from rclpy.action import ActionClient
-from virtuoso_msgs.srv import ImageBuoyStereo
+from virtuoso_msgs.srv import ImageBuoyStereo, LidarBuoy
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 
@@ -34,6 +31,8 @@ class ChannelNode(Node):
 
         self.stereo_client = self.create_client(ImageBuoyStereo, 
             'perception/image_buoy_stereo', callback_group=self.cb_group_2)
+        self.lidar_client = self.create_client(LidarBuoy, 
+            'perception/lidar_buoy', callback_group=self.cb_group_3)
         
         self.cam_active_pub = self.create_publisher(Bool, 
             '/perception/camera/activate_processing', 10)
@@ -67,12 +66,17 @@ class ChannelNode(Node):
         res.right = Point(x=0.0,y=0.0,z=0.0)
 
         self.channel.camera_buoys = None
+        self.channel.lidar_buoys = None
 
         stereo_msg = ImageBuoyStereo.Request()
         stereo_call = self.stereo_client.call_async(stereo_msg)
         stereo_call.add_done_callback(self.stereo_callback)
 
-        while self.channel.camera_buoys is None:
+        lidar_msg = LidarBuoy.Request()
+        lidar_call = self.lidar_client.call_async(lidar_msg)
+        lidar_call.add_done_callback(self.lidar_callback)
+
+        while self.channel.camera_buoys is None or self.channel.lidar_buoys is None:
             self.get_logger().info('channel node waiting for buoys')
             time.sleep(0.5)
 
@@ -93,6 +97,10 @@ class ChannelNode(Node):
     def stereo_callback(self, future):
         result = future.result()
         self.channel.camera_buoys = result.buoys
+    
+    def lidar_callback(self, future):
+        result = future.result()
+        self.channel.lidar_buoys = result.buoys
 
 
 def main(args=None):
