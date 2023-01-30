@@ -16,7 +16,6 @@ class NoiseFilterNode(Node):
         super().__init__('perception_noise_filter')
 
         self.declare_parameters(namespace='', parameters=[
-            ('base_topic', ''),
             ('debug', False),
             ('denoising_params', [])
         ])

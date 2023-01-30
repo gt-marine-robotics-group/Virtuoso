@@ -14,7 +14,6 @@ class ResizeNode(Node):
         super().__init__('perception_downscale')
 
         self.declare_parameters(namespace='', parameters=[
-            ('base_topic', ''),
             ('resize_factor', 1)
         ])
 
