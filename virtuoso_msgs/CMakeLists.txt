@@ -31,8 +31,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/Channel.srv"
   "srv/Rotate.srv"
   "srv/ImageNoiseFilter.srv"
-  "action/ImageNoiseFilter.action"
-  "action/ResizeImage.action"
+  "srv/ImageResize.srv"
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs
  )
 

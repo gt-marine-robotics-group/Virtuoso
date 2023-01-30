@@ -6,7 +6,7 @@ from std_msgs.msg import Bool
 from cv_bridge import CvBridge
 import numpy as np
 import cv2
-from virtuoso_msgs.action import ResizeImage
+from virtuoso_msgs.srv import ResizeImage
 
 class ResizeNode(Node):
 
