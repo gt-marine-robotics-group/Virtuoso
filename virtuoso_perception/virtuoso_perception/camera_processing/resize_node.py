@@ -6,7 +6,7 @@ from std_msgs.msg import Bool
 from cv_bridge import CvBridge
 import numpy as np
 import cv2
-from virtuoso_msgs.srv import ResizeImage
+from virtuoso_msgs.srv import ImageResize
 
 class ResizeNode(Node):
 
@@ -17,8 +17,8 @@ class ResizeNode(Node):
             ('resize_factor', 1)
         ])
 
-        self.action_server = ActionServer(self, ResizeImage, 
-            'perception/image_resize', self.action_callback)
+        self.srv = self.create_service(ImageResize, 
+            'perception/image_resize', self.srv_callback)
 
         self.resize_factor = self.get_parameter('resize_factor').value
 
@@ -43,23 +43,19 @@ class ResizeNode(Node):
         info.height //= self.resize_factor
         return info
     
-    def action_callback(self, goal_handle):
-        image:Image = goal_handle.request.image
-        camera_info:CameraInfo = goal_handle.request.camera_info
+    def srv_callback(self, req:ImageResize.Request, res:ImageResize.Response):
+        image:Image = req.image
+        camera_info:CameraInfo = req.camera_info
 
         if image is None or camera_info is None:
-            goal_handle.abort()
-            return
+            return res
         
         image = self.resize(image)
         camera_info = self.resize_info(camera_info)
 
-        goal_handle.succeed()
-
-        result = ResizeImage.Result()
-        result.image = image
-        result.camera_info = camera_info
-        return result
+        res.image = image
+        res.camera_info = camera_info
+        return res
 
 
 def main(args=None):
