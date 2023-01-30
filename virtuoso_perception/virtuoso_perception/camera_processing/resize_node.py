@@ -20,11 +20,13 @@ class ResizeNode(Node):
 
         base_topic = self.get_parameter('base_topic').value
 
+        self.image:Image = None
+
         self.activate_sub = self.create_subscription(Bool, 
             f'/perception/camera/activate_processing', self.activate_callback, 10)
 
         self.image_sub = self.create_subscription(Image, 
-            f'{base_topic}/noise_filtered', self.image_callback, 10)
+            f'{base_topic}/image_raw', self.image_callback, 10)
         self.cam_info_sub = self.create_subscription(CameraInfo, 
             f'{base_topic}/camera_info', self.cam_info_callback, 10)
         
@@ -62,7 +64,8 @@ class ResizeNode(Node):
     def image_callback(self, msg:Image):
         if not self.active:
             return
-        self.resized_pub.publish(self.resize(msg))
+        # self.resized_pub.publish(self.resize(msg))
+        self.image = msg
     
     def cam_info_callback(self, msg:CameraInfo):
         if not self.active:
