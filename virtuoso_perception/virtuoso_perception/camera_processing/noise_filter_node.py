@@ -16,12 +16,16 @@ class NoiseFilterNode(Node):
         super().__init__('perception_noise_filter')
 
         self.declare_parameters(namespace='', parameters=[
+            ('base_topic', ''),
             ('debug', False),
             ('denoising_params', [])
         ])
+
+        base_topic = self.get_parameter('base_topic').value
+        cam = base_topic[base_topic.rfind('/') + 1:]
         
         self.srv = self.create_service(ImageNoiseFilter, 
-            'perception/image_noise_filter', self.srv_callback)
+            f'{cam}/noise_filter', self.srv_callback)
 
         self.cv_bridge = CvBridge()
     

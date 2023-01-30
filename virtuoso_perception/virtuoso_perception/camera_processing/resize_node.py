@@ -14,11 +14,15 @@ class ResizeNode(Node):
         super().__init__('perception_downscale')
 
         self.declare_parameters(namespace='', parameters=[
+            ('base_topic', ''),
             ('resize_factor', 1)
         ])
 
+        base_topic = self.get_parameter('base_topic').value
+        cam = base_topic[base_topic.rfind('/') + 1:]
+
         self.srv = self.create_service(ImageResize, 
-            'perception/image_resize', self.srv_callback)
+            f'{cam}/resize', self.srv_callback)
 
         self.resize_factor = self.get_parameter('resize_factor').value
 
