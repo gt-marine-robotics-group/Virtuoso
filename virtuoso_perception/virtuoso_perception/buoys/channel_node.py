@@ -68,15 +68,18 @@ class ChannelNode(Node):
         self.channel.camera_buoys = None
         self.channel.lidar_buoys = None
 
-        stereo_msg = ImageBuoyStereo.Request()
-        stereo_call = self.stereo_client.call_async(stereo_msg)
-        stereo_call.add_done_callback(self.stereo_callback)
+        if req.use_camera:
+            stereo_msg = ImageBuoyStereo.Request()
+            stereo_call = self.stereo_client.call_async(stereo_msg)
+            stereo_call.add_done_callback(self.stereo_callback)
 
-        lidar_msg = LidarBuoy.Request()
-        lidar_call = self.lidar_client.call_async(lidar_msg)
-        lidar_call.add_done_callback(self.lidar_callback)
+        if req.use_lidar:
+            lidar_msg = LidarBuoy.Request()
+            lidar_call = self.lidar_client.call_async(lidar_msg)
+            lidar_call.add_done_callback(self.lidar_callback)
 
-        while self.channel.camera_buoys is None or self.channel.lidar_buoys is None:
+        while ((req.use_camera and self.channel.camera_buoys is None) or 
+            (req.use_lidar and self.channel.lidar_buoys is None)):
             self.get_logger().info('channel node waiting for buoys')
             time.sleep(0.5)
 
