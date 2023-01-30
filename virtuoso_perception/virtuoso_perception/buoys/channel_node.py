@@ -13,7 +13,7 @@ from std_msgs.msg import Bool
 from .channel import FindChannel
 from rclpy.action import ActionClient
 from sensor_msgs.msg import Image, CameraInfo
-from virtuoso_msgs.srv import ImageBuoyFilter
+from virtuoso_msgs.srv import ImageBuoyFilter, ImageBuoyStereo
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 
@@ -49,8 +49,8 @@ class ChannelNode(Node):
         #     'perception/image_noise_filter', callback_group=self.cb_group_2)
         # self.test_client2 = ActionClient(self, ImageNoiseFilter,
         #     'perception/image_noise_filter', callback_group=self.cb_group_3)
-        self.test_client = self.create_client(ImageBuoyFilter, 
-            'front_left_camera/buoy_filter', callback_group=self.cb_group_2)
+        self.test_client = self.create_client(ImageBuoyStereo, 
+            'perception/image_buoy_stereo', callback_group=self.cb_group_2)
         self.test_client2 = self.create_client(ImageBuoyFilter, 
             'front_right_camera/buoy_filter', callback_group=self.cb_group_3)
         
@@ -113,19 +113,19 @@ class ChannelNode(Node):
         res.left = Point(x=0.0,y=0.0,z=0.0)
         res.right = Point(x=0.0,y=0.0,z=0.0)
 
-        msg1 = ImageBuoyFilter.Request()
-        msg1.image = self.test
-        msg1.camera_info = self.camera_info
-        msg2 = ImageBuoyFilter.Request()
-        msg2.image = self.test
-        msg2.camera_info = self.camera_info
-        self.get_logger().info('waiting for service')
+        msg1 = ImageBuoyStereo.Request()
+        # msg1.image = self.test
+        # msg1.camera_info = self.camera_info
+        # msg2 = ImageBuoyFilter.Request()
+        # msg2.image = self.test
+        # msg2.camera_info = self.camera_info
+        # self.get_logger().info('waiting for service')
         self.test_client.wait_for_service(timeout_sec=2.0)
         self.get_logger().info('sending async requests')
         gf1 = self.test_client.call_async(msg1)
         gf1.add_done_callback(self.gf1_cb2)
-        gf2 = self.test_client2.call_async(msg2)
-        gf2.add_done_callback(self.gf2_cb2)
+        # gf2 = self.test_client2.call_async(msg2)
+        # gf2.add_done_callback(self.gf2_cb2)
 
         while self.test_img1 is None or self.test_img2 is None:
             self.get_logger().info('channel node waiting for images')
@@ -167,7 +167,8 @@ class ChannelNode(Node):
     
     def gf1_cb2(self, future):
         self.get_logger().info('gf1 done')
-        self.test_img1 = future.result().contours
+        # self.test_img1 = future.result().contours
+        self.test_img1 = 'bob'
 
     def gf2_cb(self, future):
         handle = future.result()
