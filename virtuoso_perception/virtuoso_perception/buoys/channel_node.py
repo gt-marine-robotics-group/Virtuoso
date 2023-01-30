@@ -12,9 +12,8 @@ from rclpy.time import Time
 from std_msgs.msg import Bool
 from .channel import FindChannel
 from rclpy.action import ActionClient
-from sensor_msgs.msg import Image
-# from virtuoso_msgs.action import ImageNoiseFilter
-from virtuoso_msgs.srv import ImageNoiseFilter
+from sensor_msgs.msg import Image, CameraInfo
+from virtuoso_msgs.srv import ImageBuoyFilter
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 
@@ -28,6 +27,7 @@ class ChannelNode(Node):
         self.cb_group_3 = MutuallyExclusiveCallbackGroup()
 
         self.test = None
+        self.camera_info = None
         self.test_img1 = None
         self.test_img2 = None
 
@@ -38,6 +38,9 @@ class ChannelNode(Node):
         self.test_sub = self.create_subscription(Image, 
             '/wamv/sensors/cameras/front_left_camera/image_raw', 
             self.test_callback, 10)
+        self.camera_info = self.create_subscription(CameraInfo, 
+            '/wamv/sensors/cameras/front_left_camera/camera_info', 
+            self.camera_info_callback, 10)
 
         self.channel_srv = self.create_service(Channel, 'channel', 
             self.channel_callback, callback_group=self.cb_group_1)
@@ -46,10 +49,10 @@ class ChannelNode(Node):
         #     'perception/image_noise_filter', callback_group=self.cb_group_2)
         # self.test_client2 = ActionClient(self, ImageNoiseFilter,
         #     'perception/image_noise_filter', callback_group=self.cb_group_3)
-        self.test_client = self.create_client(ImageNoiseFilter, 
-            'perception/image_noise_filter', callback_group=self.cb_group_2)
-        self.test_client2 = self.create_client(ImageNoiseFilter, 
-            'perception/image_noise_filter', callback_group=self.cb_group_3)
+        self.test_client = self.create_client(ImageBuoyFilter, 
+            'perception/image_buoy_filter', callback_group=self.cb_group_2)
+        self.test_client2 = self.create_client(ImageBuoyFilter, 
+            'perception/image_buoy_filter', callback_group=self.cb_group_3)
         
         self.cam_active_pub = self.create_publisher(Bool, 
             '/perception/camera/activate_processing', 10)
@@ -74,6 +77,9 @@ class ChannelNode(Node):
     
     def test_callback(self, msg:Image):
         self.test = msg
+    
+    def camera_info_callback(self, msg:CameraInfo):
+        self.camera_info = msg
     
     def activate_all(self, action=True):
         self.active = action
@@ -107,10 +113,12 @@ class ChannelNode(Node):
         res.left = Point(x=0.0,y=0.0,z=0.0)
         res.right = Point(x=0.0,y=0.0,z=0.0)
 
-        msg1 = ImageNoiseFilter.Request()
+        msg1 = ImageBuoyFilter.Request()
         msg1.image = self.test
-        msg2 = ImageNoiseFilter.Request()
+        msg1.camera_info = self.camera_info
+        msg2 = ImageBuoyFilter.Request()
         msg2.image = self.test
+        msg2.camera_info = self.camera_info
         self.get_logger().info('waiting for service')
         self.test_client.wait_for_service(timeout_sec=2.0)
         self.get_logger().info('sending async requests')
@@ -159,7 +167,7 @@ class ChannelNode(Node):
     
     def gf1_cb2(self, future):
         self.get_logger().info('gf1 done')
-        self.test_img1 = future.result().image
+        self.test_img1 = future.result().contours
 
     def gf2_cb(self, future):
         handle = future.result()
@@ -174,7 +182,7 @@ class ChannelNode(Node):
     def gf2_cb2(self, future):
         self.get_logger().info('gf2 done')
         # self.get_logger().info(f'message: {future.result()}')
-        self.test_img2 = future.result().image
+        self.test_img2 = future.result().contours
 
 
 def main(args=None):

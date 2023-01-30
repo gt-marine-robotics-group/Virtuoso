@@ -104,6 +104,7 @@ class BuoyColorFilterNode(Node):
         res.contours = self.apply_filter(self.image_srv_chain.image)
         res.camera_info = self.image_srv_chain.camera_info
 
+        self.get_logger().info('buoy filter returning')
         return res
 
 

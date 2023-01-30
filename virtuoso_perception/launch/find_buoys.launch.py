@@ -55,18 +55,11 @@ def generate_launch_description():
         )
     )
 
-    for topic in camera_data['camera_config']['bow_camera_base_topics']:
-        ld.append(
-            Node(
-                package='virtuoso_perception',
-                executable='buoy_filter',
-                name=f'perception_buoy_filter_{topic[topic.rfind("/") + 1:]}',
-                parameters=[
-                    {'base_topic': topic},
-                    *buoy_filter_params
-                ]
-            )
-        )
+    ld.append(Node(
+        package='virtuoso_perception',
+        executable='buoy_filter',
+        parameters=[*buoy_filter_params]
+    ))
 
     ld.append(
         Node(

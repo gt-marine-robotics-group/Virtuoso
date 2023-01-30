@@ -23,9 +23,9 @@ class ImageSrvChain:
     def run(self):
         self.running = True 
         self.curr = 0
+        self.make_call()
     
     def make_call(self):
-
         client:Client = self._clients[self.curr]
 
         client.wait_for_service(timeout_sec=2.0)
@@ -43,14 +43,15 @@ class ImageSrvChain:
         if result.image is None:
             raise RuntimeError('Service did not return an image')
         self.image = result.image
-        if result.camera_info is not None:
+
+        if 'camera_info' in ImageSrvChain._name_to_data[self._clients[self.curr].srv_name]:
             self.camera_info = result.camera_info
-        
+
         self.curr += 1
 
-        if self.curr >= len(self._chain):
+        if self.curr >= len(self._clients):
             self.running = False
             self.curr = 0
             return
-        
+
         self.make_call()
