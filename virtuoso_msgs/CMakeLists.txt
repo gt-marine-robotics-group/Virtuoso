@@ -33,6 +33,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ImageNoiseFilter.srv"
   "srv/ImageResize.srv"
   "srv/ImageBuoyFilter.srv"
+  "srv/ImageBuoyStereo.srv"
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs
  )
 
