@@ -6,8 +6,8 @@ from typing import List
 class ImageSrvChain:
 
     _name_to_data = {
-        'perception/image_noise_filter': set(('image')),
-        'perception/image_resize': set(('image', 'camera_info'))
+        'noise_filter': set(('image')),
+        'resize': set(('image', 'camera_info'))
     }
 
     def __init__(self, clients:List[Client]):
@@ -32,7 +32,8 @@ class ImageSrvChain:
 
         msg = client.srv_type.Request()
         msg.image = self.image
-        if 'camera_info' in ImageSrvChain._name_to_data[client.srv_name]:
+        srv_fields = ImageSrvChain._name_to_data[client.srv_name[client.srv_name.rfind('/') + 1:]]
+        if 'camera_info' in srv_fields:
             msg.camera_info = self.camera_info
 
         call = client.call_async(msg)
@@ -44,7 +45,9 @@ class ImageSrvChain:
             raise RuntimeError('Service did not return an image')
         self.image = result.image
 
-        if 'camera_info' in ImageSrvChain._name_to_data[self._clients[self.curr].srv_name]:
+        client = self._clients[self.curr]
+        srv_fields = ImageSrvChain._name_to_data[client.srv_name[client.srv_name.rfind('/') + 1:]]
+        if 'camera_info' in srv_fields:
             self.camera_info = result.camera_info
 
         self.curr += 1

@@ -50,9 +50,9 @@ class ChannelNode(Node):
         # self.test_client2 = ActionClient(self, ImageNoiseFilter,
         #     'perception/image_noise_filter', callback_group=self.cb_group_3)
         self.test_client = self.create_client(ImageBuoyFilter, 
-            'perception/image_buoy_filter', callback_group=self.cb_group_2)
+            'front_left_camera/buoy_filter', callback_group=self.cb_group_2)
         self.test_client2 = self.create_client(ImageBuoyFilter, 
-            'perception/image_buoy_filter', callback_group=self.cb_group_3)
+            'front_right_camera/buoy_filter', callback_group=self.cb_group_3)
         
         self.cam_active_pub = self.create_publisher(Bool, 
             '/perception/camera/activate_processing', 10)

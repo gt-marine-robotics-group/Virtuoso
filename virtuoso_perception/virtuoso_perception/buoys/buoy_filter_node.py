@@ -22,6 +22,7 @@ class BuoyColorFilterNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('debug', False),
+            ('base_topic', ''),
 
             ('filter_bounds.red.lower1', [0,0,0]),
             ('filter_bounds.red.upper1', [0,0,0]),
@@ -49,13 +50,17 @@ class BuoyColorFilterNode(Node):
             ('buoy_px_color_sample_size', 0)
         ])
 
-        self.srv = self.create_service(ImageBuoyFilter, 'perception/image_buoy_filter',
+        base_topic = self.get_parameter('base_topic').value
+        cam = base_topic[base_topic.rfind('/') + 1:]
+        
+        self.srv = self.create_service(ImageBuoyFilter, 
+            f'{cam}/buoy_filter',
             self.srv_callback, callback_group=self.cb_group_1)
 
         self.image_srv_chain = ImageSrvChain([
-            self.create_client(ImageNoiseFilter, 'perception/image_noise_filter', 
+            self.create_client(ImageNoiseFilter, f'{cam}/noise_filter', 
                 callback_group=self.cb_group_2),
-            self.create_client(ImageResize, 'perception/image_resize', 
+            self.create_client(ImageResize, f'{cam}/resize', 
                 callback_group=self.cb_group_2)
         ])
 
