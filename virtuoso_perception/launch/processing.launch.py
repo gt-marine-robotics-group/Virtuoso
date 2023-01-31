@@ -18,10 +18,14 @@ def generate_launch_description():
     for arg in sys.argv:
         if arg.startswith('usv:='):
             usv_config_str = arg.split(':=')[1]
-
+    
     camera_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
         camera_data = yaml.safe_load(stream)
+    
+    lidar_data = None
+    with open(f'{pkg_share}/config/{usv_config_str}/lidar_config.yaml', 'r') as stream:
+        lidar_data = yaml.safe_load(stream)
 
     euclidean_clustering_params_file = (pkg_share, '/config/', usv_config, 
         '/euclidean_clustering.yaml')
@@ -66,7 +70,8 @@ def generate_launch_description():
             package='ray_ground_classifier_nodes',
             executable='ray_ground_classifier_cloud_node_exe',
             parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
-            remappings=[("points_in", "wamv/sensors/lidars/lidar_wamv/points")]
+            # remappings=[("points_in", "wamv/sensors/lidars/lidar_wamv/points")]
+            remappings=[('points_in', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
         )
     )
 
