@@ -30,7 +30,20 @@ class MotorCmdGenerator:
                 or self.vel_force_y is None):
                 self._not_ready = False
             else:
-                return None
+                return {
+                    'right_front_angle': 0.0,
+                    'right_rear_angle': 0.0,
+                    'right_middle_angle': 0.0,
+                    'left_front_angle': 0.0,
+                    'left_rear_angle': 0.0,
+                    'left_middle_angle': 0.0,
+                    'right_front_cmd': 0.0,
+                    'right_rear_cmd': 0.0,
+                    'right_middle_cmd': 0.0,
+                    'left_front_cmd': 0.0,
+                    'left_rear_cmd': 0.0,
+                    'left_middle_cmd': 0.0
+                }
 
         left_front_angle = Float32()
         right_rear_angle = Float32()
@@ -157,11 +170,11 @@ class MotorCmdGenerator:
         # self.left_rear_pub_cmd.publish(left_rear_cmd)     
 if __name__ == "__main__":
      cmdgen = MotorCmdGenerator(True, "H")
-     cmdgen.vel_force_x = 0.0
-     cmdgen.vel_force_y = -2.0
-     cmdgen.basic_force_x = 0.0
-     cmdgen.basic_force_y = 0.0
-     cmdgen.basic_torque = 0.0  
+     #cmdgen.vel_force_x = 0.0
+     #cmdgen.vel_force_y = -2.0
+     #cmdgen.basic_force_x = 0.0
+     #cmdgen.basic_force_y = 0.0
+     #cmdgen.basic_torque = 0.0  
      cmdgen.navigate_to_point = False   
      output = cmdgen.run()
      print(output['right_middle_cmd'])
