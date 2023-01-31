@@ -25,17 +25,20 @@ class BuoyLidarNode(Node):
         if self.always_run:
             self.buoys_pub = self.create_publisher(BoundingBoxArray,
                 '/buoys/bounding_boxes', 10)
-
-        self.find_buoys = FindBuoys(
-            buoy_max_side_length=self.get_parameter('buoy_max_side_length').value,
-            tall_buoy_min_z=self.get_parameter('tall_buoy_min_z').value,
-            buoy_loc_noise=self.get_parameter('buoy_loc_noise').value
-        )
+        
+        self.set_find_buoys()
 
         self.srv = self.create_service(LidarBuoy, 'perception/lidar_buoy',
             self.srv_callback)
 
         self.create_timer(0.1, self.execute)
+    
+    def set_find_buoys(self):
+        self.find_buoys = FindBuoys(
+            buoy_max_side_length=self.get_parameter('buoy_max_side_length').value,
+            tall_buoy_min_z=self.get_parameter('tall_buoy_min_z').value,
+            buoy_loc_noise=self.get_parameter('buoy_loc_noise').value
+        )
 
     def execute(self):
         buoys = self.find_buoys.find_buoys()
@@ -48,6 +51,7 @@ class BuoyLidarNode(Node):
     
     def srv_callback(self, req:LidarBuoy.Request, res:LidarBuoy.Response):
         res.buoys = self.execute()
+        self.set_find_buoys()
         self.get_logger().info('lidar buoy returning')
         return res
     
