@@ -4,6 +4,9 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
 
+import yaml
+import sys
+
 def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_localization')
@@ -14,7 +17,18 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
-    robot_localization_file_path = (pkg_share, '/config/', usv_config, '/ekf.yaml')
+    usv_config_str = None
+    for arg in sys.argv:
+        if arg.startswith('usv:='):
+            usv_config_str = arg.split(':=')[1]
+    
+    with open(pkg_share + '/config/' + usv_config_str + '/ekf_selection.yaml','r') as f:
+        ekf_selector = yaml.safe_load(f)
+    ekf_select = ekf_selector["ekf_launch"]["ekf_selection"]
+    
+    
+    robot_localization_file_path = (pkg_share, '/config/', usv_config, ekf_select)
+    
 
     return LaunchDescription([
         usv_arg,
