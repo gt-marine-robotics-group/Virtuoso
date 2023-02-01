@@ -38,7 +38,7 @@ setup(
         'console_scripts': [
             'buoy_lidar = virtuoso_perception.buoys.buoy_lidar_node:main',
             'classify_buoys = virtuoso_perception.buoys.classify_buoys_node:main',
-            'buoy_filter = virtuoso_perception.buoys.buoy_filter_node:main',
+            'buoy_cam_filter = virtuoso_perception.buoys.buoy_cam_filter_node:main',
             'channel = virtuoso_perception.buoys.channel_node:main',
 
             'scan_code = virtuoso_perception.code.scan_code_node:main',
