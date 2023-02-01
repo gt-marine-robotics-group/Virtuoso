@@ -31,18 +31,18 @@ class MotorCmdGenerator:
                 self._not_ready = False
             else:
                 return {
-                    'right_front_angle': 0.0,
-                    'right_rear_angle': 0.0,
-                    'right_middle_angle': 0.0,
-                    'left_front_angle': 0.0,
-                    'left_rear_angle': 0.0,
-                    'left_middle_angle': 0.0,
-                    'right_front_cmd': 0.0,
-                    'right_rear_cmd': 0.0,
-                    'right_middle_cmd': 0.0,
-                    'left_front_cmd': 0.0,
-                    'left_rear_cmd': 0.0,
-                    'left_middle_cmd': 0.0
+                    'right_front_angle': Float32(data=0.0),
+                    'right_rear_angle': Float32(data=0.0),
+                    'right_middle_angle': Float32(data=0.0),
+                    'left_front_angle': Float32(data=0.0),
+                    'left_rear_angle': Float32(data=0.0),
+                    'left_middle_angle': Float32(data=0.0),
+                    'right_front_cmd': Float32(data=0.0),
+                    'right_rear_cmd': Float32(data=0.0),
+                    'right_middle_cmd': Float32(data=0.0),
+                    'left_front_cmd': Float32(data=0.0),
+                    'left_rear_cmd': Float32(data=0.0),
+                    'left_middle_cmd': Float32(data=0.0)
                 }
 
         left_front_angle = Float32()
