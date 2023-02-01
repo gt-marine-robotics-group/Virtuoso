@@ -18,7 +18,7 @@ def generate_launch_description():
     for arg in sys.argv:
         if arg.startswith('usv:='):
             usv_config_str = arg.split(':=')[1]
-
+    
     camera_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
         camera_data = yaml.safe_load(stream)

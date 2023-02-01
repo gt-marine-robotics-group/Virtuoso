@@ -80,7 +80,7 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 |-------|--------------|-------|---------|
 | /local_costmap/voxel_grid | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | map | Used by euclidean clustering node to find buoys. Used by the voxel grid node to create voxels for identifying dock entrances. |
 | usv/lidar_points | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Used by the ground filter. |
-| usv/camera_image | [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html) | camera_link | Used by downscale_node. |
+| usv/image_raw | [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html) | camera_link | Used by downscale_node. |
 | /perception/get_code | [std_msgs/Int8](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Int8.html) | N/A | Requests that code scanning begins. |
 | /perception/start_find_docks | [std_msgs/Int8](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Int8.html) | N/A | Requests that dock finding begins. |
 
@@ -88,7 +88,6 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
-| /buoys/bounding_boxes | [autoware_auto_perception_msgs/BoundingBoxArray](https://gitlab.com/autowarefoundation/autoware.auto/autoware_auto_msgs/-/blob/master/autoware_auto_perception_msgs/msg/BoundingBoxArray.idl) | map | Buoys located and classified by height. |
 | /perception/code | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Array of 3 integers representing the color sequence identified. 0 = red, 1 = green, 2 = blue. |
 | /perception/dock_code_offsets | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Array of 3 integers representing the offset of each dock's code from the center of the camera along the y-axis. |
 | /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | 2 Points representing the 2 endpoints of the entrance ahead. |
