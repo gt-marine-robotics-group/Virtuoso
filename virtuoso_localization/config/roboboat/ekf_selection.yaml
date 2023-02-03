@@ -1,2 +1,2 @@
 ekf_launch:
-  ekf_selection: "/ekf.yaml"
+  ekf_selection: "/ekf_dgnss.yaml"
