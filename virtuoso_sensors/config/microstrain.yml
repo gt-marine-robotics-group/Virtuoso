@@ -15,5 +15,5 @@ microstrain_inertial_driver:
     imu_linear_cov: [0.2, 0.0, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.1]
     imu_orientation_cov: [0.2, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.2]
     #filter_use_compensated_accel: False
-    port: /dev/ttyACM1
+    port: /dev/ttyACM2
 

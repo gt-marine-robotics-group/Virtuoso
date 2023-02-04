@@ -10,13 +10,13 @@ class TestStraight(Node):
         self.navigateToPoint = Bool()
         self.navigateToPoint.data = True
         self.basicTargetForceX = Float32()
-        self.basicTargetForceX.data = 1.0
+        self.basicTargetForceX.data = 0.5
         self.basicTargetForceY = Float32()
         self.basicTargetForceY.data = 0.0
         self.basicTorque = Float32()
         self.basicTorque.data = 0.0
         self.velForceX = Float32()
-        self.velForceX.data = 1.0
+        self.velForceX.data = 0.5
         self.velForceY = Float32()
         self.velForceY.data = 0.0
         self.velTorque = Float32()
