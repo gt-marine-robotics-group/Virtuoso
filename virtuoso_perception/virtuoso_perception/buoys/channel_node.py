@@ -61,6 +61,7 @@ class ChannelNode(Node):
         self.channel.odom = msg
     
     def channel_callback(self, req:Channel.Request, res:Channel.Response):
+        self.get_logger().info('received channel request')
         res.header.frame_id = 'map'
         res.left = Point(x=0.0,y=0.0,z=0.0)
         res.right = Point(x=0.0,y=0.0,z=0.0)
@@ -94,6 +95,7 @@ class ChannelNode(Node):
         
         self.channel.reset()
         
+        self.get_logger().info('sending channel response')
         return res
 
     def stereo_callback(self, future):

@@ -34,6 +34,8 @@ class LoopNode(Node):
         self.robot_pose:PoseStamped = None
 
         self.check_count = 0
+        self.prev_channel_buoys:List[PoseStamped] = list()
+        self.channel_wait_count = 0
         self.prev_poses:List[PoseStamped] = list()
 
         self.create_timer(1.0, self.execute)
@@ -105,6 +107,9 @@ class LoopNode(Node):
             point_to_pose_stamped(result.right)
         )
 
+        self.prev_channel_buoys.append(channel[0])
+        self.prev_channel_buoys.append(channel[1])
+
         mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
 
         path = Path()
@@ -117,7 +122,8 @@ class LoopNode(Node):
     def find_loop_buoy(self):
         if self.robot_pose is None:
             return
-        if self.channel_call is not None:
+        if self.channel_call is not None and self.channel_wait_count < 5:
+            self.channel_wait_count += 1
             return
 
         self.check_count += 1
@@ -138,20 +144,25 @@ class LoopNode(Node):
         null_point = Point(x=0.0,y=0.0,z=0.0)
 
         self.channel_call = None
+
+        left_ps = point_to_pose_stamped(result.left)
+        right_ps = point_to_pose_stamped(result.right)
         
-        if result.left == null_point or result.right == null_point:
+        if ((result.left == null_point or result.right == null_point)
+            or (self.is_prev_buoy(left_ps) and self.is_prev_buoy(right_ps))):
             self.get_logger().info('No loop buoy found')
             if self.check_count >= 3:
                 self.nav_straight()
             return
         
-        left_ps = point_to_pose_stamped(result.left)
-        right_ps = point_to_pose_stamped(result.right)
-        
         if result.left == null_point:
             pose = left_ps
         elif result.right == null_point:
             pose = right_ps
+        elif self.is_prev_buoy(left_ps):
+            pose = right_ps
+        elif self.is_prev_buoy(right_ps):
+            pose = left_ps
         elif (distance_pose_stamped(left_ps, self.robot_pose)
             < distance_pose_stamped(right_ps, self.robot_pose)):
             pose = left_ps
@@ -163,6 +174,11 @@ class LoopNode(Node):
         self.state = State.LOOPING
         self.channel_call = None
         self.path_pub.publish(path)
+    
+    def is_prev_buoy(self, buoy:PoseStamped):
+        for pose in self.prev_channel_buoys:
+            if distance_pose_stamped(buoy, pose) < 3:
+                return True
         
     def nav_straight(self):
         self.check_count = 0

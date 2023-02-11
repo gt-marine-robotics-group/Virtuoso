@@ -97,6 +97,8 @@ class FindChannel:
                 self.odom.pose.pose.position))
         
         if len(usv_dists) < 2:
+            if len(usv_dists) == 1:
+                channel[0] = usv_dists[0]
             return cam_channel or channel
 
         if cam_channel is not None:
