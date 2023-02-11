@@ -1,5 +1,6 @@
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
+from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
@@ -32,5 +33,11 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/camera.launch.py')),
             launch_arguments={'usv': usv_config}.items()
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='base_links',
+            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv/base_link'],
         )
     ])
