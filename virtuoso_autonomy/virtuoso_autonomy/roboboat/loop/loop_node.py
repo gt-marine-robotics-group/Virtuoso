@@ -7,7 +7,10 @@ from virtuoso_msgs.srv import Channel
 from geometry_msgs.msg import PoseStamped, Point
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+from ...utils.math import distance_pose_stamped
+from ...utils.looping_buoy.looping_buoy import LoopingBuoy
 from typing import List
+import time
 
 class LoopNode(Node):
 
@@ -30,6 +33,7 @@ class LoopNode(Node):
 
         self.robot_pose:PoseStamped = None
 
+        self.check_count = 0
         self.prev_poses:List[PoseStamped] = list()
 
         self.create_timer(1.0, self.execute)
@@ -54,6 +58,11 @@ class LoopNode(Node):
             self.nav_to_gate_midpoint()
             return
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
+            return
+        if self.state == State.CHECKING_FOR_LOOP_BUOY:
+            self.find_loop_buoy()
+            return
+        if self.state == State.LOOPING:
             return
     
     def enable_station_keeping(self):
@@ -104,6 +113,60 @@ class LoopNode(Node):
         self.state = State.NAVIGATING_TO_GATE_MIDPOINT
         self.channel_call = None
         self.path_pub.publish(path)
+    
+    def find_loop_buoy(self):
+        if self.robot_pose is None:
+            return
+        if self.channel_call is not None:
+            return
+
+        self.check_count += 1
+
+        req = Channel.Request()
+        req.left_color = 'blue'
+        req.right_color = 'blue'
+        req.use_lidar = True 
+        req.max_dist_from_usv = 15.0 # PARAM
+
+        self.channel_call = self.channel_cli.call_async(req)
+        self.channel_call.add_done_callback(self.loop_buoy_response)
+    
+    def loop_buoy_response(self, future):
+        result:Channel.Response = future.result()
+        self.get_logger().info(f'channel response: {result}')
+
+        null_point = Point(x=0.0,y=0.0,z=0.0)
+
+        self.channel_call = None
+        
+        if result.left == null_point or result.right == null_point:
+            self.get_logger().info('No loop buoy found')
+            if self.check_count >= 3:
+                self.nav_straight()
+            return
+        
+        left_ps = point_to_pose_stamped(result.left)
+        right_ps = point_to_pose_stamped(result.right)
+        
+        if result.left == null_point:
+            pose = left_ps
+        elif result.right == null_point:
+            pose = right_ps
+        elif (distance_pose_stamped(left_ps, self.robot_pose)
+            < distance_pose_stamped(right_ps, self.robot_pose)):
+            pose = left_ps
+        else:
+            pose = right_ps
+        
+        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, pose)
+
+        self.state = State.LOOPING
+        self.channel_call = None
+        self.path_pub.publish(path)
+        
+    def nav_straight(self):
+        self.check_count = 0
+        return
 
 def main(args=None):
     rclpy.init(args=args)

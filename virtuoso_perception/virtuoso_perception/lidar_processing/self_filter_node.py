@@ -36,8 +36,6 @@ class SelfFilter(Node):
 
         self.publisher.publish(filtered_cloud)
 
-
-
 def main(args=None):
     
     rclpy.init(args=args)
