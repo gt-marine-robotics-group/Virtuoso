@@ -81,13 +81,18 @@ class ChannelNode(Node):
         while ((req.use_camera and self.channel.camera_buoys is None) or 
             (req.use_lidar and self.channel.lidar_buoys is None)):
             time.sleep(0.5)
-
+        
         trans = self.find_transform()
         if trans is None:
             return res
         self.channel.cam_to_map_trans = trans
         
-        res = self.channel.execute(req, res)
+        try:
+            res = self.channel.execute(req, res)
+        except Exception as e:
+            self.get_logger().info(f'channel error: {e}')
+            self.channel.reset()
+            return res
         
         if res.left == res.right:
             return res

@@ -54,10 +54,10 @@ class FindChannel:
         self.iteration_count += 1
         
         cam_channel = None
-        if req.use_camera:
+        if req.use_camera and self.iteration_count < 9:
             cam_channel = self._find_cam_channel(req)
             if cam_channel[0] == FindChannel.null_point:
-                if cam_channel[1] == FindChannel.null_point and self.iteration_count < 9:
+                if cam_channel[1] == FindChannel.null_point:
                     return res
                 res.left = cam_channel[0]
                 res.right = cam_channel[1]
@@ -67,7 +67,7 @@ class FindChannel:
                 res.right = cam_channel[1]
                 return res
         
-        if req.use_lidar:
+        if req.use_lidar or self.iteration_count > 8:
             lidar_channel = self._find_lidar_channel(req, cam_channel)
             res.left = lidar_channel[0]
             res.right = lidar_channel[1]
@@ -97,6 +97,8 @@ class FindChannel:
                 self.odom.pose.pose.position))
         
         if len(usv_dists) < 2:
+            if len(usv_dists) == 1:
+                channel[0] = FindChannel._box_to_point(self.lidar_buoys.boxes[0])
             return cam_channel or channel
 
         if cam_channel is not None:
