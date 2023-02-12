@@ -98,7 +98,7 @@ class FindChannel:
         
         if len(usv_dists) < 2:
             if len(usv_dists) == 1:
-                channel[0] = usv_dists[0]
+                channel[0] = FindChannel._box_to_point(self.lidar_buoys.boxes[0])
             return cam_channel or channel
 
         if cam_channel is not None:
