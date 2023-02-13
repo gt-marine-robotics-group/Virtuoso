@@ -39,8 +39,6 @@ def generate_launch_description():
         description='Path to config file for Ray Ground Classifier'
     )
 
-    voxel_grid_param_file = (pkg_share, '/config/', usv_config, '/voxel_grid.yaml')
-
     lidar_processing_param_file = (pkg_share, '/config/', 
         usv_config, '/lidar_processing.yaml')
     camera_processing_param_file = (pkg_share, '/config/', usv_config,
@@ -59,18 +57,11 @@ def generate_launch_description():
     )
 
     ld.append(
-        DeclareLaunchArgument(
-            'voxel_grid_params_file',
-            default_value=voxel_grid_param_file
-        )
-    )
-
-    ld.append(
         Node(
             package='euclidean_cluster_nodes',
             executable='euclidean_cluster_node_exe',
             parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
-            remappings=[('/points_in', '/local_costmap/voxel_grid')]
+            remappings=[('/points_in', '/perception/lidar/points_shore_filtered')]
         )
     )
 
@@ -80,18 +71,6 @@ def generate_launch_description():
             executable='ray_ground_classifier_cloud_node_exe',
             parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
             remappings=[('points_in', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
-        )
-    )
-
-    ld.append(
-        Node(
-            package='voxel_grid_nodes',
-            executable='voxel_grid_node_exe',
-            parameters=[LaunchConfiguration('voxel_grid_params_file')],
-            remappings=[
-                ('points_in', 'points_nonground'),
-                ('points_downsampled', 'perception/voxels')
-            ]
         )
     )
 

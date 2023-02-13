@@ -27,6 +27,10 @@ def generate_launch_description():
     with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
         camera_data = yaml.safe_load(stream)
     
+    lidar_data = None
+    with open(f'{pkg_share}/config/{usv_config_str}/lidar_config.yaml', 'r') as stream:
+        lidar_data = yaml.safe_load(stream)
+    
     buoys_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/buoys.yaml', 'r') as stream:
         buoys_data = yaml.safe_load(stream)
@@ -85,7 +89,8 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='channel',
             parameters=[
-                {'camera_frame': camera_data['camera_config']['bow_camera_frames'][0]}
+                {'camera_frame': camera_data['camera_config']['bow_camera_frames'][0]},
+                {'lidar_frame': lidar_data['lidar_config']['all_lidar_frames'][0]}
             ]
         )
     )

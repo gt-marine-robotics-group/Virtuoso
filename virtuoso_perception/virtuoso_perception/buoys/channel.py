@@ -16,6 +16,7 @@ class FindChannel:
         self.node = None
 
         self.cam_to_map_trans:TransformStamped = None
+        self.lidar_to_map_trans:TransformStamped = None
         
         self.lidar_buoys:BoundingBoxArray = None
         self.camera_buoys:BuoyArray = None
@@ -48,7 +49,7 @@ class FindChannel:
         self.iteration_count = 0
     
     def execute(self, req:Channel.Request, res:Channel.Response):
-        if self.cam_to_map_trans is None:
+        if self.cam_to_map_trans is None or self.lidar_to_map_trans is None:
             return res
         
         self.iteration_count += 1
@@ -98,7 +99,10 @@ class FindChannel:
         
         if len(usv_dists) < 2:
             if len(usv_dists) == 1:
-                channel[0] = FindChannel._box_to_point(self.lidar_buoys.boxes[0])
+                channel[0] = FindChannel._transform_point(
+                    self.lidar_to_map_trans,
+                    FindChannel._box_to_point(self.lidar_buoys.boxes[0])
+                ) 
             return cam_channel or channel
 
         if cam_channel is not None:
@@ -106,12 +110,18 @@ class FindChannel:
             min_right_dists_index = min(range(len(right_dists)), key=right_dists.__getitem__)
             if min_left_dists_index == min_right_dists_index:
                 return channel
-            channel[0] = FindChannel._box_to_point(
-                self.lidar_buoys.boxes[min_left_dists_index]
-            )
-            channel[1] = FindChannel._box_to_point(
-                self.lidar_buoys.boxes[min_right_dists_index]
-            )
+            channel[0] = FindChannel._transform_point(
+                self.lidar_to_map_trans,
+                FindChannel._box_to_point(
+                    self.lidar_buoys.boxes[min_left_dists_index]
+                )
+            ) 
+            channel[1] = FindChannel._transform_point(
+                self.lidar_to_map_trans,
+                FindChannel._box_to_point(
+                    self.lidar_buoys.boxes[min_right_dists_index]
+                )
+            ) 
         else:
             mins = [[math.inf, 0], [math.inf, 0]]
             for i, dist in enumerate(usv_dists):
@@ -120,12 +130,18 @@ class FindChannel:
                     mins[0] = [dist, i]
                 elif dist < mins[1][0]:
                     mins[1] = [dist, i]
-            channel[0] = FindChannel._box_to_point(
-                self.lidar_buoys.boxes[mins[0][1]]
-            )
-            channel[1] = FindChannel._box_to_point(
-                self.lidar_buoys.boxes[mins[1][1]]
-            )
+            channel[0] = FindChannel._transform_point(
+                self.lidar_to_map_trans,
+                FindChannel._box_to_point(
+                    self.lidar_buoys.boxes[mins[0][1]]
+                )
+            ) 
+            channel[1] = FindChannel._transform_point(
+                self.lidar_to_map_trans,
+                FindChannel._box_to_point(
+                    self.lidar_buoys.boxes[mins[1][1]]
+                )
+            ) 
 
         return channel
     

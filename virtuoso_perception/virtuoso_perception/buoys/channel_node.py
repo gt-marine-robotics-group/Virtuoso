@@ -23,7 +23,8 @@ class ChannelNode(Node):
         self.cb_group_3 = MutuallyExclusiveCallbackGroup()
 
         self.declare_parameters(namespace='', parameters=[
-            ('camera_frame', '')
+            ('camera_frame', ''),
+            ('lidar_frame', '')
         ])
 
         self.channel_srv = self.create_service(Channel, 'channel', 
@@ -43,10 +44,19 @@ class ChannelNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-    def find_transform(self):
+    def find_cam_to_map_transform(self):
         try:
             trans = self.tf_buffer.lookup_transform(
                 'map', self.get_parameter('camera_frame').value, Time()
+            )
+            return trans
+        except Exception:
+            return None
+    
+    def find_lidar_to_map_transform(self):
+        try:
+            trans = self.tf_buffer.lookup_transform(
+                'map', self.get_parameter('lidar_frame').value, Time()
             )
             return trans
         except Exception:
@@ -77,10 +87,14 @@ class ChannelNode(Node):
             (req.use_lidar and self.channel.lidar_buoys is None)):
             time.sleep(0.5)
         
-        trans = self.find_transform()
-        if trans is None:
+        cam_trans = self.find_cam_to_map_transform()
+        if cam_trans is None:
             return res
-        self.channel.cam_to_map_trans = trans
+        lidar_trans = self.find_lidar_to_map_transform()
+        if lidar_trans is None:
+            return res
+        self.channel.cam_to_map_trans = cam_trans
+        self.channel.lidar_to_map_trans = lidar_trans
         
         try:
             res = self.channel.execute(req, res)
