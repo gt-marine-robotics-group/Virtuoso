@@ -34,11 +34,6 @@ class ChannelNode(Node):
         self.lidar_client = self.create_client(LidarBuoy, 
             'perception/lidar_buoy', callback_group=self.cb_group_3)
         
-        self.cam_active_pub = self.create_publisher(Bool, 
-            '/perception/camera/activate_processing', 10)
-        self.lidar_active_pub = self.create_publisher(Bool,
-            '/perception/buoys/buoy_lidar/activate', 10)
-
         self.odom_sub = self.create_subscription(Odometry, 
             '/localization/odometry', self.odom_callback, 10)
         
