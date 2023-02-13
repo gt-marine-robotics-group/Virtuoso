@@ -95,6 +95,8 @@ class ChannelNode(Node):
             return res
         self.channel.cam_to_map_trans = cam_trans
         self.channel.lidar_to_map_trans = lidar_trans
+
+        self.get_logger().info(f'# lidar buoys: {len(self.channel.lidar_buoys)}')
         
         try:
             res = self.channel.execute(req, res)

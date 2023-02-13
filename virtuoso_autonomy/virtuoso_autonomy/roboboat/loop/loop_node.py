@@ -48,6 +48,7 @@ class LoopNode(Node):
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
             self.prev_poses.append(self.robot_pose)
             self.state = State.CHECKING_FOR_LOOP_BUOY
+            time.sleep(3.0)
         elif self.state == State.NAVIGATING_STRAIGHT:
             self.state = State.CHECKING_FOR_LOOP_BUOY
         elif self.state == State.LOOPING:
@@ -161,7 +162,7 @@ class LoopNode(Node):
         if ((result.left == null_point or self.is_prev_buoy(left_ps)) 
             and (result.right == null_point or self.is_prev_buoy(right_ps))):
             self.get_logger().info('No loop buoy found')
-            if self.check_count >= 3:
+            if self.check_count >= 10:
                 self.nav_straight()
             return
         
