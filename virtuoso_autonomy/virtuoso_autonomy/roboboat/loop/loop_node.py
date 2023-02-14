@@ -47,8 +47,8 @@ class LoopNode(Node):
     def nav_success_callback(self, msg:PoseStamped):
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
             self.prev_poses.append(self.robot_pose)
+            time.sleep(5.0)
             self.state = State.CHECKING_FOR_LOOP_BUOY
-            time.sleep(3.0)
         elif self.state == State.NAVIGATING_STRAIGHT:
             self.state = State.CHECKING_FOR_LOOP_BUOY
         elif self.state == State.LOOPING:
