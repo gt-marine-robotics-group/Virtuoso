@@ -58,6 +58,7 @@ class ChannelNode(Node):
             trans = self.tf_buffer.lookup_transform(
                 'map', self.get_parameter('lidar_frame').value, Time()
             )
+            self.get_logger().info('got lidar to map transform')
             return trans
         except Exception:
             return None
@@ -96,8 +97,6 @@ class ChannelNode(Node):
         self.channel.cam_to_map_trans = cam_trans
         self.channel.lidar_to_map_trans = lidar_trans
 
-        self.get_logger().info(f'# lidar buoys: {len(self.channel.lidar_buoys)}')
-        
         try:
             res = self.channel.execute(req, res)
         except Exception as e:
