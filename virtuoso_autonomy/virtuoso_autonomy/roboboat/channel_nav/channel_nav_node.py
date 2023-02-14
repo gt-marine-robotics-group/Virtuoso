@@ -46,6 +46,7 @@ class ChannelNavNode(Node):
             self.get_parameter('num_channels').value):
             self.state = State.COMPLETE
         else:
+            time.sleep(5.0)
             self.state = State.FINDING_NEXT_GATE
     
     def odom_callback(self, msg:Odometry):

@@ -61,7 +61,7 @@ def generate_launch_description():
             package='euclidean_cluster_nodes',
             executable='euclidean_cluster_node_exe',
             parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
-            remappings=[('/points_in', '/local_costmap/voxel_grid')]
+            remappings=[('/points_in', '/perception/lidar/points_shore_filtered')]
         )
     )
 
@@ -70,7 +70,6 @@ def generate_launch_description():
             package='ray_ground_classifier_nodes',
             executable='ray_ground_classifier_cloud_node_exe',
             parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
-            # remappings=[("points_in", "wamv/sensors/lidars/lidar_wamv/points")]
             remappings=[('points_in', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
         )
     )
