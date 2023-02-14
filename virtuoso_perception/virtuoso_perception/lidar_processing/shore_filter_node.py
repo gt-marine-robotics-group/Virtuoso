@@ -20,7 +20,6 @@ class ShoreFilterer(Node):
         ])
 
     def callback(self, msg:PointCloud2):
-        self.get_logger().info('shore filter')
 
         points = [] 
 
