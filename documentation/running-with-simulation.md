@@ -99,7 +99,7 @@ See the documentation on the [launch arguments](/documentation/launch-arguments.
 To run the setup script for the RobotX Safety Check task in simulation, launch the following:
 
 ```
-ros2 launch virtuoso_autonomy robotx_safety_check_setup.launch.py sim_time:=True usv:=vrx_robotx
+ros2 launch virtuoso_autonomy roboboat_safety_check_setup.launch.py sim_time:=True usv:=vrx_robotx
 ```
 
 You should see an RVIZ appear similar to the image below:
@@ -120,7 +120,7 @@ ros2 launch virtuoso_autonomy <competition>_<task_name>.launch.py usv:=<arg>
 To run the autonomy script for the RobotX Safety Check task in simulation, launch the following:
 
 ```
-ros2 launch virtuoso_autonomy robotx_safety_check.launch.py usv:=vrx_robotx
+ros2 launch virtuoso_autonomy roboboat_safety_check.launch.py usv:=vrx_robotx
 ```
 
 You should see the robot begin to path plan and move in RVIZ and Gazebo:
