@@ -6,27 +6,27 @@ from std_msgs.msg import Float32
 import tf_transformations
 from .velocity_pid import VelocityPID
 
+#Outputs target forces to drive vehicle to target cmd_vel
+
 class VelocityPIDNode(Node):
 
     def __init__(self):
         super().__init__('controller_velocity_PID')
 
         self.declare_parameters(namespace='', parameters=[
-            ('velocity_kp', 1.0),
-            ('velocity_kd', 1.0),
+            ('velocity_k_drag', 1.0),
+            ('velocity_k_error', 1.0),
             ('velocity_ki', 1.0)
         ])
 
-        self.pid = VelocityPID(kp=self.get_parameter('velocity_kp').value,
-            kd=self.get_parameter('velocity_kd').value, 
+        self.pid = VelocityPID(k_drag=self.get_parameter('velocity_k_drag').value,
+            k_error=self.get_parameter('velocity_k_error').value, 
             ki=self.get_parameter('velocity_ki').value)
 
         self.target_force_x_pub = self.create_publisher(Float32, 
             '/controller/velocity_pid/targetForceX', 10)
         self.target_force_y_pub = self.create_publisher(Float32, 
             '/controller/velocity_pid/targetForceY', 10)
-        self.target_torque_pub = self.create_publisher(Float32, 
-            '/controller/velocity_pid/targetTorque', 10)
         
         #subscribe to odometry from localization
         self.odom_subscriber = self.create_subscription(
@@ -35,7 +35,7 @@ class VelocityPIDNode(Node):
             self.odometry_callback,
             10)   
             
-        #subscribe to command velocity
+        #subscribe to command velocity - in base_link frame
         self.cmd_vel_subscriber = self.create_subscription(
             Twist,
             '/controller/cmd_vel',
@@ -52,14 +52,13 @@ class VelocityPIDNode(Node):
         self.pid.received_cmd_vel = True
 
     def run_pid(self): 
-        x, y, torque = self.pid.run()
+        x, y = self.pid.run()
         
         if x is None:
             return
         
         self.target_force_x_pub.publish(x)
         self.target_force_y_pub.publish(y)
-        self.target_torque_pub.publish(torque)
         
 
 def main(args=None):

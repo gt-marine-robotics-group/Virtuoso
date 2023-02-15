@@ -60,6 +60,6 @@ The control mixer is what sends individual thruster commands based on target X a
 | controller_basic_PID | basic_rotate_kp | float | Proportional factor of PID. |
 | controller_basic_PID | basic_rotate_kd | float | Derivative factor of PID. |
 | controller_basic_PID | basic_rotate_ki | float | Integral factor of PID. |
-| controller_velocity_PID | velocity_kp | float | Proportional factor of PID. |
-| controller_velocity_PID | velocity_kd | float | Derivative factor of PID. |
+| controller_velocity_PID | velocity_k_drag | float | Feed-forward drag gain factor of PID. |
+| controller_velocity_PID | velocity_k_error | float | Velocity error gain factor of PID. |
 | controller_velocity_PID | velocity_ki | float | Integral factor of PID. |

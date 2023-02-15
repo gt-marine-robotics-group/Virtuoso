@@ -29,6 +29,7 @@ class MotorCmdGenerator:
                 or self.basic_torque is None or self.vel_force_x is None
                 or self.vel_force_y is None):
                 self._not_ready = False
+            #default to outputting 0 to the motors if a path has not been published
             else:
                 return {
                     'right_front_angle': Float32(data=0.0),
@@ -58,27 +59,38 @@ class MotorCmdGenerator:
         right_front_cmd = Float32()
         left_middle_cmd = Float32()
         right_middle_cmd = Float32()
-
+        
+        #angle for simulation purposes only. Depends on wamv urdf
         left_front_angle.data = -90*numpy.pi/180*0
         right_rear_angle.data = 90*numpy.pi/180*0
         right_front_angle.data = 90*numpy.pi/180*0
         left_rear_angle.data = -90*numpy.pi/180*0
 
-
+        
+        #if navigate_to_point is true, use basic PID forcecommands
+        #otherwise, use velocity pid force commands
         if (self.navigate_to_point):
                 target_force_x = self.basic_force_x
                 target_force_y = self.basic_force_y
         else:
                 target_force_x = self.vel_force_x
                 target_force_y = self.vel_force_y
+        #always use basic PID torque commands
         target_torque = self.basic_torque
         
+        #X drive configuration
         if (self.motor_config == "X"):        
              left_front_cmd.data = (-target_force_y + target_force_x - target_torque)
              right_front_cmd.data = (target_force_y + target_force_x + target_torque)
+             #note the coefficient on target force y, which is to account for the difference in distance from the center of 
+             #mass of the front and rear motors. Goal is that the torque from the front and rear motors cancel so that a target force y
+             #results in pure translation
              left_rear_cmd.data = (target_force_y*0.6 + target_force_x - target_torque)
              right_rear_cmd.data = (-target_force_y*0.6 + target_force_x + target_torque)
-        
+
+             #We now want to normalize the commands so that the highest command has magnitude 1.0
+             #This is for the firmware, which requests commands from -1 to 1
+                     
              highest_cmd = max(
                  abs(left_front_cmd.data), 
                  abs(right_front_cmd.data), 
@@ -103,11 +115,14 @@ class MotorCmdGenerator:
                  if(right_rear_cmd.data < 0):
                          right_rear_cmd.data *= 2.5
 
+        #six motor h drive configuration
         if (self.motor_config == "H"):        
              
+             #if target force y has magnitude greater than 1.0, reduce the magnitude to 1.0
              if(abs(target_force_y) > 1.0):
                   target_force_y = target_force_y/abs(target_force_y)
              
+             #the angles are for simulation purposes only, just based on the wamv urdf
              left_front_angle.data = 0.785
              left_rear_angle.data = -0.785
              right_front_angle.data = -0.785
@@ -119,7 +134,9 @@ class MotorCmdGenerator:
              right_rear_cmd.data = (target_force_x + target_torque)
              left_middle_cmd.data = -target_force_y
              right_middle_cmd.data = target_force_y
-        
+             
+             #We now want to normalize the commands so that the highest command has magnitude 1.0
+             #This is for the firmware, which requests commands from -1 to 1
              highest_cmd = max(
                  abs(left_front_cmd.data), 
                  abs(right_front_cmd.data), 
@@ -133,7 +150,8 @@ class MotorCmdGenerator:
                  left_rear_cmd.data /= highest_cmd
                  right_rear_cmd.data /= highest_cmd
              
-        
+             #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
+             #backwards for the same commmand forwards
              if self._sim_time:
                  if(left_front_cmd.data < 0):
                          left_front_cmd.data *= 2.5
