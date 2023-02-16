@@ -3,7 +3,6 @@ from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
 from geometry_msgs.msg import PoseStamped, Point, Vector3
 from std_msgs.msg import Empty
-from virtuoso_msgs.msg import BuoyArray
 from virtuoso_msgs.srv import Channel, Rotate
 from .channel_nav_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
@@ -28,11 +27,9 @@ class ChannelNavNode(Node):
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
-        self.buoys_sub = self.create_subscription(BuoyArray, '/perception/stereo/buoys', 
-            self.buoys_callback, 10)
         
         self.state = State.START
-        self.channel_nav = ChannelNavigation()
+        self.channels_completed = 0
 
         self.channel_client = self.create_client(Channel, 'channel')
         self.channel_call = None
@@ -41,23 +38,19 @@ class ChannelNavNode(Node):
         self.rotate_call = None
         
         self.robot_pose:PoseStamped = None
-        self.buoys:BuoyArray = None
 
         self.create_timer(1.0, self.execute)
 
     def nav_success_callback(self, msg:PoseStamped):
-        self.buoys = None
-        if (len(self.channel_nav.channels) ==
-            self.get_parameter('num_channels').value - 1):
+        if (self.channels_completed ==
+            self.get_parameter('num_channels').value):
             self.state = State.COMPLETE
         else:
+            time.sleep(5.0)
             self.state = State.FINDING_NEXT_GATE
     
     def odom_callback(self, msg:Odometry):
         self.robot_pose = PoseStamped(pose=msg.pose.pose)
-    
-    def buoys_callback(self, msg:BuoyArray):
-        self.buoys = msg
     
     def execute(self):
         self.get_logger().info(str(self.state))
@@ -130,15 +123,10 @@ class ChannelNavNode(Node):
             self.rotate(-self.get_parameter('rotation_theta').value)
             return
 
-        buoy_poses = [
+        channel = (
             point_to_pose_stamped(result.left),
             point_to_pose_stamped(result.right)
-        ]
-
-        channel = self.channel_nav.find_channel(buoy_poses, self.robot_pose)
-
-        if channel is None:
-            return
+        )
 
         mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
 
@@ -147,6 +135,7 @@ class ChannelNavNode(Node):
 
         self.state = State.NAVIGATING
         self.channel_call = None
+        self.channels_completed += 1
         self.path_pub.publish(path)
 
 

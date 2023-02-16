@@ -3,19 +3,20 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 import tf_transformations
 
+#Outputs target forces to drive vehicle to target cmd_vel
+
 class VelocityPID:
 
-    def __init__(self, kp, kd, ki):
+    def __init__(self, k_drag, k_error, ki):
 
-        self._kp_factor = kp
-        self._kd_factor = kd
-        self._ki_factor = ki
+        self._k_drag_factor = k_drag #Gain on magnitude of target velocity (to combat drag)
+        self._k_error_factor = k_error  #Gain on magnitude of velocity error
+        self._ki_factor = ki  #gain on integral of error
 
         self.state_estimate  = Odometry()
-        self.target_twist = Twist()
+        self.target_twist = Twist() #target twist in base_link frame
         self.received_cmd_vel = False
 
-        self._yaw_integral = 0.0
         self._x_integral = 0.0
         self._y_integral = 0.0
         self._previous_target_twist = Twist()
@@ -37,39 +38,29 @@ class VelocityPID:
         q_inv[0] = -q_inv[0]
         q_inv[1] = -q_inv[1]
         q_inv[2] = -q_inv[2]
-                
+        
+        #if new target velocity, reset error integral
         if(self._previous_target_twist != self.target_twist):
              self._x_integral = 0.0
              self._y_integral = 0.0
+        #calculate error integral
         self._x_integral = self._x_integral + (target_vel[0]- current_vel_x)*0.01
         self._y_integral = self._y_integral + (target_vel[1] - current_vel_y)*0.01  
-             
-        target_force_y = ((target_vel[1]*1.5*self._kp_factor - current_vel_y*self._kd_factor)*0.5 
+        
+        #calculate target force x and y. Formula is (roughly):
+        #target force = target velocity * drag gain + (error in velocity)*gain on error + (integral of error) * (gain on integral error)
+        #Note that x and y are in the base_link frame
+        target_force_y = (target_vel[1]*.25*self._k_drag_factor + (target_vel[1] - current_vel_y)*0.5*self._k_error_factor
             + self._y_integral*0.01*self._ki_factor)
-        target_force_x = ((target_vel[0]*1.5*self._kp_factor - current_vel_x*self._kd_factor)*0.5 
+        target_force_x = (target_vel[0]*0.25*self._k_drag_factor + (target_vel[0] - current_vel_x)*0.5*self._k_error_factor
             + self._x_integral*0.01*self._ki_factor)
-        
-        omega = [self.state_estimate.twist.twist.angular.x,
-            self.state_estimate.twist.twist.angular.y,
-            self.state_estimate.twist.twist.angular.z, 0.0]  
-        omega = tf_transformations.quaternion_multiply(q, omega)
-        omega = tf_transformations.quaternion_multiply(omega, q_inv)        
-        yaw_rate = omega[2]       
-        
-        target_yaw_rate = self.target_twist.angular.z
-        
-        if(self._previous_target_twist != self.target_twist):
-             self._yaw_integral = 0.0
-        self._yaw_integral = self._yaw_integral + (target_yaw_rate - yaw_rate)*0.01
-        target_torque = (target_yaw_rate - yaw_rate)*3.0 + 0.01*self._yaw_integral
 
         target_x_to_send = Float32(data=target_force_x)
         target_y_to_send = Float32(data=target_force_y)
-        target_torque_to_send = Float32(data=target_torque)
 
         if(self.received_cmd_vel):
-            return target_x_to_send, target_y_to_send, target_torque_to_send
+            return target_x_to_send, target_y_to_send
 
         self._previous_target_twist = self.target_twist
 
-        return (None, None, None)
+        return (None, None)

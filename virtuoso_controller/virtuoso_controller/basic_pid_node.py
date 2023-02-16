@@ -7,6 +7,8 @@ import tf_transformations
 import numpy
 from .basic_pid import BasicPID
 
+#outputs target force and torque commands to drive vehicle to target waypoint position and orientation
+
 class BasicPIDNode(Node):
 
     def __init__(self):

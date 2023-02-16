@@ -56,7 +56,8 @@ setup(
 
             #ROBOBOAT LAUNCHES
             'roboboat_channel_nav = virtuoso_autonomy.roboboat.channel_nav.channel_nav_node:main',
-            'roboboat_safety_check = virtuoso_autonomy.roboboat.safety_check.safety_check_node:main'
+            'roboboat_safety_check = virtuoso_autonomy.roboboat.safety_check.safety_check_node:main',
+            'roboboat_loop = virtuoso_autonomy.roboboat.loop.loop_node:main'
         ],
     },
 )

@@ -6,6 +6,8 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 from .cmd_vel_generator import CmdVelGenerator
 
+#outputs a cmd_vel in the base_link frame to follow a path
+
 class CmdVelGeneratorNode(Node):
 
     def __init__(self):
@@ -23,8 +25,9 @@ class CmdVelGeneratorNode(Node):
             '/localization/odometry',
             self.odometry_callback,
             10)   
+        #If is_translation is true, the vehicle will hold the final orientation instead of turning towards the cmd_vel
         self.hold_final_orientation_sub = self.create_subscription(
-            Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
+            Bool, '/controller/is_translation', self.hold_final_orient_callback, 10) 
             
         self.cmd_vel_publisher = self.create_publisher(Twist, '/controller/cmd_vel', 10)
 
