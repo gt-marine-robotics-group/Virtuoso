@@ -87,7 +87,8 @@ class WaypointSaverNode(Node):
             self.get_logger().info('No Odometry')
             return
         
-        self.ll_points.append([self.gps.latitude, self.gps.longitude]) 
+        self.ll_points.append([self.gps.latitude, self.gps.longitude, 
+            self.gps.altitude]) 
         self.orientations.append([
             self.odom.pose.pose.orientation.x,
             self.odom.pose.pose.orientation.y,
