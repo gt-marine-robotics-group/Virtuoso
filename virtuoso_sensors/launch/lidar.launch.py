@@ -82,7 +82,7 @@ def generate_launch_description():
                 name=f'base_link_to_{lidars["lidar_config"]["all_lidar_frames"][i]}',
                 arguments=[
                     *(str(d) for d in lidars['lidar_config']['all_lidar_transforms'][i]),
-                    '0', '0', '0', 'base_link', lidars['lidar_config']['all_lidar_frames'][i]
+                    '0.0', '0', '0', 'base_link', lidars['lidar_config']['all_lidar_frames'][i]
                 ]
             ))
     

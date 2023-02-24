@@ -57,10 +57,14 @@ class ChannelNavigation:
         rq = loc.pose.orientation
         robot_euler = tf_transformations.euler_from_quaternion([rq.x, rq.y, rq.z, rq.w])
 
+        robot_yaw = robot_euler[2]
+        if robot_yaw < 0:
+            robot_yaw += (math.pi * 2)
+
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        if abs(ang - robot_euler[2]) > abs(((ang + math.pi) % (math.pi * 2)) - robot_euler[2]):
+        if abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw):
             ang += math.pi
         
         quat = tf_transformations.quaternion_from_euler(0, 0, ang)

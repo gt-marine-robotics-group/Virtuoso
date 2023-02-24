@@ -18,10 +18,10 @@ def generate_launch_description():
     return LaunchDescription([
         usv_arg,
 
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/lidar.launch.py')),
-            launch_arguments={'usv': usv_config}.items()
-        ),
+        # IncludeLaunchDescription(
+         #   PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/lidar.launch.py')),
+          #  launch_arguments={'usv': usv_config}.items()
+        #),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/gps.launch.py')),
             launch_arguments={'usv': usv_config}.items()

@@ -1,7 +1,7 @@
 controller_basic_PID:
   ros__parameters:
-    basic_kp: 1.0
-    basic_kd: 1.0
+    basic_kp: 0.25
+    basic_kd: 0.5
     basic_ki: 1.0
     basic_rotate_kp: 1.0
     basic_rotate_kd: 1.0
