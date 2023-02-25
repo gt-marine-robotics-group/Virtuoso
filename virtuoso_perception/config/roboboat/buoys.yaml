@@ -21,7 +21,7 @@ perception_buoy_filter:
         # lower2: [0,0,0]
         # upper2: [0,0,0]
       green:
-        lower: [40, 50, 20]
+        lower: [70, 50, 20]
         upper: [86, 255, 255]
         # lower: [0,0,0]
         # upper: [0,0,0]
