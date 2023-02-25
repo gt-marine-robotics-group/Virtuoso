@@ -18,7 +18,7 @@ class TestBuoyCamFilterNode(Node):
         self.image_sub = self.create_subscription(Image,
             f'{base_topic}/image_raw', self.image_callback, 10)
 
-        self.cam_info_sub = self.create_subscription(Image,
+        self.cam_info_sub = self.create_subscription(CameraInfo,
             f'{base_topic}/camera_info', self.cam_info_callback, 10)
 
         self.image = None
@@ -31,6 +31,7 @@ class TestBuoyCamFilterNode(Node):
 
     def send_request(self):
         if self.req is not None or self.image is None or self.cam_info is None:
+            self.get_logger().info('something not none')
             return
         
         self.client.wait_for_service(2.0)
