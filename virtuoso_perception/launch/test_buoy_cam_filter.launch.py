@@ -7,8 +7,8 @@ import sys
 import yaml
 
 BASE_CAM_TOPIC = '/cameras/front_left_camera'
-RED = False
-GREEN = True
+RED = True
+GREEN = False
 BLACK = False
 YELLOW = False
 
