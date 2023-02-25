@@ -7,10 +7,10 @@ import sys
 import yaml
 
 BASE_CAM_TOPIC = '/cameras/front_left_camera'
-RED = True
+RED = False
 GREEN = False
 BLACK = False
-YELLOW = False
+YELLOW = True
 
 def generate_launch_description():
 
