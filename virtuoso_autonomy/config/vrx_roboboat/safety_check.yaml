@@ -2,6 +2,6 @@
 autonomy_safety_check:
   ros__parameters:
     gate_buoy_max_dist: 15.0
-    extra_forward_nav: 3.0
+    extra_forward_nav: 0.0
     use_lidar: True
     use_camera: True
