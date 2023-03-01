@@ -46,7 +46,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='gps_to_baselink',
-            arguments=['0.0', '0.0', '0', '0', '0', '0', 'base_link', 'ubx'],
+            arguments=['1.0', '0.0', '0', '0', '0', '0', 'base_link', 'ubx'],
             condition=IfCondition(PythonExpression(["'", usv_config, "' == 'roboboat'"]))
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'f9p.launch.py'))),
