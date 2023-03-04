@@ -16,11 +16,13 @@ class SafetyCheckNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('gate_buoy_max_dist', 0.0),
+            ('extra_forward_nav', 0.0),
             ('use_lidar', False),
             ('use_camera', False)
         ])
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
@@ -40,10 +42,20 @@ class SafetyCheckNode(Node):
 
     def nav_success_callback(self, msg:PoseStamped):
         if self.channels_completed == 2:
+            if self.state != State.COMPLETE:
+                self.nav_forward()
             self.state = State.COMPLETE
-        else:
+        elif (self.state == State.EXTRA_FORWARD_NAV
+            or self.get_parameter('extra_forward_nav').value == 0.0):
             time.sleep(5.0)
             self.state = State.FINDING_NEXT_GATE
+        else:
+            time.sleep(1.0)
+            self.nav_forward()
+        
+    def nav_forward(self):
+        self.state = State.EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('extra_forward_nav').value))
     
     def odom_callback(self, msg:Odometry):
         self.robot_pose = PoseStamped(pose=msg.pose.pose)
