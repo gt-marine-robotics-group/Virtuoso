@@ -47,6 +47,9 @@ class LoopNode(Node):
     def nav_success_callback(self, msg:PoseStamped):
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
             self.prev_poses.append(self.robot_pose)
+            self.nav_forward()
+        elif self.state == State.EXTRA_FORWARD_NAV:
+            self.prev_poses.append(self.robot_pose)
             time.sleep(5.0)
             self.state = State.CHECKING_FOR_LOOP_BUOY
         elif self.state == State.NAVIGATING_STRAIGHT:
@@ -67,6 +70,8 @@ class LoopNode(Node):
             return
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
             return
+        if self.state == State.EXTRA_FORWARD_NAV:
+            return
         if self.state == State.CHECKING_FOR_LOOP_BUOY:
             self.find_loop_buoy()
             return
@@ -79,6 +84,10 @@ class LoopNode(Node):
         self.prev_poses.append(self.robot_pose)
         self.state = State.STATION_KEEPING_ENABLED
         self.station_keeping_pub.publish(Empty())
+    
+    def nav_forward(self):
+        self.state = State.EXTRA_FORWARD_NAV
+        self.translate_pub.publish(Point(x=3.0)) 
     
     def nav_to_gate_midpoint(self):
         if self.robot_pose is None:
