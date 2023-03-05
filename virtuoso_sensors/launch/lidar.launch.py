@@ -64,11 +64,7 @@ def generate_launch_description():
             ld.append(Node(
                 package='urg_node',
                 executable='urg_node_driver',
-<<<<<<< HEAD
-                parameters=[urg_params_file, {'serial_port': f'/dev/ttyACM{i + 2}'}],
-=======
                 parameters=[urg_params_file, {'serial_port': f'/dev/ttyACM{i + 0}'}],
->>>>>>> 802a1c7a5ad87c468692d05f0fb120f795e469a2
                 remappings=[('/scan', f'{lidars["lidar_config"]["all_lidar_base_topics"][i]}/laser')]
             ))
             ld.append(Node(

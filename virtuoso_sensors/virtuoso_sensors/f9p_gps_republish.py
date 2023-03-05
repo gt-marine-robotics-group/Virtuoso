@@ -80,7 +80,7 @@ class f9pGPSRepublish(Node):
                  
     #if all the data is ready, publish it to the ekf and navsattransform nodes
     def publish_gps(self):
-        #if(self.GPS_ready and self.GPS_Cov_ready and self.GPS_vel_ready):
+        if(self.GPS_ready and self.GPS_Cov_ready and self.GPS_vel_ready):
              navsatmsg = NavSatFix()
              
              navsatmsg.header = self.gps_fix.header
