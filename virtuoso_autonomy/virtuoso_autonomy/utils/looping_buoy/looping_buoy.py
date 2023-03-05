@@ -23,7 +23,7 @@ class LoopingBuoy:
                 index = i
         return index
 
-    def find_path_around_buoy(robot_pose:PoseStamped, buoy:PoseStamped):
+    def find_path_around_buoy(robot_pose:PoseStamped, buoy:PoseStamped, looping_radius=5.0):
 
         path = Path()
 
@@ -39,10 +39,10 @@ class LoopingBuoy:
         buoy_pos = buoy.pose.position
 
         points = [
-            (buoy_pos.x + 4, buoy_pos.y),
-            (buoy_pos.x - 4, buoy_pos.y),
-            (buoy_pos.x, buoy_pos.y + 4),
-            (buoy_pos.x, buoy_pos.y - 4)
+            (buoy_pos.x + looping_radius, buoy_pos.y),
+            (buoy_pos.x - looping_radius, buoy_pos.y),
+            (buoy_pos.x, buoy_pos.y + looping_radius),
+            (buoy_pos.x, buoy_pos.y - looping_radius)
         ]
 
         points = list(
