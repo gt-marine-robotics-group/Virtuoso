@@ -23,7 +23,8 @@ class ChannelNode(Node):
         self.cb_group_3 = MutuallyExclusiveCallbackGroup()
 
         self.declare_parameters(namespace='', parameters=[
-            ('camera_frame', '')
+            ('camera_frame', ''),
+            ('lidar_frame', '')
         ])
 
         self.channel_srv = self.create_service(Channel, 'channel', 
@@ -34,11 +35,6 @@ class ChannelNode(Node):
         self.lidar_client = self.create_client(LidarBuoy, 
             'perception/lidar_buoy', callback_group=self.cb_group_3)
         
-        self.cam_active_pub = self.create_publisher(Bool, 
-            '/perception/camera/activate_processing', 10)
-        self.lidar_active_pub = self.create_publisher(Bool,
-            '/perception/buoys/buoy_lidar/activate', 10)
-
         self.odom_sub = self.create_subscription(Odometry, 
             '/localization/odometry', self.odom_callback, 10)
         
@@ -48,11 +44,21 @@ class ChannelNode(Node):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-    def find_transform(self):
+    def find_cam_to_map_transform(self):
         try:
             trans = self.tf_buffer.lookup_transform(
                 'map', self.get_parameter('camera_frame').value, Time()
             )
+            return trans
+        except Exception:
+            return None
+    
+    def find_lidar_to_map_transform(self):
+        try:
+            trans = self.tf_buffer.lookup_transform(
+                'map', self.get_parameter('lidar_frame').value, Time()
+            )
+            self.get_logger().info('got lidar to map transform')
             return trans
         except Exception:
             return None
@@ -81,15 +87,27 @@ class ChannelNode(Node):
         while ((req.use_camera and self.channel.camera_buoys is None) or 
             (req.use_lidar and self.channel.lidar_buoys is None)):
             time.sleep(0.5)
-
-        trans = self.find_transform()
-        if trans is None:
-            return res
-        self.channel.cam_to_map_trans = trans
         
-        res = self.channel.execute(req, res)
+        cam_trans = self.find_cam_to_map_transform()
+        if cam_trans is None:
+            self.get_logger().info('no cam transform')
+            return res
+        lidar_trans = self.find_lidar_to_map_transform()
+        if lidar_trans is None:
+            self.get_logger().info('no lidar transform')
+            return res
+        self.channel.cam_to_map_trans = cam_trans
+        self.channel.lidar_to_map_trans = lidar_trans
+
+        try:
+            res = self.channel.execute(req, res)
+        except Exception as e:
+            self.get_logger().info(f'channel error: {e}')
+            self.channel.reset()
+            return res
         
         if res.left == res.right:
+            self.get_logger().info('left = right')
             return res
         
         self.channel.reset()

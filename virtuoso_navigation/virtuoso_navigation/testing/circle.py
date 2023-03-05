@@ -15,7 +15,7 @@ class TestCircle(Node):
     def __init__(self):
         super().__init__('testing_circle')
 
-        self.pub = self.create_publisher(Path, '/navigation/plan', 10)
+        self.pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
         self.is_translation_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 

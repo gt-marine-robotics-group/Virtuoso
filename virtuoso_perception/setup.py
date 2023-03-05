@@ -52,7 +52,9 @@ setup(
             'noise_filter = virtuoso_perception.camera_processing.noise_filter_node:main',
 
             'self_filter = virtuoso_perception.lidar_processing.self_filter_node:main',
-            'shore_filter = virtuoso_perception.lidar_processing.shore_filter_node:main'
+            'shore_filter = virtuoso_perception.lidar_processing.shore_filter_node:main',
+
+            'test_buoy_cam_filter = virtuoso_perception.testing.buoy_cam_filter:main'
         ],
     },
 )

@@ -8,6 +8,8 @@ from .choose_pid import ChoosePID
 
 #This node sends the appropriate waypoints to the basic PID, and also decides whether to use the 
 #velocity PID for translational movement or the basic PID
+#This node also sends the target orientation to the basic PID (through the waypoint topic), which is always used, 
+#even when navigateToPoint is false
 class ChoosePIDNode(Node):
 
     def __init__(self):

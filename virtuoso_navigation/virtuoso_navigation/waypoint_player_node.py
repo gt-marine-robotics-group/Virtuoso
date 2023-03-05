@@ -97,6 +97,7 @@ class WaypointPlayerNode(Node):
         self.req.ll_point = GeoPoint()
         self.req.ll_point.latitude = self.ll_points[self.waypoint_num][0]
         self.req.ll_point.longitude = self.ll_points[self.waypoint_num][1]
+        self.req.ll_point.altitude = self.ll_points[self.waypoint_num][2]
 
         map_dest = self.fromLL_cli.call_async(self.req)
         map_dest.add_done_callback(ll_callback) 

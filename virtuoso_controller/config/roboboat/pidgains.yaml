@@ -1,8 +1,7 @@
 controller_basic_PID:
   ros__parameters:
-    # Copy this file to a new file, fill out this section with desired parameters, and specify the new file via params_file to override the default params
-    basic_kp: 1.0
-    basic_kd: 1.0
+    basic_kp: 0.8
+    basic_kd: 0.8
     basic_ki: 1.0
     basic_rotate_kp: 1.0
     basic_rotate_kd: 1.0
@@ -10,7 +9,9 @@ controller_basic_PID:
 
 controller_velocity_PID:
   ros__parameters:
-    # Copy this file to a new file, fill out this section with desired parameters, and specify the new file via params_file to override the default params
-    velocity_kp: 1.0
-    velocity_kd: 1.0
+    #Gain on magnitude of target velocity (to combat drag)
+    velocity_k_drag: 1.0
+    #Gain on magnitude of velocity error
+    velocity_k_error: 1.0
+    #gain on integral of error
     velocity_ki: 1.0

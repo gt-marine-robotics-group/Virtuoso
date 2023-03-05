@@ -47,11 +47,6 @@ class MotorCmdGeneratorNode(Node):
             'controller/velocity_pid/targetForceY',
             self.vel_y_callback,
             10)  
-        self.vel_torque_sub = self.create_subscription(
-            Float32,
-            'controller/velocity_pid/targetTorque',
-            self.vel_torque_callback,
-            10)  
 
         self.left_front_pub_angle = self.create_publisher(Float32, 
             '/wamv/thrusters/left_front_thrust_angle', 10)
@@ -98,9 +93,6 @@ class MotorCmdGeneratorNode(Node):
 
     def vel_y_callback(self, msg:Float32):
         self.generator.vel_force_y = msg.data
-
-    def vel_torque_callback(self, msg:Float32):
-        self.generator.vel_torque = msg.data
         
     def timer_callback(self):
         commands = self.generator.run()

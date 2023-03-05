@@ -39,14 +39,14 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='imu_to_baselink',
-            arguments=['1.17', '0.06', '1.245', '0.32', '0', '0.0', 'base_link', 'imu_frame'],
+            arguments=['0.0', '0.0', '0', '-0.095', '0', '0.0', 'base_link', 'imu_frame'],
             condition=IfCondition(PythonExpression(["'", usv_config, "' == 'roboboat'"]))
         ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='gps_to_baselink',
-            arguments=['1.17', '-0.1', '1.245', '0', '0', '0', 'base_link', 'ubx'],
+            arguments=['1.0', '0.0', '0', '0', '0', '0', 'base_link', 'ubx'],
             condition=IfCondition(PythonExpression(["'", usv_config, "' == 'roboboat'"]))
         ),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(sensors, 'launch', 'f9p.launch.py'))),
