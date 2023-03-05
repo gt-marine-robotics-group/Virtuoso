@@ -90,9 +90,11 @@ class ChannelNode(Node):
         
         cam_trans = self.find_cam_to_map_transform()
         if cam_trans is None:
+            self.get_logger().info('no cam transform')
             return res
         lidar_trans = self.find_lidar_to_map_transform()
         if lidar_trans is None:
+            self.get_logger().info('no lidar transform')
             return res
         self.channel.cam_to_map_trans = cam_trans
         self.channel.lidar_to_map_trans = lidar_trans
@@ -105,6 +107,7 @@ class ChannelNode(Node):
             return res
         
         if res.left == res.right:
+            self.get_logger().info('left = right')
             return res
         
         self.channel.reset()

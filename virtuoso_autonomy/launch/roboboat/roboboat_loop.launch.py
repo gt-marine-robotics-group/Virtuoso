@@ -12,11 +12,14 @@ def generate_launch_description():
 
     usv_config = LaunchConfiguration('usv')
 
+    loop_config_file = (pkg_share, '/config/', usv_config, '/loop.yaml')
+
     return LaunchDescription([
         usv_arg, 
 
         Node(
             package='virtuoso_autonomy',
             executable='roboboat_loop',
+            parameters=[loop_config_file]
         )
     ])

@@ -26,6 +26,19 @@ class LoopNode(Node):
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
+
+        self.declare_parameters(namespace='', parameters=[
+            ('gate_use_lidar', False),
+            ('gate_use_camera', False),
+            ('gate_max_buoy_dist', 0.0),
+            ('gate_extra_forward_nav', 0.0),
+            
+            ('loop_use_lidar', False),
+            ('loop_use_camera', False),
+            ('loop_max_buoy_dist', 0.0),
+
+            ('looping_radius', 0.0)
+        ])
         
         self.state = State.START
 
@@ -37,7 +50,8 @@ class LoopNode(Node):
         self.check_count = 0
         self.prev_channel_buoys:List[PoseStamped] = list()
         self.channel_wait_count = 0
-        self.prev_poses:List[PoseStamped] = list()
+
+        self.gate_midpoint:PoseStamped = None
 
         self.create_timer(1.0, self.execute)
     
@@ -46,7 +60,9 @@ class LoopNode(Node):
     
     def nav_success_callback(self, msg:PoseStamped):
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
-            self.prev_poses.append(self.robot_pose)
+            self.gate_midpoint = self.robot_pose
+            self.nav_forward()
+        elif self.state == State.EXTRA_FORWARD_NAV:
             time.sleep(5.0)
             self.state = State.CHECKING_FOR_LOOP_BUOY
         elif self.state == State.NAVIGATING_STRAIGHT:
@@ -67,6 +83,8 @@ class LoopNode(Node):
             return
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
             return
+        if self.state == State.EXTRA_FORWARD_NAV:
+            return
         if self.state == State.CHECKING_FOR_LOOP_BUOY:
             self.find_loop_buoy()
             return
@@ -76,9 +94,12 @@ class LoopNode(Node):
     def enable_station_keeping(self):
         if self.robot_pose is None:
             return
-        self.prev_poses.append(self.robot_pose)
         self.state = State.STATION_KEEPING_ENABLED
         self.station_keeping_pub.publish(Empty())
+    
+    def nav_forward(self):
+        self.state = State.EXTRA_FORWARD_NAV
+        self.translate_pub.publish(Point(x=self.get_parameter('gate_extra_forward_nav').value)) 
     
     def nav_to_gate_midpoint(self):
         if self.robot_pose is None:
@@ -89,9 +110,9 @@ class LoopNode(Node):
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
-        req.use_lidar = True # PARAM
-        req.use_camera = True # PARAM
-        req.max_dist_from_usv = 15.0 # PARAM
+        req.use_lidar = self.get_parameter('gate_use_lidar').value
+        req.use_camera = self.get_parameter('gate_use_camera').value
+        req.max_dist_from_usv = self.get_parameter('gate_max_buoy_dist').value
 
         self.channel_call = self.channel_cli.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
@@ -138,8 +159,9 @@ class LoopNode(Node):
         req = Channel.Request()
         req.left_color = 'blue'
         req.right_color = 'blue'
-        req.use_lidar = True 
-        req.max_dist_from_usv = 15.0 # PARAM
+        req.use_lidar = self.get_parameter('loop_use_lidar').value
+        req.use_camera = self.get_parameter('loop_use_camera').value
+        req.max_dist_from_usv = self.get_parameter('loop_max_buoy_dist').value
 
         self.get_logger().info('sending channel request')
         self.channel_call = self.channel_cli.call_async(req)
@@ -182,7 +204,11 @@ class LoopNode(Node):
         
         self.get_logger().info(f'pose: {pose}')
         
-        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, pose)
+        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, pose,
+            looping_radius=self.get_parameter('looping_radius').value)
+        
+        self.gate_midpoint.pose.orientation = path.poses[-1].pose.orientation
+        path.poses.append(self.gate_midpoint)
 
         self.state = State.LOOPING
         self.channel_call = None

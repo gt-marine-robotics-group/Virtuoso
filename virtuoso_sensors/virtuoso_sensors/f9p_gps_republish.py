@@ -108,7 +108,7 @@ class f9pGPSRepublish(Node):
              
              twistmsg.twist.twist.linear.x = self.gps_vel.vel_e/100.0
              twistmsg.twist.twist.linear.y = self.gps_vel.vel_n/100.0
-             twistmsg.twist.twist.linear.z = -self.gps_vel.vel_d/100.0
+             twistmsg.twist.twist.linear.z = -self.gps_vel.vel_d/100.0        
              
              twistmsg.twist.covariance[0] = 0.01
              twistmsg.twist.covariance[7] = 0.01
