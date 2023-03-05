@@ -90,8 +90,8 @@ class LoopNode(Node):
         req.left_color = 'red'
         req.right_color = 'green'
         req.use_lidar = True # PARAM
-        req.use_camera = True # PARAM
-        req.max_dist_from_usv = 15.0 # PARAM
+        req.use_camera = False # PARAM
+        req.max_dist_from_usv = 25.0 # PARAM
 
         self.channel_call = self.channel_cli.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
@@ -139,7 +139,8 @@ class LoopNode(Node):
         req.left_color = 'blue'
         req.right_color = 'blue'
         req.use_lidar = True 
-        req.max_dist_from_usv = 15.0 # PARAM
+        req.use_camera = False
+        req.max_dist_from_usv = 25.0 # PARAM
 
         self.get_logger().info('sending channel request')
         self.channel_call = self.channel_cli.call_async(req)

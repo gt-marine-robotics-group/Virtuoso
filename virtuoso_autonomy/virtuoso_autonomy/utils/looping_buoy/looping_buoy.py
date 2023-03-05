@@ -39,10 +39,10 @@ class LoopingBuoy:
         buoy_pos = buoy.pose.position
 
         points = [
-            (buoy_pos.x + 5, buoy_pos.y),
-            (buoy_pos.x - 5, buoy_pos.y),
-            (buoy_pos.x, buoy_pos.y + 5),
-            (buoy_pos.x, buoy_pos.y - 5)
+            (buoy_pos.x + 4, buoy_pos.y),
+            (buoy_pos.x - 4, buoy_pos.y),
+            (buoy_pos.x, buoy_pos.y + 4),
+            (buoy_pos.x, buoy_pos.y - 4)
         ]
 
         points = list(

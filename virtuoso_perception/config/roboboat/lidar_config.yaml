@@ -8,7 +8,7 @@ lidar_config:
     '/lidars/front_lidar'
   ]
   all_lidar_transforms: [ # from base_link
-    [0.0, 0.0, 0.0]
+    [1.0, 0.0, 0.0]
   ]
   all_lidar_frames: [
     'front_lidar_link'
