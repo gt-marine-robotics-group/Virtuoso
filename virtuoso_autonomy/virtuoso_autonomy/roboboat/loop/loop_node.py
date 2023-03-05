@@ -31,6 +31,7 @@ class LoopNode(Node):
             ('gate_use_lidar', False),
             ('gate_use_camera', False),
             ('gate_max_buoy_dist', 0.0),
+            ('gate_extra_forward_nav', 0.0),
             
             ('loop_use_lidar', False),
             ('loop_use_camera', False),
@@ -49,7 +50,8 @@ class LoopNode(Node):
         self.check_count = 0
         self.prev_channel_buoys:List[PoseStamped] = list()
         self.channel_wait_count = 0
-        self.prev_poses:List[PoseStamped] = list()
+
+        self.gate_midpoint:PoseStamped = None
 
         self.create_timer(1.0, self.execute)
     
@@ -58,10 +60,9 @@ class LoopNode(Node):
     
     def nav_success_callback(self, msg:PoseStamped):
         if self.state == State.NAVIGATING_TO_GATE_MIDPOINT:
-            self.prev_poses.append(self.robot_pose)
+            self.gate_midpoint = self.robot_pose
             self.nav_forward()
         elif self.state == State.EXTRA_FORWARD_NAV:
-            self.prev_poses.append(self.robot_pose)
             time.sleep(5.0)
             self.state = State.CHECKING_FOR_LOOP_BUOY
         elif self.state == State.NAVIGATING_STRAIGHT:
@@ -93,13 +94,12 @@ class LoopNode(Node):
     def enable_station_keeping(self):
         if self.robot_pose is None:
             return
-        self.prev_poses.append(self.robot_pose)
         self.state = State.STATION_KEEPING_ENABLED
         self.station_keeping_pub.publish(Empty())
     
     def nav_forward(self):
         self.state = State.EXTRA_FORWARD_NAV
-        self.translate_pub.publish(Point(x=3.0)) 
+        self.translate_pub.publish(Point(x=self.get_parameter('gate_extra_forward_nav').value)) 
     
     def nav_to_gate_midpoint(self):
         if self.robot_pose is None:
@@ -206,6 +206,9 @@ class LoopNode(Node):
         
         path = LoopingBuoy.find_path_around_buoy(self.robot_pose, pose,
             looping_radius=self.get_parameter('looping_radius').value)
+        
+        self.gate_midpoint.pose.orientation = path.poses[-1].pose.orientation
+        path.poses.append(self.gate_midpoint)
 
         self.state = State.LOOPING
         self.channel_call = None
