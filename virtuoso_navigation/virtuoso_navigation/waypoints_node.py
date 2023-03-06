@@ -108,7 +108,8 @@ class Waypoints(Node):
         self.path_pub.publish(self.nav2_path)
     
     def create_straight_path(self):
-        goal = self.path.poses[self.waypoints_completed].pose
+        goal = Waypoints.pose_deep_copy(self.path.poses[self.waypoints_completed].pose)
+        self.get_logger().info(f'goal: {goal}')
 
         if goal.position.x - self.robot_pose.position.x > 0:
             x_dir = 1
@@ -121,12 +122,16 @@ class Waypoints(Node):
             y_dir = -1
 
         path = Path()
+        path.header.frame_id = 'map'
 
-        theta = math.atan(abs(
-            (goal.position.x - self.robot_pose.position.x) / (goal.position.y - self.robot_pose.position.y)
-        ))
+        if goal.position.x - self.robot_pose.position.x == 0.0:
+            theta = .5 * math.pi
+        else:
+            theta = math.atan(abs(
+                (goal.position.y - self.robot_pose.position.y) / (goal.position.x - self.robot_pose.position.x)
+            ))
 
-        curr_pose = self.robot_pose 
+        curr_pose = Waypoints.pose_deep_copy(self.robot_pose)
 
         while (
             (abs(curr_pose.position.x - self.robot_pose.position.x) 
@@ -134,14 +139,28 @@ class Waypoints(Node):
             (abs(curr_pose.position.y - self.robot_pose.position.y) 
                 < abs(goal.position.y - self.robot_pose.position.y))
         ):
-            path.poses.append(Pose(position=curr_pose.position, orientation=curr_pose.orientation))
+            path.poses.append(PoseStamped(pose=Waypoints.pose_deep_copy(curr_pose)))
 
-            curr_pose.x += math.cos(theta) * 0.2 * x_dir
-            curr_pose.y += math.sin(theta) * 0.2 * y_dir
+            curr_pose.position.x += math.cos(theta) * 0.2 * x_dir
+            curr_pose.position.y += math.sin(theta) * 0.2 * y_dir
 
-        path.poses.append(goal)
+            self.get_logger().info(str(curr_pose.position))
+
+        path.poses.append(PoseStamped(pose=goal))
 
         return path
+    
+    def pose_deep_copy(pose:Pose):
+        copy = Pose()
+        copy.position.x = pose.position.x
+        copy.position.y = pose.position.y
+        copy.position.z = pose.position.z
+        copy.orientation.x = pose.orientation.x
+        copy.orientation.y = pose.orientation.y
+        copy.orientation.z = pose.orientation.z
+        copy.orientation.w = pose.orientation.w
+
+        return copy
 
 def main(args=None):
     
