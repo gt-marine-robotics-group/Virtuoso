@@ -25,6 +25,10 @@ class Waypoints(Node):
         self.path_pub = self.create_publisher(Path, '/navigation/plan', 10)
         self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
+        self.declare_parameters(namespace='', parameters=[
+            ('use_nav2', True)
+        ])
+
         self.waypoints_completed = 0
         self.path = None
         self.nav2_path = None
@@ -55,11 +59,17 @@ class Waypoints(Node):
         self.set_path(msg, True) 
     
     def calc_nav2_path(self):
-        self.get_logger().info('Sending Nav2 goal')
         self.nav2_goal = ComputePathToPose.Goal()
+
+        if not self.get_parameter('use_nav2').value:
+            self.get_logger().info('Creating Straight path')
+            self.nav2_path = self.create_straight_path()
+            return
 
         self.nav2_goal.pose = PoseStamped()
         self.nav2_goal.pose.pose = self.path.poses[self.waypoints_completed].pose
+
+        self.get_logger().info('Sending Nav2 goal')
 
         goal_future = self.nav_action.send_goal_async(self.nav2_goal)
         goal_future.add_done_callback(self.nav2_goal_response_callback)
@@ -109,7 +119,6 @@ class Waypoints(Node):
     
     def create_straight_path(self):
         goal = Waypoints.pose_deep_copy(self.path.poses[self.waypoints_completed].pose)
-        self.get_logger().info(f'goal: {goal}')
 
         if goal.position.x - self.robot_pose.position.x > 0:
             x_dir = 1
@@ -143,8 +152,6 @@ class Waypoints(Node):
 
             curr_pose.position.x += math.cos(theta) * 0.2 * x_dir
             curr_pose.position.y += math.sin(theta) * 0.2 * y_dir
-
-            self.get_logger().info(str(curr_pose.position))
 
         path.poses.append(PoseStamped(pose=goal))
 

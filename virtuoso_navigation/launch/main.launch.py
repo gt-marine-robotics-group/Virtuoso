@@ -6,6 +6,8 @@ from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 import os
 from ament_index_python.packages import get_package_share_directory
+import sys
+import yaml
 
 def generate_launch_description():
 
@@ -20,8 +22,20 @@ def generate_launch_description():
     bringup_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'navigation_launch.py')
     rviz_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'rviz_launch.py')
     nav2_params_file = (pkg_share, '/config/', usv_config, '/nav2.yaml')
+    waypoints_param_file = (pkg_share, '/config/', usv_config, '/waypoints.yaml')
 
-    return LaunchDescription([
+    usv_config_str = None
+    for arg in sys.argv:
+        if arg.startswith('usv:='):
+            usv_config_str = arg.split(':=')[1]
+
+    waypoint_data = None
+    with open(f'{pkg_share}/config/{usv_config_str}/waypoints.yaml', 'r') as stream:
+        waypoint_data = yaml.safe_load(stream)
+
+    use_nav2 = waypoint_data['navigation_waypoints']['ros__parameters']['use_nav2']
+
+    ld = [
         sim_time_arg,
         usv_arg,
 
@@ -31,7 +45,8 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_navigation',
-            executable='waypoints'
+            executable='waypoints',
+            parameters=[waypoints_param_file]
         ),
         Node(
             package='virtuoso_navigation',
@@ -45,15 +60,6 @@ def generate_launch_description():
             package='virtuoso_navigation',
             executable='rotate'
         ),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
-        'use_sim_time': sim_time_config}.items()),
-
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(rviz_launch_file),
-            condition=IfCondition(sim_time_config)
-        ),
-        # Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen', arguments=[nav2_params_file],
-        # parameters=[{'use_sim_time': sim_time_config}]),
 
         # Currently, state estimation only using odom frame for localization, so no difference between 
         # odom and map frame. Transformation being used for the costmaps.
@@ -63,4 +69,14 @@ def generate_launch_description():
             name='odom_to_map',
             arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
         )
-    ])
+    ]
+
+    if use_nav2:
+        ld.append(IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
+        'use_sim_time': sim_time_config}.items()))
+        ld.append(IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(rviz_launch_file),
+            condition=IfCondition(sim_time_config)
+        ))
+
+    return LaunchDescription(ld)
