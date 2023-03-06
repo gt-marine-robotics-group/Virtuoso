@@ -1,13 +1,13 @@
 from math import sqrt
 import rclpy
-from rclpy import Future
 from rclpy.node import Node
 from nav_msgs.msg import Path
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Pose
 from nav2_msgs.action import NavigateToPose, ComputePathToPose
 from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
 from std_msgs.msg import Bool
+import math
 
 class Waypoints(Node):
 
@@ -41,7 +41,7 @@ class Waypoints(Node):
     
     def set_path(self, msg:Path, is_trans=False):
 
-        self.get_logger().info('setting path')
+        self.get_logger().info('Setting Path')
 
         self.path = msg
         self.waypoints_completed = 0
@@ -55,7 +55,7 @@ class Waypoints(Node):
         self.set_path(msg, True) 
     
     def calc_nav2_path(self):
-        self.get_logger().info('sending nav2 goal')
+        self.get_logger().info('Sending Nav2 goal')
         self.nav2_goal = ComputePathToPose.Goal()
 
         self.nav2_goal.pose = PoseStamped()
@@ -67,16 +67,21 @@ class Waypoints(Node):
     def nav2_goal_response_callback(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
-            self.get_logger().info('goal rejected')
-            # send straight path
+            self.get_logger().info('Nav2 Goal Rejected: Creating straight path')
+            self.nav2_path = self.create_straight_path()
             return
-        self.get_logger().info('goal accepted')
+        self.get_logger().info('Nav2 Goal Accepted')
 
         result_future = goal_handle.get_result_async()
         result_future.add_done_callback(self.nav2_goal_done_callback) 
     
     def nav2_goal_done_callback(self, future):
         result = future.result()
+
+        if len(result.result.path.poses) == 0:
+            self.get_logger().info('Nav2 Path contains no poses: Creating straight path')
+            self.nav2_path = self.create_straight_path()
+            return
 
         self.nav2_path = result.result.path
     
@@ -101,7 +106,42 @@ class Waypoints(Node):
             return
         
         self.path_pub.publish(self.nav2_path)
+    
+    def create_straight_path(self):
+        goal = self.path.poses[self.waypoints_completed].pose
 
+        if goal.position.x - self.robot_pose.position.x > 0:
+            x_dir = 1
+        else:
+            x_dir = -1
+        
+        if goal.position.y - self.robot_pose.position.y > 0:
+            y_dir = 1
+        else:
+            y_dir = -1
+
+        path = Path()
+
+        theta = math.atan(abs(
+            (goal.position.x - self.robot_pose.position.x) / (goal.position.y - self.robot_pose.position.y)
+        ))
+
+        curr_pose = self.robot_pose 
+
+        while (
+            (abs(curr_pose.position.x - self.robot_pose.position.x) 
+                < abs(goal.position.x - self.robot_pose.position.x)) and 
+            (abs(curr_pose.position.y - self.robot_pose.position.y) 
+                < abs(goal.position.y - self.robot_pose.position.y))
+        ):
+            path.poses.append(Pose(position=curr_pose.position, orientation=curr_pose.orientation))
+
+            curr_pose.x += math.cos(theta) * 0.2 * x_dir
+            curr_pose.y += math.sin(theta) * 0.2 * y_dir
+
+        path.poses.append(goal)
+
+        return path
 
 def main(args=None):
     
