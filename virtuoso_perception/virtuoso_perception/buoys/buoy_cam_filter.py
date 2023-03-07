@@ -139,28 +139,45 @@ class BuoyFilter:
 
         self.node.get_logger().info(f'cluster bounds: {cluster_bounds[0]}')
 
-        contours = np.ndarray((len(clusters),), dtype=object)
+        # contours = np.ndarray((len(clusters),), dtype=object)
+        contours = list()
 
         for c in range(len(clusters)):
             bounds = cluster_bounds[c]
 
-            # top_left = (colored[0][bounds['top']], colored[1][bounds['left']])
-            # top_right = (colored[0][bounds['top']], colored[1][bounds['right']])
-            # bottom_left = (colored[0][bounds['bottom']], colored[1][bounds['left']])
-            # bottom_right = (colored[0][bounds['bottom']], colored[1][bounds['right']])
 
-            y_points = np.arange(start=colored[0][bounds['top']], stop=colored[0][bounds['bottom']] + 1)
-            x_points = np.arange(start=colored[1][bounds['left']], stop=colored[1][bounds['right']] + 1)
+            contour = self._create_contour_from_bounds(bounds, colored)
 
-            self.node.get_logger().info(f'y shape')
+            contours.append(contour)
 
-            arr = np.zeros((y_points.shape[0], 1, 2))
-            arr[:,0,0] = x_points
-            arr[:,0,1] = y_points
+        self.node.get_logger().info(f'got contours: {contours}')
+        self._debug_pub('full_contours', 
+            CvBridge().cv2_to_imgmsg(cv2.drawContours(
+                    bgr_img.copy(), tuple(contours), -1, (255,0,0), 1
+                ),
+                encoding='bgr8'
+            )
+        )
+    
+    def _create_contour_from_bounds(self, bounds, colored):
+        y_points = np.arange(start=colored[0][bounds['top']], stop=colored[0][bounds['bottom']] + 1, dtype=int)
+        x_points = np.arange(start=colored[1][bounds['left']], stop=colored[1][bounds['right']] + 1, dtype=int)
 
-            contours[c] = arr
-        
-        self.node.get_logger().info('got contours')
+        contour = np.zeros((2 * y_points.shape[0] + 2 * x_points.shape[0] - 3, 2), dtype=int)
+
+        contour[:y_points.shape[0],1] = y_points
+        contour[:y_points.shape[0],0] = x_points[0]
+
+        contour[y_points.shape[0]:y_points.shape[0] + x_points.shape[0] - 1,1] = y_points[-1]
+        contour[y_points.shape[0]:y_points.shape[0] + x_points.shape[0] - 1,0] = np.arange(x_points[0] + 1, x_points[-1] + 1)
+
+        contour[y_points.shape[0] + x_points.shape[0] - 1:2 * y_points.shape[0] + x_points.shape[0] - 2,1] = np.arange(y_points[-1] - 1, y_points[0] - 1, -1)
+        contour[y_points.shape[0] + x_points.shape[0] - 1:2 * y_points.shape[0] + x_points.shape[0] - 2,0] = x_points[-1]
+
+        contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,1] = y_points[0]
+        contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,0] = np.arange(x_points[-1] - 1, x_points[0] - 1, -1)
+
+        return contour[:,np.newaxis,:]
     
     def _contour_filter(self, bgr_img:np.ndarray):
 
@@ -174,6 +191,7 @@ class BuoyFilter:
         filtered_contour_offsets = list()
         filtered_contour_colors = list()
 
+        # self.node.get_logger().info(f'cv2 contour: {contours}')
         # self._debug_pub('black_white', 
         #     CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
         # self._debug_pub('full_contours', 

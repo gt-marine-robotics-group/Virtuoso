@@ -18,3 +18,4 @@ contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,0] = y_points[0]
 contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,1] = np.arange(x_points[-1] - 1, x_points[0] - 1, -1)
 
 print(contour)
+print(contour[:,np.newaxis,:])
