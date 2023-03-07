@@ -20,7 +20,8 @@ class BuoyFilter:
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
-        self._density_radius = 3
+        self._epsilon = 3
+        self._min_pts = 3
 
         self.node:Node = None
         self.image:np.ndarray = None
@@ -103,8 +104,11 @@ class BuoyFilter:
                 clusters[-1].add(index)
 
                 neighbors = np.where(
-                    np.abs(colored[0] - colored[0][index]) + np.abs(colored[1] - colored[1][index]) <= self._density_radius * 2
+                    np.square(colored[0] - colored[0][index]) + np.square(colored[1] - colored[1][index]) <= self._epsilon**2
                 )
+
+                if neighbors[0].shape[0] < self._min_pts:
+                    continue
 
                 for c_i in range(neighbors[0].shape[0]):
                     c = neighbors[0][c_i]
@@ -130,15 +134,15 @@ class BuoyFilter:
         filtered_contour_offsets = list()
         filtered_contour_colors = list()
 
-        self._debug_pub('black_white', 
-            CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
-        self._debug_pub('full_contours', 
-            CvBridge().cv2_to_imgmsg(cv2.drawContours(
-                    bgr_img.copy(), contours, -1, (255,0,0), 1
-                ),
-                encoding='bgr8'
-            )
-        )
+        # self._debug_pub('black_white', 
+        #     CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
+        # self._debug_pub('full_contours', 
+        #     CvBridge().cv2_to_imgmsg(cv2.drawContours(
+        #             bgr_img.copy(), contours, -1, (255,0,0), 1
+        #         ),
+        #         encoding='bgr8'
+        #     )
+        # )
 
         hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
 
@@ -217,9 +221,9 @@ class BuoyFilter:
             filtered.append(cnt)
 
         drawn = cv2.drawContours(bgr_img.copy(), filtered, -1, (255,0,0), 3)
-        self._debug_pub('filtered_contours', 
-            CvBridge().cv2_to_imgmsg(drawn, encoding='bgr8')
-        )
+        # self._debug_pub('filtered_contours', 
+        #     CvBridge().cv2_to_imgmsg(drawn, encoding='bgr8')
+        # )
 
         return filtered_contours, filtered_contour_colors, filtered_contour_offsets
     
