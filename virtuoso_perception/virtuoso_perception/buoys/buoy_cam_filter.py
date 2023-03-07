@@ -17,11 +17,12 @@ class BuoyFilter:
         
         self._color_filter_bounds:ColorRange = color_filter_bounds
         self._color_label_bounds:ColorRange =  color_label_bounds
+
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
-        self._epsilon = 3
-        self._min_pts = 3
+        self._epsilon = 2
+        self._min_pts = 9
 
         self.node:Node = None
         self.image:np.ndarray = None
@@ -150,7 +151,7 @@ class BuoyFilter:
 
             contours.append(contour)
 
-        self.node.get_logger().info(f'got contours: {contours}')
+        # self.node.get_logger().info(f'got contours: {contours}')
         self._debug_pub('full_contours', 
             CvBridge().cv2_to_imgmsg(cv2.drawContours(
                     bgr_img.copy(), tuple(contours), -1, (255,0,0), 1
