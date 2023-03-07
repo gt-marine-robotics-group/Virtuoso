@@ -90,28 +90,28 @@ def generate_launch_description():
         )
     )
 
-    for topic in camera_data['camera_config']['bow_camera_base_topics']:
-        ld.append(
-            Node(
-                package='virtuoso_perception',
-                executable='resize',
-                name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
-                parameters=[
-                    {'base_topic': topic},
-                    camera_processing_param_file
-                ]
-            )
-        )
-        ld.append(
-            Node(
-                package='virtuoso_perception',
-                executable='noise_filter',
-                name=f'perception_noise_filter_{topic[topic.rfind("/") + 1:]}',
-                parameters=[
-                    {'base_topic': topic},
-                    camera_processing_param_file
-                ]
-            )
-        )
+    # for topic in camera_data['camera_config']['bow_camera_base_topics']:
+    #     ld.append(
+    #         Node(
+    #             package='virtuoso_perception',
+    #             executable='resize',
+    #             name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
+    #             parameters=[
+    #                 {'base_topic': topic},
+    #                 camera_processing_param_file
+    #             ]
+    #         )
+    #     )
+    #     ld.append(
+    #         Node(
+    #             package='virtuoso_perception',
+    #             executable='noise_filter',
+    #             name=f'perception_noise_filter_{topic[topic.rfind("/") + 1:]}',
+    #             parameters=[
+    #                 {'base_topic': topic},
+    #                 camera_processing_param_file
+    #             ]
+    #         )
+    #     )
 
     return LaunchDescription(ld)

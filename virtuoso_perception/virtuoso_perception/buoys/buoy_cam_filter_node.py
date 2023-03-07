@@ -11,14 +11,13 @@ from virtuoso_msgs.srv import ImageNoiseFilter, ImageResize, ImageBuoyFilter
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 import time
+from ..camera_processing.noise_filter import NoiseFilter
+from ..camera_processing.resize import Resize
 
 class BuoyFilterNode(Node):
 
     def __init__(self):
         super().__init__('perception_buoy_filter')
-
-        self.cb_group_1 = MutuallyExclusiveCallbackGroup()
-        self.cb_group_2 = MutuallyExclusiveCallbackGroup()
 
         self.declare_parameters(namespace='', parameters=[
             ('debug', False),
@@ -47,22 +46,20 @@ class BuoyFilterNode(Node):
             ('label_bounds.black.upper', [0,0,0]),
 
             ('buoy_border_px', 0),
-            ('buoy_px_color_sample_size', 0)
+            ('buoy_px_color_sample_size', 0),
+
+            ('denoising_params', []),
+            ('resize_factor', 1)
         ])
 
         base_topic = self.get_parameter('base_topic').value
         cam = base_topic[base_topic.rfind('/') + 1:]
         
         self.srv = self.create_service(ImageBuoyFilter, 
-            f'{cam}/buoy_filter',
-            self.srv_callback, callback_group=self.cb_group_1)
+            f'{cam}/buoy_filter', self.srv_callback)
 
-        self.image_srv_chain = ImageSrvChain([
-            self.create_client(ImageNoiseFilter, f'{cam}/noise_filter', 
-                callback_group=self.cb_group_2),
-            self.create_client(ImageResize, f'{cam}/resize', 
-                callback_group=self.cb_group_2)
-        ])
+        self.resize = Resize(resize_factor=self.get_parameter('resize_factor').value)
+        self.noise_filter = NoiseFilter(denoising_params=self.get_parameter('denoising_params').value)
 
         self.buoy_filter = BuoyFilter(color_filter_bounds=ColorRange(self, 
             ['red', 'green', 'black', 'yellow'], prefix='filter_bounds.'), 
@@ -98,17 +95,17 @@ class BuoyFilterNode(Node):
         if req.image is None or req.camera_info is None:
             return res
         
-        self.image_srv_chain.image = req.image
-        self.image_srv_chain.camera_info = req.camera_info
-        self.image_srv_chain.run()
+        self.resize.image = req.image
+        self.resize.camera_info = req.camera_info
 
-        while self.image_srv_chain.running:
-            if self.get_parameter('debug').value:
-                self.get_logger().info('waiting for image_srv_chain to finish')
-            time.sleep(0.5) 
+        image, camera_info = self.resize.resize()
+
+        self.noise_filter.image = image
         
-        res.contours = self.apply_filter(self.image_srv_chain.image)
-        res.camera_info = self.image_srv_chain.camera_info
+        image = self.noise_filter.filter()
+        
+        res.contours = self.apply_filter(image)
+        res.camera_info = camera_info
 
         return res
 
@@ -119,13 +116,9 @@ def main(args=None):
 
     node = BuoyFilterNode()
 
-    executor = MultiThreadedExecutor(num_threads=2)
-    executor.add_node(node)
-    executor.spin()
+    rclpy.spin(node)
 
-    # rclpy.spin(sub)
-
-    # sub.destroy_node()
+    node.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':

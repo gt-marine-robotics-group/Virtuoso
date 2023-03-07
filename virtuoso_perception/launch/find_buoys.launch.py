@@ -39,6 +39,9 @@ def generate_launch_description():
     for key, value in buoys_data['perception_buoy_filter']['ros__parameters'].items():
         buoy_filter_params.append({key: value})
 
+    camera_processing_param_file = (pkg_share, '/config/', usv_config,
+        '/camera_processing.yaml')
+
     ld = list()
 
     ld.append(usv_arg)
@@ -67,7 +70,8 @@ def generate_launch_description():
                 name=f'perception_buoy_filter_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
                     {'base_topic': topic},
-                    *buoy_filter_params
+                    *buoy_filter_params,
+                    camera_processing_param_file
                 ]
             )
         )
