@@ -80,6 +80,7 @@ class BuoyFilter:
         colored = np.where(black_and_white == 255)
 
         clusters = list()
+        cluster_bounds = list()
         visited = set()
 
         curr_cluster_queue = deque()
@@ -90,8 +91,10 @@ class BuoyFilter:
         
             if len(clusters) > 0 and len(clusters[-1]) < 500:
                 clusters[-1] = set()
+                cluster_bounds[-1] = {'left': i, 'right': i, 'top': i, 'bottom': i}
             else:
                 clusters.append(set())                
+                cluster_bounds.append({'left': i, 'right': i, 'top': i, 'bottom': i})
 
             visited.add(i)
 
@@ -103,8 +106,20 @@ class BuoyFilter:
                 # self.node.get_logger().info(f'index: {index}')
                 clusters[-1].add(index)
 
+                y = colored[0][index]
+                x = colored[1][index]
+
+                if y < colored[0][cluster_bounds[-1]['top']]:
+                    cluster_bounds[-1]['top'] = index
+                elif y > colored[0][cluster_bounds[-1]['bottom']]:
+                    cluster_bounds[-1]['bottom'] = index
+                if x < colored[1][cluster_bounds[-1]['left']]:
+                    cluster_bounds[-1]['left'] = index
+                elif x > colored[1][cluster_bounds[-1]['right']]:
+                    cluster_bounds[-1]['right'] = index
+
                 neighbors = np.where(
-                    np.square(colored[0] - colored[0][index]) + np.square(colored[1] - colored[1][index]) <= self._epsilon**2
+                    np.square(colored[0] - y) + np.square(colored[1] - x) <= self._epsilon**2
                 )
 
                 if neighbors[0].shape[0] < self._min_pts:
@@ -119,8 +134,33 @@ class BuoyFilter:
 
         if len(clusters) > 0 and len(clusters[-1]) < 500:
             clusters.pop()
-
+        
         self.node.get_logger().info(f'num clusters: {len(clusters)}')
+
+        self.node.get_logger().info(f'cluster bounds: {cluster_bounds[0]}')
+
+        contours = np.ndarray((len(clusters),), dtype=object)
+
+        for c in range(len(clusters)):
+            bounds = cluster_bounds[c]
+
+            # top_left = (colored[0][bounds['top']], colored[1][bounds['left']])
+            # top_right = (colored[0][bounds['top']], colored[1][bounds['right']])
+            # bottom_left = (colored[0][bounds['bottom']], colored[1][bounds['left']])
+            # bottom_right = (colored[0][bounds['bottom']], colored[1][bounds['right']])
+
+            y_points = np.arange(start=colored[0][bounds['top']], stop=colored[0][bounds['bottom']] + 1)
+            x_points = np.arange(start=colored[1][bounds['left']], stop=colored[1][bounds['right']] + 1)
+
+            self.node.get_logger().info(f'y shape')
+
+            arr = np.zeros((y_points.shape[0], 1, 2))
+            arr[:,0,0] = x_points
+            arr[:,0,1] = y_points
+
+            contours[c] = arr
+        
+        self.node.get_logger().info('got contours')
     
     def _contour_filter(self, bgr_img:np.ndarray):
 
