@@ -8,6 +8,7 @@ from ..utils.code_identification import find_contours
 from cv_bridge import CvBridge
 import random
 from scipy import stats
+from collections import deque
 
 class BuoyFilter:
 
@@ -18,6 +19,8 @@ class BuoyFilter:
         self._color_label_bounds:ColorRange =  color_label_bounds
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
+
+        self._density_radius = 3
 
         self.node:Node = None
         self.image:np.ndarray = None
@@ -57,6 +60,7 @@ class BuoyFilter:
         )
 
         contours, colors, contour_offsets = self._contour_filter(combo)
+        self._density_filter(combo)
 
         msg = Contours()
         msg.contour_points = contours
@@ -64,6 +68,55 @@ class BuoyFilter:
         msg.contour_colors = colors
 
         self.contours = msg
+    
+    def _density_filter(self, bgr_img:np.ndarray):
+        gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
+        _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+
+        self._debug_pub('black_white', 
+            CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
+
+        colored = np.where(black_and_white == 255)
+
+        clusters = list()
+        visited = set()
+
+        curr_cluster_queue = deque()
+
+        for i in range(colored[0].shape[0]):
+            if i in visited:
+                continue
+        
+            if len(clusters) > 0 and len(clusters[-1]) < 500:
+                clusters[-1] = set()
+            else:
+                clusters.append(set())                
+
+            visited.add(i)
+
+            curr_cluster_queue.append(i)
+
+            while len(curr_cluster_queue) > 0:
+                # self.node.get_logger().info(f'curr cluster queue: {len(curr_cluster_queue)}')
+                index = curr_cluster_queue.pop()
+                # self.node.get_logger().info(f'index: {index}')
+                clusters[-1].add(index)
+
+                neighbors = np.where(
+                    np.abs(colored[0] - colored[0][index]) + np.abs(colored[1] - colored[1][index]) <= self._density_radius * 2
+                )
+
+                for c_i in range(neighbors[0].shape[0]):
+                    c = neighbors[0][c_i]
+                    if c in visited: continue
+                    visited.add(c)
+                    # self.node.get_logger().info(f'visited size: {len(visited)}')
+                    curr_cluster_queue.append(c)
+
+        if len(clusters) > 0 and len(clusters[-1]) < 500:
+            clusters.pop()
+
+        self.node.get_logger().info(f'num clusters: {len(clusters)}')
     
     def _contour_filter(self, bgr_img:np.ndarray):
 

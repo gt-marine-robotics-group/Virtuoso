@@ -6,11 +6,11 @@ from ament_index_python.packages import get_package_share_directory
 import sys
 import yaml
 
-BASE_CAM_TOPIC = '/cameras/front_left_camera'
-RED = False
+BASE_CAM_TOPIC = '/wamv/sensors/cameras/front_left_camera'
+RED = True
 GREEN = False
 BLACK = False
-YELLOW = True
+YELLOW = False
 
 def generate_launch_description():
 
