@@ -26,7 +26,9 @@ class Waypoints(Node):
         self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.declare_parameters(namespace='', parameters=[
-            ('use_nav2', True)
+            ('use_nav2', True),
+            ('only_translate', False),
+            ('goal_dist_tolerance', 0.0)
         ])
 
         self.waypoints_completed = 0
@@ -53,7 +55,9 @@ class Waypoints(Node):
         self.nav2_path = None
         self.nav2_goal = None
 
-        self.is_trans_pub.publish(Bool(data=is_trans))
+        self.is_trans_pub.publish(
+            Bool(data= is_trans or self.get_parameter('only_translate').value)
+        )
 
     def set_trans_path(self, msg:Path):
         self.set_path(msg, True) 
@@ -105,7 +109,8 @@ class Waypoints(Node):
                 self.calc_nav2_path() 
             return        
 
-        if self.distance(self.robot_pose, self.path.poses[self.waypoints_completed].pose) < 1:
+        if (self.distance(self.robot_pose, self.path.poses[self.waypoints_completed].pose) 
+                < self.get_parameter('goal_dist_tolerance').value):
             self.waypoints_completed += 1
             if self.waypoints_completed == len(self.path.poses):
                 self.get_logger().info('COMPLETED GOAL')
