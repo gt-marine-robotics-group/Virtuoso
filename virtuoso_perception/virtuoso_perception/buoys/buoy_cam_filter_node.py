@@ -46,7 +46,15 @@ class BuoyFilterNode(Node):
             ('label_bounds.black.upper', [0,0,0]),
 
             ('buoy_border_px', 0),
+
+            ('max_cluster_px', 0.0),
+            ('min_cluster_px', 0.0),
+            ('epsilon', 0),
+            ('min_pts', 0),
+
             ('buoy_px_color_sample_size', 0),
+
+            ('clustering_method', 'DENSITY'),
 
             ('denoising_params', []),
             ('resize_factor', 1)
@@ -61,12 +69,15 @@ class BuoyFilterNode(Node):
         self.resize = Resize(resize_factor=self.get_parameter('resize_factor').value)
         self.noise_filter = NoiseFilter(denoising_params=self.get_parameter('denoising_params').value)
 
-        self.buoy_filter = BuoyFilter(color_filter_bounds=ColorRange(self, 
-            ['red', 'green', 'black', 'yellow'], prefix='filter_bounds.'), 
-            color_label_bounds=ColorRange(self, 
-                ['red', 'green', 'black', 'yellow'], prefix='label_bounds.'),
+        self.buoy_filter = BuoyFilter(clustering_method=self.get_parameter('clustering_method').value,
+            color_filter_bounds=ColorRange(self, ['red', 'green', 'black', 'yellow'], prefix='filter_bounds.'), 
+            color_label_bounds=ColorRange(self, ['red', 'green', 'black', 'yellow'], prefix='label_bounds.'),
             buoy_border_px=self.get_parameter('buoy_border_px').value,
-            buoy_px_color_sample_size=self.get_parameter('buoy_px_color_sample_size').value
+            buoy_px_color_sample_size=self.get_parameter('buoy_px_color_sample_size').value,
+            max_cluster_px=self.get_parameter('max_cluster_px').value,
+            min_cluster_px=self.get_parameter('min_cluster_px').value,
+            epsilon=self.get_parameter('epsilon').value,
+            min_pts=self.get_parameter('min_pts').value
         )
         if self.get_parameter('debug').value:
             self.buoy_filter.node = self

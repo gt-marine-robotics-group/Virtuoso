@@ -41,6 +41,21 @@ perception_buoy_filter:
       yellow:
         lower: [20, 100, 100]
         upper: [30, 255, 255]
-    
+      
+    clustering_method: 'DENSITY' # either DENSITY or CV2_CONTOURS
+
+    # DENSITY clustering params
+    max_cluster_px: 1000
+    min_cluster_px: 100
+    epsilon: 20
+    min_pts: 20
+
+    # CV2_CONTOURS clustering params
     buoy_border_px: 5
+    
+    # Both clustering params
     buoy_px_color_sample_size: 0.1 # between 0 and 1
+
+    # Processing params
+    use_resize: True
+    use_noise_filter: True

@@ -12,21 +12,22 @@ from collections import deque
 
 class BuoyFilter:
 
-    def __init__(self, color_filter_bounds, color_label_bounds, 
-        buoy_border_px:int, buoy_px_color_sample_size:float):
+    def __init__(self, clustering_method:str, color_filter_bounds:ColorRange, 
+        color_label_bounds:ColorRange, buoy_border_px:int, buoy_px_color_sample_size:float, 
+        max_cluster_px:int, min_cluster_px:int, epsilon:int, min_pts:int):
         
-        self._color_filter_bounds:ColorRange = color_filter_bounds
-        self._color_label_bounds:ColorRange =  color_label_bounds
+        self._color_filter_bounds = color_filter_bounds
+        self._color_label_bounds =  color_label_bounds
 
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
-        self._max_cluster_px = 1000
-        self._min_cluster_px = 100
-        self._epsilon = 20
-        self._min_pts = 20
+        self._max_cluster_px = max_cluster_px
+        self._min_cluster_px = min_cluster_px
+        self._epsilon = epsilon
+        self._min_pts = min_pts
 
-        self._clustering_method = 'DENSITY'
+        self._clustering_method = clustering_method
 
         self.node:Node = None
         self.image:np.ndarray = None
@@ -186,8 +187,6 @@ class BuoyFilter:
                     if not color is None:
                         colors[color] += 1
             
-            
-            self.node.get_logger().info(f'{colors}')
             filtered_contour_colors.append(self._dominant_color(colors))
         
         return filtered_contours, filtered_contour_colors, filtered_contour_offsets
