@@ -21,6 +21,8 @@ class BuoyFilter:
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
+        self._max_cluster_px = 10000
+        self._min_cluster_px = 500
         self._epsilon = 2
         self._min_pts = 9
 
@@ -90,7 +92,8 @@ class BuoyFilter:
             if i in visited:
                 continue
         
-            if len(clusters) > 0 and len(clusters[-1]) < 500:
+            if (len(clusters) > 0 and 
+                (len(clusters[-1]) < self._min_cluster_px or len(clusters[-1]) > self._max_cluster_px)):
                 clusters[-1] = set()
                 cluster_bounds[-1] = {'left': i, 'right': i, 'top': i, 'bottom': i}
             else:
