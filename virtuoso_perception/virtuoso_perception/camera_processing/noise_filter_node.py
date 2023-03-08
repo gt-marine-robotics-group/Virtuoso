@@ -9,6 +9,7 @@ from std_msgs.msg import Bool
 import numpy as np
 import time
 from virtuoso_msgs.srv import ImageNoiseFilter
+from .noise_filter import NoiseFilter
 
 class NoiseFilterNode(Node):
 
@@ -27,7 +28,7 @@ class NoiseFilterNode(Node):
         self.srv = self.create_service(ImageNoiseFilter, 
             f'{cam}/noise_filter', self.srv_callback)
 
-        self.cv_bridge = CvBridge()
+        self.filter = NoiseFilter(self.get_parameter('denoising_params').value)
     
     def srv_callback(self, req:ImageNoiseFilter.Request, 
         res:ImageNoiseFilter.Response):
@@ -37,17 +38,15 @@ class NoiseFilterNode(Node):
         if image is None:
             res.image = None
             return res
-
-        bgr:np.ndarray = self.cv_bridge.imgmsg_to_cv2(image, 'bgr8')
+        
+        self.filter.image = image
 
         start_time = time.time()
-        filtered = cv2.fastNlMeansDenoisingColored(bgr, None, 
-            *self.get_parameter('denoising_params').value
-        )
+        image = self.filter.filter()
         if self.get_parameter('debug').value:
             self.get_logger().info(f'Noise execution time: {time.time() - start_time}')
         
-        res.image = self.cv_bridge.cv2_to_imgmsg(filtered, encoding='bgr8')
+        res.image = image
         return res
 
 def main(args=None):

@@ -6,10 +6,10 @@ from ament_index_python.packages import get_package_share_directory
 import sys
 import yaml
 
-BASE_CAM_TOPIC = '/cameras/front_left_camera'
-RED = False
-GREEN = False
-BLACK = False
+BASE_CAM_TOPIC = '/wamv/sensors/cameras/front_left_camera'
+RED = True
+GREEN = True
+BLACK = True
 YELLOW = True
 
 def generate_launch_description():
@@ -33,6 +33,8 @@ def generate_launch_description():
 
     camera_processing_param_file = (pkg_share, '/config/', usv_config,
         '/camera_processing.yaml')
+    
+    buoy_param_file = (pkg_share, '/config/', usv_config, '/buoys.yaml')
 
     usv_config_str = None
     for arg in sys.argv:
@@ -90,9 +92,13 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='buoy_cam_filter',
             parameters=[
-                {'debug': True},
                 {'base_topic': BASE_CAM_TOPIC},
-                {'filter_bounds': new_filter_bounds}
+                buoy_param_file,
+                {'filter_bounds': new_filter_bounds},
+                # {'label_bounds': label_bounds},
+                # {'buoy_border_px': buoy_border_px},
+                # {'buoy_px_color_sample_size': buoy_px_color_sample_size},
+                camera_processing_param_file
             ]
         ),
 
