@@ -46,9 +46,6 @@ def generate_launch_description():
         buoy_data = yaml.safe_load(stream)
 
     filter_bounds = buoy_data['perception_buoy_filter']['ros__parameters']['filter_bounds']
-    label_bounds = buoy_data['perception_buoy_filter']['ros__parameters']['label_bounds']
-    buoy_border_px = buoy_data['perception_buoy_filter']['ros__parameters']['buoy_border_px']
-    buoy_px_color_sample_size = buoy_data['perception_buoy_filter']['ros__parameters']['buoy_px_color_sample_size'] 
 
     new_filter_bounds = dict()
     if (RED):
@@ -96,10 +93,11 @@ def generate_launch_description():
             executable='buoy_cam_filter',
             parameters=[
                 {'base_topic': BASE_CAM_TOPIC},
+                buoy_param_file,
                 {'filter_bounds': new_filter_bounds},
-                {'label_bounds': label_bounds},
-                {'buoy_border_px': buoy_border_px},
-                {'buoy_px_color_sample_size': buoy_px_color_sample_size},
+                # {'label_bounds': label_bounds},
+                # {'buoy_border_px': buoy_border_px},
+                # {'buoy_px_color_sample_size': buoy_px_color_sample_size},
                 camera_processing_param_file
             ]
         ),
