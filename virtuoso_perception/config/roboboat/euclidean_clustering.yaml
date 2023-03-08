@@ -10,7 +10,7 @@
     use_z: True
     filter_output_by_size: False
     cluster:
-      frame_id: "map"
+      frame_id: "front_lidar_link"
       min_cluster_size: 2
       min_number_of_points_in_cluster: 10
       max_num_clusters: 256
