@@ -47,8 +47,10 @@ class BuoyFilterNode(Node):
 
             ('buoy_border_px', 0),
 
-            ('max_cluster_px', 0.0),
-            ('min_cluster_px', 0.0),
+            ('max_cluster_height', 0.0),
+            ('min_cluster_height', 0.0),
+            ('max_cluster_width', 0.0),
+            ('min_cluster_width', 0.0),
             ('epsilon', 0),
             ('min_pts', 0),
 
@@ -77,8 +79,10 @@ class BuoyFilterNode(Node):
             color_label_bounds=ColorRange(self, ['red', 'green', 'black', 'yellow'], prefix='label_bounds.'),
             buoy_border_px=self.get_parameter('buoy_border_px').value,
             buoy_px_color_sample_size=self.get_parameter('buoy_px_color_sample_size').value,
-            max_cluster_px=self.get_parameter('max_cluster_px').value,
-            min_cluster_px=self.get_parameter('min_cluster_px').value,
+            max_cluster_height=self.get_parameter('max_cluster_height').value,
+            min_cluster_height=self.get_parameter('min_cluster_height').value,
+            max_cluster_width=self.get_parameter('max_cluster_width').value,
+            min_cluster_width=self.get_parameter('min_cluster_width').value,
             epsilon=self.get_parameter('epsilon').value,
             min_pts=self.get_parameter('min_pts').value
         )

@@ -14,7 +14,8 @@ class BuoyFilter:
 
     def __init__(self, clustering_method:str, color_filter_bounds:ColorRange, 
         color_label_bounds:ColorRange, buoy_border_px:int, buoy_px_color_sample_size:float, 
-        max_cluster_px:int, min_cluster_px:int, epsilon:int, min_pts:int):
+        max_cluster_height:int, min_cluster_height:int,
+        max_cluster_width:int, min_cluster_width:int, epsilon:int, min_pts:int):
         
         self._color_filter_bounds = color_filter_bounds
         self._color_label_bounds =  color_label_bounds
@@ -22,8 +23,10 @@ class BuoyFilter:
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
-        self._max_cluster_px = max_cluster_px
-        self._min_cluster_px = min_cluster_px
+        self._max_cluster_height = max_cluster_height
+        self._min_cluster_height = min_cluster_height
+        self._max_cluster_width = max_cluster_width
+        self._min_cluster_width = min_cluster_width
         self._epsilon = epsilon
         self._min_pts = min_pts
 
@@ -99,8 +102,7 @@ class BuoyFilter:
             if i in visited:
                 continue
         
-            if (len(clusters) > 0 and 
-                (len(clusters[-1]) < self._min_cluster_px or len(clusters[-1]) > self._max_cluster_px)):
+            if (len(clusters) > 0 and not self._cluster_meets_bounding_reqs(colored, cluster_bounds[-1])):
                 clusters[-1] = set()
                 cluster_bounds[-1] = {'left': i, 'right': i, 'top': i, 'bottom': i}
             else:
@@ -138,11 +140,9 @@ class BuoyFilter:
                     c = neighbors[0][c_i]
                     if c in visited: continue
                     visited.add(c)
-                    # self.node.get_logger().info(f'visited size: {len(visited)}')
                     curr_cluster_queue.append(c)
 
-        if (len(clusters) > 0 and 
-            (len(clusters[-1]) < self._min_cluster_px or len(clusters[-1]) > self._max_cluster_px)):
+        if (len(clusters) > 0 and not self._cluster_meets_bounding_reqs(colored, cluster_bounds[-1])):
             clusters.pop()
         
         contours = list()
@@ -190,6 +190,17 @@ class BuoyFilter:
             filtered_contour_colors.append(self._dominant_color(colors))
         
         return filtered_contours, filtered_contour_colors, filtered_contour_offsets
+    
+    def _cluster_meets_bounding_reqs(self, colored, bounds):
+        y_diff = colored[0][bounds['bottom']] - colored[0][bounds['top']]
+        x_diff = colored[1][bounds['right']] - colored[1][bounds['left']]
+
+        if y_diff > self._max_cluster_height: return False
+        if y_diff < self._min_cluster_height: return False
+        if x_diff > self._max_cluster_width: return False
+        if x_diff < self._min_cluster_width: return False
+
+        return True
     
     def _create_contour_from_bounds(self, bounds, colored):
         y_points = np.arange(start=colored[0][bounds['top']], stop=colored[0][bounds['bottom']] + 1, dtype=int)
