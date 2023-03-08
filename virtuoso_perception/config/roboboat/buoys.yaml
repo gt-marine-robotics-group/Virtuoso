@@ -55,8 +55,10 @@ perception_buoy_filter:
     clustering_method: 'DENSITY' # either DENSITY or CV2_CONTOURS
 
     # DENSITY clustering params
-    max_cluster_px: 1000
-    min_cluster_px: 100
+    max_cluster_height: 100
+    min_cluster_height: 20
+    max_cluster_width: 100
+    min_cluster_width: 20
     epsilon: 20
     min_pts: 20
 
