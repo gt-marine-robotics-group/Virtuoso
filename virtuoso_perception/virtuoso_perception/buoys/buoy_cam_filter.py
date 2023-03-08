@@ -64,8 +64,11 @@ class BuoyFilter:
         )
 
         contours, colors, contour_offsets = self._contour_filter(combo)
-        self._density_filter(combo)
+        # self.node.get_logger().info(f'cv2 contours: {contours}')
 
+        contours, colors, contour_offsets = self._density_filter(combo)
+
+        # self.node.get_logger().info(f'contours: {contours}')
         msg = Contours()
         msg.contour_points = contours
         msg.contour_offsets = contour_offsets
@@ -167,7 +170,7 @@ class BuoyFilter:
 
         for i, cnt in enumerate(contours):
             filtered_contour_offsets.append(len(filtered_contours))
-            filtered_contours.extend(cnt.flatten())
+            filtered_contours.extend(int(c) for c in cnt.flatten())
 
             colors = {
                 'red': 0,
