@@ -21,10 +21,10 @@ class BuoyFilter:
         self._buoy_border_px = buoy_border_px
         self._buoy_px_color_sample_size = buoy_px_color_sample_size
 
-        self._max_cluster_px = 10000
-        self._min_cluster_px = 500
-        self._epsilon = 2
-        self._min_pts = 9
+        self._max_cluster_px = 1000
+        self._min_cluster_px = 100
+        self._epsilon = 20
+        self._min_pts = 20
 
         self.node:Node = None
         self.image:np.ndarray = None
@@ -76,6 +76,8 @@ class BuoyFilter:
     def _density_filter(self, bgr_img:np.ndarray):
         gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
         _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
+
+        hsv_img = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2HSV)
 
         self._debug_pub('black_white', 
             CvBridge().cv2_to_imgmsg(black_and_white, encoding='mono8'))
@@ -136,25 +138,21 @@ class BuoyFilter:
                     # self.node.get_logger().info(f'visited size: {len(visited)}')
                     curr_cluster_queue.append(c)
 
-        if len(clusters) > 0 and len(clusters[-1]) < 500:
+        if (len(clusters) > 0 and 
+            (len(clusters[-1]) < self._min_cluster_px or len(clusters[-1]) > self._max_cluster_px)):
             clusters.pop()
         
         self.node.get_logger().info(f'num clusters: {len(clusters)}')
 
         self.node.get_logger().info(f'cluster bounds: {cluster_bounds[0]}')
 
-        # contours = np.ndarray((len(clusters),), dtype=object)
         contours = list()
 
         for c in range(len(clusters)):
             bounds = cluster_bounds[c]
-
-
             contour = self._create_contour_from_bounds(bounds, colored)
-
             contours.append(contour)
 
-        # self.node.get_logger().info(f'got contours: {contours}')
         self._debug_pub('full_contours', 
             CvBridge().cv2_to_imgmsg(cv2.drawContours(
                     bgr_img.copy(), tuple(contours), -1, (255,0,0), 1
@@ -162,6 +160,41 @@ class BuoyFilter:
                 encoding='bgr8'
             )
         )
+
+        filtered_contours = list()
+        filtered_contour_offsets = list()
+        filtered_contour_colors = list()
+
+        for i, cnt in enumerate(contours):
+            filtered_contour_offsets.append(len(filtered_contours))
+            filtered_contours.extend(cnt.flatten())
+
+            colors = {
+                'red': 0,
+                'green': 0,
+                'yellow': 0,
+                'black': 0 
+            }
+
+            blank = np.zeros((bgr_img.shape[0], bgr_img.shape[1]))
+            filled = cv2.drawContours(blank, contours, i, 255, -1)
+            
+            pts = np.where(filled == 255)
+
+            for i in range(pts[0].size):
+                rand_int = random.randint(0, 99) 
+                if rand_int < self._buoy_px_color_sample_size * 100: 
+                    color = self._pixel_color(hsv_img[pts[0][i]][pts[1][i]])
+                    if not color is None:
+                        colors[color] += 1
+            
+            
+            self.node.get_logger().info(f'{colors}')
+            filtered_contour_colors.append(self._dominant_color(colors))
+        
+        self.node.get_logger().info(f'colors: {filtered_contour_colors}')
+        
+        return filtered_contours, filtered_contour_colors, filtered_contour_offsets
     
     def _create_contour_from_bounds(self, bounds, colored):
         y_points = np.arange(start=colored[0][bounds['top']], stop=colored[0][bounds['bottom']] + 1, dtype=int)
@@ -286,6 +319,7 @@ class BuoyFilter:
         # self._debug_pub('filtered_contours', 
         #     CvBridge().cv2_to_imgmsg(drawn, encoding='bgr8')
         # )
+        self.node.get_logger().info(f'cv2 colors: {filtered_contour_colors}')
 
         return filtered_contours, filtered_contour_colors, filtered_contour_offsets
     

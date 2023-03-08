@@ -33,6 +33,8 @@ def generate_launch_description():
 
     camera_processing_param_file = (pkg_share, '/config/', usv_config,
         '/camera_processing.yaml')
+    
+    buoy_param_file = (pkg_share, '/config/', usv_config, '/buoys.yaml')
 
     usv_config_str = None
     for arg in sys.argv:
@@ -44,6 +46,9 @@ def generate_launch_description():
         buoy_data = yaml.safe_load(stream)
 
     filter_bounds = buoy_data['perception_buoy_filter']['ros__parameters']['filter_bounds']
+    label_bounds = buoy_data['perception_buoy_filter']['ros__parameters']['label_bounds']
+    buoy_border_px = buoy_data['perception_buoy_filter']['ros__parameters']['buoy_border_px']
+    buoy_px_color_sample_size = buoy_data['perception_buoy_filter']['ros__parameters']['buoy_px_color_sample_size'] 
 
     new_filter_bounds = dict()
     if (RED):
@@ -90,9 +95,12 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='buoy_cam_filter',
             parameters=[
-                {'debug': True},
                 {'base_topic': BASE_CAM_TOPIC},
-                {'filter_bounds': new_filter_bounds}
+                {'filter_bounds': new_filter_bounds},
+                {'label_bounds': label_bounds},
+                {'buoy_border_px': buoy_border_px},
+                {'buoy_px_color_sample_size': buoy_px_color_sample_size},
+                camera_processing_param_file
             ]
         ),
 
