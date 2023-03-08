@@ -206,7 +206,7 @@ class BuoyFilter:
         y_points = np.arange(start=colored[0][bounds['top']], stop=colored[0][bounds['bottom']] + 1, dtype=int)
         x_points = np.arange(start=colored[1][bounds['left']], stop=colored[1][bounds['right']] + 1, dtype=int)
 
-        contour = np.zeros((2 * y_points.shape[0] + 2 * x_points.shape[0] - 3, 2), dtype=int)
+        contour = np.zeros((2 * y_points.shape[0] + 2 * x_points.shape[0] - 4, 2), dtype=int)
 
         contour[:y_points.shape[0],1] = y_points
         contour[:y_points.shape[0],0] = x_points[0]
@@ -218,7 +218,7 @@ class BuoyFilter:
         contour[y_points.shape[0] + x_points.shape[0] - 1:2 * y_points.shape[0] + x_points.shape[0] - 2,0] = x_points[-1]
 
         contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,1] = y_points[0]
-        contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,0] = np.arange(x_points[-1] - 1, x_points[0] - 1, -1)
+        contour[2 * y_points.shape[0] + x_points.shape[0] - 2:,0] = np.arange(x_points[-1] - 1, x_points[0], -1)
 
         return contour[:,np.newaxis,:]
     
