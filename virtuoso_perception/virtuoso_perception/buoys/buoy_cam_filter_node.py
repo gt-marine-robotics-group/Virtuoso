@@ -57,7 +57,10 @@ class BuoyFilterNode(Node):
             ('clustering_method', 'DENSITY'),
 
             ('denoising_params', []),
-            ('resize_factor', 1)
+            ('resize_factor', 1),
+
+            ('use_resize', False),
+            ('use_noise_filter', False)
         ])
 
         base_topic = self.get_parameter('base_topic').value
@@ -109,11 +112,18 @@ class BuoyFilterNode(Node):
         self.resize.image = req.image
         self.resize.camera_info = req.camera_info
 
-        image, camera_info = self.resize.resize()
+        if self.get_parameter('use_resize').value:
+            self.get_logger().info('resizing')
+            image, camera_info = self.resize.resize()
+        else:
+            image = req.image
+            camera_info = req.camera_info
 
         self.noise_filter.image = image
         
-        image = self.noise_filter.filter()
+        if self.get_parameter('use_noise_filter').value:
+            self.get_logger().info('noise filtering')
+            image = self.noise_filter.filter()
         
         res.contours = self.apply_filter(image)
         res.camera_info = camera_info

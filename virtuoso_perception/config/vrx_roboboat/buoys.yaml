@@ -58,4 +58,4 @@ perception_buoy_filter:
 
     # Processing params
     use_resize: True
-    use_noise_filter: True
+    use_noise_filter: False
