@@ -13,21 +13,13 @@ perception_buoy_filter:
     filter_bounds:
       red:
         lower1: [0, 50, 50]
-        upper1: [10, 255, 255]
+        upper1: [30, 255, 255]
         lower2: [160, 50, 50]
         upper2: [180, 255, 255]
-        # lower1: [0,0,0]
-        # upper1: [0,0,0]
-        # lower2: [0,0,0]
-        # upper2: [0,0,0]
       green:
-        lower: [65, 50, 20]
+        lower: [80, 50, 20]
         upper: [86, 255, 255]
-        # lower: [0,0,0]
-        # upper: [0,0,0]
       black:
-        # lower: [0 ,0, 0]
-        # upper: [180,255,30]
         lower: [0,0,0]
         upper: [0,0,0]
       yellow:
@@ -59,8 +51,8 @@ perception_buoy_filter:
     min_cluster_height: 20
     max_cluster_width: 100
     min_cluster_width: 20
-    epsilon: 20
-    min_pts: 20
+    epsilon: 2
+    min_pts: 12
 
     # CV2_CONTOURS clustering params
     buoy_border_px: 5

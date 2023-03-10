@@ -6,7 +6,8 @@ from ament_index_python.packages import get_package_share_directory
 import sys
 import yaml
 
-BASE_CAM_TOPIC = '/wamv/sensors/cameras/front_left_camera'
+# BASE_CAM_TOPIC = '/wamv/sensors/cameras/front_left_camera'
+BASE_CAM_TOPIC = '/cameras/front_left_camera'
 RED = True
 GREEN = True
 BLACK = True
