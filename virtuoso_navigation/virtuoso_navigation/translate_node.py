@@ -44,7 +44,7 @@ class TranslateNode(Node):
 
         try:
             now = Time()
-            trans = self.tf_buffer.lookup_transform('map', 'wamv/base_link', now)
+            trans = self.tf_buffer.lookup_transform('map', 'base_link', now)
         except Exception as e:
             self.get_logger().info('FAILED TRANSFORM')
             self.get_logger().info(str(e))
