@@ -68,6 +68,13 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='odom_to_map',
             arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+        ),
+        Node(
+            package='tf2_ros',
+            executable='static_transform_publisher',
+            name='base_links',
+            arguments=['0', '0', '0', '0', '0', '0', 'wamv/base_link', 'base_link'],
+            condition=IfCondition(sim_time_config)
         )
     ]
 
