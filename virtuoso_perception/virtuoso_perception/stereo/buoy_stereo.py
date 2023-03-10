@@ -173,9 +173,12 @@ class BuoyStereo(Stereo):
 
         self._debug(f'midpoints: {midpoints}')
 
+        self._debug(f'cam_transform x: {self.cam_transform[0][0]}')
+
         x, y = img_points_to_physical_xy(midpoints[0], midpoints[1], 
             self.left_cam_info.k[0], self.right_cam_info.k[0], 
-            (len(left_img_rect) // 2, len(left_img_rect[0]) // 2)
+            (len(left_img_rect) // 2, len(left_img_rect[0]) // 2),
+            abs(self.cam_transform[0][0])
         )
 
         points_base_index = buoy_index * 2
