@@ -62,7 +62,8 @@ def img_points_to_physical_xy(p1:tuple, p2:tuple, fx1:float, fx2:float, center:t
 
     s_theta = math.pi - left_x_theta - right_x_theta
 
-    left_hyp = math.sin(right_x_theta) * cam_separation / s_theta
+    # left_hyp = math.sin(right_x_theta) * cam_separation / s_theta # ?
+    left_hyp = math.sin(right_x_theta) / (math.sin(s_theta) / cam_separation)
 
     object_x = left_hyp * math.sin(left_x_theta)
 
