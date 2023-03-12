@@ -23,6 +23,7 @@ def generate_launch_description():
     rviz_launch_file = os.path.join(get_package_share_directory('nav2_bringup'), 'launch', 'rviz_launch.py')
     nav2_params_file = (pkg_share, '/config/', usv_config, '/nav2.yaml')
     waypoints_param_file = (pkg_share, '/config/', usv_config, '/waypoints.yaml')
+    rotate_param_file = (pkg_share, '/config/', usv_config, '/rotate.yaml')
 
     usv_config_str = None
     for arg in sys.argv:
@@ -58,7 +59,8 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_navigation',
-            executable='rotate'
+            executable='rotate',
+            parameters=[rotate_param_file]
         ),
 
         # Currently, state estimation only using odom frame for localization, so no difference between 
