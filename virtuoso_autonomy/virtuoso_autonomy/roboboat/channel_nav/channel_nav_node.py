@@ -132,6 +132,7 @@ class ChannelNavNode(Node):
 
         path = Path()
         path.poses.append(mid)
+        # path.poses.append(channel[1])
 
         self.state = State.NAVIGATING
         self.channel_call = None

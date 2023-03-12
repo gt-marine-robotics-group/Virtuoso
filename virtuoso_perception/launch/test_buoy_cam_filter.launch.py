@@ -8,10 +8,10 @@ import yaml
 
 # BASE_CAM_TOPIC = '/wamv/sensors/cameras/front_left_camera'
 BASE_CAM_TOPIC = '/cameras/front_left_camera'
-RED = True
+RED = False
 GREEN = True
-BLACK = True
-YELLOW = True
+BLACK = False
+YELLOW = False
 
 def generate_launch_description():
 
