@@ -50,7 +50,7 @@ class VelocityPID:
         #calculate target force x and y. Formula is (roughly):
         #target force = target velocity * drag gain + (error in velocity)*gain on error + (integral of error) * (gain on integral error)
         #Note that x and y are in the base_link frame
-        target_force_y = (target_vel[1]*.25*self._k_drag_factor + (target_vel[1] - current_vel_y)*0.5*self._k_error_factor
+        target_force_y = 2.0*(target_vel[1]*.25*self._k_drag_factor + (target_vel[1] - current_vel_y)*0.5*self._k_error_factor
             + self._y_integral*0.01*self._ki_factor)
         target_force_x = (target_vel[0]*0.25*self._k_drag_factor + (target_vel[0] - current_vel_x)*0.5*self._k_error_factor
             + self._x_integral*0.01*self._ki_factor)

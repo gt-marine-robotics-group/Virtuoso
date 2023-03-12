@@ -50,7 +50,7 @@ class SafetyCheckNode(Node):
             time.sleep(5.0)
             self.state = State.FINDING_NEXT_GATE
         else:
-            time.sleep(1.0)
+            time.sleep(2.0)
             self.nav_forward()
         
     def nav_forward(self):

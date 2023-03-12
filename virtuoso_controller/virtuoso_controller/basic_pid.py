@@ -62,7 +62,7 @@ class BasicPID:
         
         #calculate target forces in the base_link frame
         #note that target_vel is the position error 
-        target_force_y = ((target_vel[1]*0.15*self._kp_factor - current_vel_y*0.9*0.7*self._kd_factor) 
+        target_force_y = 1.0*((target_vel[1]*0.15*self._kp_factor - current_vel_y*0.9*0.7*self._kd_factor) 
             + self.y_integral*0.001*self._ki_factor)
         target_force_x = ((target_vel[0]*0.11*self._kp_factor - current_vel_x*0.333*0.7*self._kd_factor)
             + self.x_intergral*0.001*self._ki_factor)
