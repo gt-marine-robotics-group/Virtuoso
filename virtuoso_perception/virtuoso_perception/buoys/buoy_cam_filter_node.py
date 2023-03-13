@@ -74,6 +74,9 @@ class BuoyFilterNode(Node):
         self.resize = Resize(resize_factor=self.get_parameter('resize_factor').value)
         self.noise_filter = NoiseFilter(denoising_params=self.get_parameter('denoising_params').value)
 
+        if self.get_parameter('debug').value:
+            node = self
+        else: node = None
         self.buoy_filter = BuoyFilter(clustering_method=self.get_parameter('clustering_method').value,
             color_filter_bounds=ColorRange(self, ['red', 'green', 'black', 'yellow'], prefix='filter_bounds.'), 
             color_label_bounds=ColorRange(self, ['red', 'green', 'black', 'yellow'], prefix='label_bounds.'),
@@ -84,10 +87,9 @@ class BuoyFilterNode(Node):
             max_cluster_width=self.get_parameter('max_cluster_width').value,
             min_cluster_width=self.get_parameter('min_cluster_width').value,
             epsilon=self.get_parameter('epsilon').value,
-            min_pts=self.get_parameter('min_pts').value
+            min_pts=self.get_parameter('min_pts').value,
+            node=node
         )
-        if self.get_parameter('debug').value:
-            self.buoy_filter.node = self
 
         self.debug_pubs = {
             'black_white': self.create_publisher(Image,
