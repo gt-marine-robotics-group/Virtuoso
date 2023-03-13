@@ -18,10 +18,10 @@
         lower2: [160, 50, 50]
         upper2: [180, 255, 255]
       green:
-        lower: [50, 50, 20]
+        lower: [50, 50, 100]
         upper: [86, 255, 255]
       blue:
-        lower: [110 ,100, 50]
+        lower: [120 ,100, 50]
         upper: [130, 255, 255]
 
     code_px_color_sample_size: 0.1 # between 0 and 1
