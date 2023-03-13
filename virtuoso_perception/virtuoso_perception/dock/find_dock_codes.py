@@ -1,25 +1,26 @@
 from ..utils.color_range import ColorRange
 from ..utils.ColorFilter import ColorFilter
+from ..clustering.density_filter import DensityFilter
+from ..utils.node_helper import NodeHelper
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 
-class FindDockCodes:
+class FindDockCodes(NodeHelper):
 
     def __init__(self, max_cluster_height:int, min_cluster_height:int,
         max_cluster_width:int, min_cluster_width:int, epsilon:int, min_pts:int,
+        code_px_color_sample_size:float,
         code_color_bounds:ColorRange, placard_color_bounds:dict, 
-        placard_prop:float):
-
-        self._max_cluster_height = max_cluster_height
-        self._min_cluster_height = min_cluster_height
-        self._max_cluster_width = max_cluster_width
-        self._min_cluster_width = min_cluster_width
-        self._epsilon = epsilon
-        self._min_pts = min_pts
+        placard_prop:float, node):
 
         self._code_color_bounds = code_color_bounds
+
+        self._clustering = DensityFilter(node, max_cluster_height, min_cluster_height,
+            max_cluster_width, min_cluster_width, epsilon, min_pts, code_px_color_sample_size,
+            code_color_bounds, code_color_bounds)
+
         self._placard_color_bounds = placard_color_bounds
         self._placard_prop = placard_prop
 
@@ -27,10 +28,6 @@ class FindDockCodes:
         self.image:Image = None
 
         self._cv_bridge = CvBridge()
-    
-    def _debug(self, msg:str):
-        if self.node is None: return
-        self.node.get_logger().info(msg)
     
     def run(self):
 

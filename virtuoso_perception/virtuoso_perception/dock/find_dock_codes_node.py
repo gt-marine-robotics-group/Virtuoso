@@ -32,6 +32,8 @@ class FindDockCodesNode(Node):
             ('code_bounds.blue.lower', [0,0,0]),
             ('code_bounds.blue.upper', [0,0,0]),
 
+            ('code_px_color_sample_size', 0.1),
+
             ('placard_bounds.lower', [0,0,0]),
             ('placard_bounds.upper', [0,0,0]),
 
@@ -56,18 +58,21 @@ class FindDockCodesNode(Node):
         self.resize = Resize(resize_factor=self.get_parameter('resize_factor').value)
         self.noise_filter = NoiseFilter(denoising_params=self.get_parameter('denoising_params').value)
 
+        if self.get_parameter('debug').value:
+            node = self
+        else: node = None
         self.find_dock_codes = FindDockCodes(max_cluster_height=self.get_parameter('max_cluster_height').value,
             min_cluster_height=self.get_parameter('min_cluster_height').value,
             max_cluster_width=self.get_parameter('max_cluster_width').value,
             min_cluster_width=self.get_parameter('min_cluster_width').value,
-            epsilon=self.get_parameter('epsilon').value, min_pts=self.get_parameter('min_pts').value, 
+            epsilon=self.get_parameter('epsilon').value, min_pts=self.get_parameter('min_pts').value,
+            code_px_color_sample_size=self.get_parameter('code_px_color_sample_size').value,
             code_color_bounds=ColorRange(self, ['red', 'green', 'blue'], prefix='code_bounds.'),
             placard_color_bounds={'lower': self.get_parameter('placard_bounds.lower').value,
                 'upper': self.get_parameter('placard_bounds.upper').value}, 
-            placard_prop=self.get_parameter('min_placard_color_prop_between_codes').value)
+            placard_prop=self.get_parameter('min_placard_color_prop_between_codes').value,
+            node=node)
 
-        if self.get_parameter('debug').value:
-            self.find_dock_codes.node = self
     
     def image_callback(self, msg:Image):
         self.get_logger().info('image callback')
