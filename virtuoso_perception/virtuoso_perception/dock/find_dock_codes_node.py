@@ -73,6 +73,17 @@ class FindDockCodesNode(Node):
             placard_prop=self.get_parameter('min_placard_color_prop_between_codes').value,
             node=node)
 
+        self.debug_pubs = {
+            'black_white': self.create_publisher(Image,
+            '/find_dock_codes/debug/black_white', 10),
+            'full_contours': self.create_publisher(Image,
+            '/find_dock_codes/debug/full_contours', 10),
+            'filtered_contours': self.create_publisher(Image,
+            '/find_dock_codes/debug/filtered_contours', 10)
+        }
+
+    def debug_pub(self, name:str, msg):
+        self.debug_pubs[name].publish(msg)
     
     def image_callback(self, msg:Image):
         self.get_logger().info('image callback')
@@ -80,6 +91,13 @@ class FindDockCodesNode(Node):
     
     def srv_callback(self, req:DockPlacardCameraPos.Request, res:DockPlacardCameraPos.Response):
         self.get_logger().info('service called')
+
+        if self.image is None:
+            self.get_logger().info('No image')
+            return res
+
+        self.find_dock_codes.image = self.image
+        self.find_dock_codes.run()
 
         return res
 

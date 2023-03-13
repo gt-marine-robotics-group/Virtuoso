@@ -24,7 +24,7 @@ class DensityFilter(Clustering):
 
         self.cv_bridge = CvBridge()
 
-    def __call__(self, bgr_img:np.ndarray):
+    def __call__(self, bgr_img:np.ndarray, contour_color=(255,0,0)):
         gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
         _, black_and_white = cv2.threshold(gray, 10, 255, cv2.THRESH_BINARY)
 
@@ -97,7 +97,7 @@ class DensityFilter(Clustering):
 
         self._debug_pub('full_contours', 
             self.cv_bridge.cv2_to_imgmsg(cv2.drawContours(
-                    bgr_img.copy(), tuple(contours), -1, (255,0,0), 1
+                    bgr_img.copy(), tuple(contours), -1, contour_color, 1
                 ),
                 encoding='bgr8'
             )
@@ -115,7 +115,8 @@ class DensityFilter(Clustering):
                 'red': 0,
                 'green': 0,
                 'yellow': 0,
-                'black': 0 
+                'black': 0,
+                'blue': 0
             }
 
             blank = np.zeros((bgr_img.shape[0], bgr_img.shape[1]))

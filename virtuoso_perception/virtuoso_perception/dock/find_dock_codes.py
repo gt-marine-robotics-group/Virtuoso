@@ -14,6 +14,7 @@ class FindDockCodes(NodeHelper):
         code_px_color_sample_size:float,
         code_color_bounds:ColorRange, placard_color_bounds:dict, 
         placard_prop:float, node):
+        super().__init__(node)
 
         self._code_color_bounds = code_color_bounds
 
@@ -24,7 +25,6 @@ class FindDockCodes(NodeHelper):
         self._placard_color_bounds = placard_color_bounds
         self._placard_prop = placard_prop
 
-        self.node = None
         self.image:Image = None
 
         self._cv_bridge = CvBridge()
@@ -34,7 +34,7 @@ class FindDockCodes(NodeHelper):
         bgr_image = self._cv_bridge.imgmsg_to_cv2(self.image, desired_encoding='bgr8')
 
         color_filter = ColorFilter(
-            cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)   ,
+            cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV),
             bgr_image
         )
 
@@ -51,3 +51,7 @@ class FindDockCodes(NodeHelper):
         )
 
         combo = cv2.bitwise_or(cv2.bitwise_or(red_filtered, green_filtered), blue_filtered)
+
+        contours, colors, contour_offsets = self._clustering(combo, contour_color=(193,182,255))
+
+        self._debug(f'num contours: {len(contour_offsets)}')

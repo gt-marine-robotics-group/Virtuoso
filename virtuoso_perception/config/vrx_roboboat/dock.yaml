@@ -4,10 +4,10 @@
     debug: True
 
     # DENSITY clustering params
-    max_cluster_height: 50
-    min_cluster_height: 10
-    max_cluster_width: 50
-    min_cluster_width: 10
+    max_cluster_height: 300
+    min_cluster_height: 20
+    max_cluster_width: 300
+    min_cluster_width: 20
     epsilon: 2
     min_pts: 12
 
