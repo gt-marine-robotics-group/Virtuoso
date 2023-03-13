@@ -37,5 +37,9 @@ def generate_launch_description():
                 dock_param_file,
                 camera_processing_param_file
             ]
+        ),
+        Node(
+            package='virtuoso_perception',
+            executable='test_find_dock_codes',
         )
     ])

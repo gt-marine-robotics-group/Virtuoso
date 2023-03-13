@@ -49,7 +49,6 @@ class FindDockCodesNode(Node):
         self.srv = self.create_service(DockPlacardCameraPos, 'find_dock_placard_offsets',   
             self.srv_callback)
         
-        self.get_logger().info(f'{base_topic}/image_raw')
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
             self.image_callback, 10)
         self.image:Image = None
