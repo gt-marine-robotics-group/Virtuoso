@@ -54,4 +54,8 @@ class FindDockCodes(NodeHelper):
 
         contours, colors, contour_offsets = self._clustering(combo, contour_color=(193,182,255))
 
-        self._debug(f'num contours: {len(contour_offsets)}')
+        placard_filter = color_filter.filter(lower=np.array(self._placard_color_bounds['lower']),
+            upper=np.array(self._placard_color_bounds['upper']))
+        
+        self._debug_pub('placard_bg_filter', 
+            self._cv_bridge.cv2_to_imgmsg(placard_filter, encoding='bgr8')) 

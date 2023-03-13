@@ -75,11 +75,13 @@ class FindDockCodesNode(Node):
 
         self.debug_pubs = {
             'black_white': self.create_publisher(Image,
-            '/find_dock_codes/debug/black_white', 10),
+                '/find_dock_codes/debug/black_white', 10),
             'full_contours': self.create_publisher(Image,
-            '/find_dock_codes/debug/full_contours', 10),
+                '/find_dock_codes/debug/full_contours', 10),
             'filtered_contours': self.create_publisher(Image,
-            '/find_dock_codes/debug/filtered_contours', 10)
+                '/find_dock_codes/debug/filtered_contours', 10),
+            'placard_bg_filter': self.create_publisher(Image,
+                '/find_dock_codes/debug/placard_bg_filter', 10)
         }
 
     def debug_pub(self, name:str, msg):
