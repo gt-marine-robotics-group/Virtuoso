@@ -2,6 +2,7 @@ from rclpy.node import Node
 import numpy as np
 import cv2
 from virtuoso_msgs.msg import Contours
+from ..utils.node_helper import NodeHelper
 from ..utils.ColorFilter import ColorFilter
 from ..utils.color_range import ColorRange
 from ..utils.code_identification import find_contours
@@ -10,7 +11,7 @@ import random
 from scipy import stats
 from collections import deque
 
-class BuoyFilter:
+class BuoyFilter(NodeHelper):
 
     def __init__(self, clustering_method:str, color_filter_bounds:ColorRange, 
         color_label_bounds:ColorRange, buoy_border_px:int, buoy_px_color_sample_size:float, 
@@ -32,15 +33,9 @@ class BuoyFilter:
 
         self._clustering_method = clustering_method
 
-        self.node:Node = None
         self.image:np.ndarray = None
 
         self.contours:Contours = None
-    
-    def _debug_pub(self, name:str, msg):
-        if self.node is None:
-            return
-        self.node.debug_pubs[name].publish(msg)
     
     def run(self):
 

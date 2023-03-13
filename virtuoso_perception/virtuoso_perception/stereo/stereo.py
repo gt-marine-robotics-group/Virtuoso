@@ -11,7 +11,7 @@ class Stereo(NodeHelper):
 
     def __init__(self, node:Node, multiprocessing:bool):
 
-        self._node = node 
+        super().__init__(node)
         self._multiprocessing = multiprocessing
 
         self._cv_bridge = CvBridge()

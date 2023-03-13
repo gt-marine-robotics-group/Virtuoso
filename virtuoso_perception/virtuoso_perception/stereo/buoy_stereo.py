@@ -22,9 +22,9 @@ class BuoyStereo(Stereo):
         self.buoys:BuoyArray = None
 
     def _update_debug_pub_sizes(self, num:int):
-        if self._node is None:
+        if self.node is None:
             return
-        self._node.update_debug_pub_sizes(num)
+        self.node.update_debug_pub_sizes(num)
     
     def _sort_contours(self, images_contours:list, images_contour_colors:list):
         for i in range(len(images_contours)):

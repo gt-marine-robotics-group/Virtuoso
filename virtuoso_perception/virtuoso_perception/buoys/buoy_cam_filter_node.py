@@ -98,6 +98,9 @@ class BuoyFilterNode(Node):
             f'{base_topic}/buoy_filter/debug/filtered_contours', 10)
         }
 
+    def debug_pub(self, name:str, msg):
+        self.debug_pubs[name].publish(msg)
+
     def apply_filter(self, img:Image):
         bgr_image = CvBridge().imgmsg_to_cv2(img, desired_encoding='bgr8')
 
