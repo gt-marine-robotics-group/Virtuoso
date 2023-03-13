@@ -1,0 +1,35 @@
+
+/**:
+  ros__parameters:
+    debug: True
+
+    # DENSITY clustering params
+    max_cluster_height: 50
+    min_cluster_height: 10
+    max_cluster_width: 50
+    min_cluster_width: 10
+    epsilon: 2
+    min_pts: 12
+
+    code_bounds:
+      red:
+        lower1: [0, 50, 50]
+        upper1: [10, 255, 255]
+        lower2: [160, 50, 50]
+        upper2: [180, 255, 255]
+      green:
+        lower: [50, 50, 20]
+        upper: [86, 255, 255]
+      blue:
+        lower: [110 ,100, 50]
+        upper: [130, 255, 255]
+    
+    placard_bounds:
+      lower: [0, 0, 100]
+      upper: [180, 25, 255]
+    
+    min_placard_color_prop_between_codes: 0.8
+
+    # Processing params
+    use_resize: True
+    use_noise_filter: False
