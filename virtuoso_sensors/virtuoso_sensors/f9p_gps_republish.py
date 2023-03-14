@@ -114,7 +114,7 @@ class f9pGPSRepublish(Node):
              twistmsg.twist.covariance[7] = 0.01
              twistmsg.twist.covariance[14] = 0.01
              
-             self.gpsVelPublisher.publish(twistmsg)
+             
              
              trans = None
      
@@ -160,6 +160,8 @@ class f9pGPSRepublish(Node):
              static_transformStamped.transform.rotation.w = trans.transform.rotation.w
              
              self.broadcaster.sendTransform(static_transformStamped)
+             
+             self.gpsVelPublisher.publish(twistmsg)
         
 def main(args=None):
     rclpy.init(args=args)

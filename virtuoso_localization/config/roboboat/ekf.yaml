@@ -33,7 +33,7 @@ ekf_filter_node:
 
 # Use this parameter to provide specify how long the tf listener should wait for a transform to become available. 
 # Defaults to 0.0 if unspecified.
-        transform_timeout: 0.0
+        transform_timeout: 0.1
 
 # If you're having trouble, try setting this to true, and then echo the /diagnostics_agg topic to see if the node is
 # unhappy with any settings or data.
@@ -160,7 +160,7 @@ ekf_filter_node:
         imu0_nodelay: false
         imu0_differential: false
         imu0_relative: false
-        imu0_queue_size: 7
+        imu0_queue_size: 2
 
         #imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
         #imu0_twist_rejection_threshold: 0.8                #
@@ -178,10 +178,10 @@ ekf_filter_node:
         #         roll_vel, pitch_vel, yaw_vel,
         #         x_accel , y_accel  , z_accel]
         
-        twist0_nodelay: false
+        twist0_nodelay: true
         twist0_differential: false
         twist0_relative: false
-        twist0_queue_size: 7
+        twist0_queue_size: 2
         
 # [ADVANCED] Some IMUs automatically remove acceleration due to gravity, and others don't. If yours doesn't, please set
 # this to true, and *make sure* your data conforms to REP-103, specifically, that the data is in ENU frame.
