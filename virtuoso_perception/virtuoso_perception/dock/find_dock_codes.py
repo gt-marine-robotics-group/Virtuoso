@@ -2,6 +2,7 @@ from ..utils.color_range import ColorRange
 from ..utils.ColorFilter import ColorFilter
 from ..clustering.density_filter import DensityFilter
 from ..utils.node_helper import NodeHelper
+from ..stereo.utils import unflatten_contours
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -59,3 +60,27 @@ class FindDockCodes(NodeHelper):
         
         self._debug_pub('placard_bg_filter', 
             self._cv_bridge.cv2_to_imgmsg(placard_filter, encoding='bgr8')) 
+
+        contours = unflatten_contours(contours, contour_offsets)
+
+        contours = self._filter_contours_by_placard_backdrop(contours)
+
+    def _filter_contours_by_placard_backdrop(self, contours):
+
+        for contour_index in range(contours.shape[0]):
+            contour = contours[contour_index]
+
+            bounds = self._find_contour_bounds(contour[:,0,:])
+
+            self._debug(f'bounds: {bounds}')
+
+    def _find_contour_bounds(self, contour):
+
+        bounds = {
+            'bottom': np.max(contour[:,1]),
+            'top': np.min(contour[:,1]),
+            'left': np.min(contour[:,0]),
+            'right': np.max(contour[:,0])
+        }
+
+        return bounds
