@@ -33,9 +33,10 @@ class FindDockCodes(NodeHelper):
     def run(self):
 
         bgr_image = self._cv_bridge.imgmsg_to_cv2(self.image, desired_encoding='bgr8')
+        hsv_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
 
         color_filter = ColorFilter(
-            cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV),
+            hsv_image,
             bgr_image
         )
 
@@ -63,9 +64,11 @@ class FindDockCodes(NodeHelper):
 
         contours = unflatten_contours(contours, contour_offsets)
 
-        contours = self._filter_contours_by_placard_backdrop(contours)
+        contours = self._filter_contours_by_placard_backdrop(contours, hsv_image)
 
-    def _filter_contours_by_placard_backdrop(self, contours):
+    def _filter_contours_by_placard_backdrop(self, contours, hsv):
+
+        search_range = 10
 
         for contour_index in range(contours.shape[0]):
             contour = contours[contour_index]
@@ -73,6 +76,24 @@ class FindDockCodes(NodeHelper):
             bounds = self._find_contour_bounds(contour[:,0,:])
 
             self._debug(f'bounds: {bounds}')
+
+            if bounds['top'] - search_range >= 0:
+                top = hsv[bounds['top'] - search_range : bounds['top'], bounds['left']:bounds['right'] + 1,:]
+            else: top = None
+
+            if bounds['bottom'] + search_range <= hsv.shape[0]:
+                bottom = hsv[bounds['bottom'] + 1 : bounds['bottom'] + search_range + 1, bounds['left']:bounds['right'] + 1,:]
+            else: bottom = None
+
+            if bounds['left'] - search_range >= 0:
+                left = hsv[bounds['top']:bounds['bottom'] + 1, bounds['left'] - search_range : bounds['left'],:]
+            else: left = None
+
+            if bounds['right'] + search_range <= hsv.shape[1]:
+                right = hsv[bounds['top']:bounds['bottom'] + 1, bounds['right'] + 1 : bounds['right'] + search_range + 1,:]
+            
+            self._debug(f'shapes: {(top.shape, bottom.shape, left.shape, right.shape)}')
+            
 
     def _find_contour_bounds(self, contour):
 

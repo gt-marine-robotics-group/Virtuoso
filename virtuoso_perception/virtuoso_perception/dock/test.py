@@ -9,3 +9,16 @@ print(arr.shape)
 # print(mins)
 max = np.min(arr[:,1])
 print(max)
+
+image = np.array([
+    [[1,1,1], [2,2,2], [3,3,3]],
+    [[4,4,4], [5,5,5], [6,6,6]],
+    [[7,7,7], [8,8,8], [9,9,9]]
+])
+
+left = 1
+right = 2
+top = 1
+
+above = image[top-1:top,left:right+1]
+print(above)
