@@ -14,7 +14,7 @@ class FindDockCodes(NodeHelper):
         max_cluster_width:int, min_cluster_width:int, epsilon:int, min_pts:int,
         code_px_color_sample_size:float,
         code_color_bounds:ColorRange, placard_color_bounds:dict, 
-        placard_prop:float, node):
+        placard_prop:float, placard_search_range:int, node):
         super().__init__(node)
 
         self._code_color_bounds = code_color_bounds
@@ -23,6 +23,7 @@ class FindDockCodes(NodeHelper):
             max_cluster_width, min_cluster_width, epsilon, min_pts, code_px_color_sample_size,
             code_color_bounds, code_color_bounds)
 
+        self._placard_search_range = placard_search_range
         self._placard_color_bounds = placard_color_bounds
         self._placard_prop = placard_prop
 
@@ -72,7 +73,7 @@ class FindDockCodes(NodeHelper):
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):
 
-        search_range = 10
+        search_range = self._placard_search_range
 
         filtered_contours = list()
         filtered_colors = list()

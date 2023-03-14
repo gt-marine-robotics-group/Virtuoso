@@ -37,6 +37,7 @@ class FindDockCodesNode(Node):
             ('placard_bounds.lower', [0,0,0]),
             ('placard_bounds.upper', [0,0,0]),
 
+            ('placard_color_search_range', 0),
             ('min_placard_color_prop_between_codes', 0.0),
 
             ('denoising_params', []),
@@ -71,6 +72,7 @@ class FindDockCodesNode(Node):
             placard_color_bounds={'lower': self.get_parameter('placard_bounds.lower').value,
                 'upper': self.get_parameter('placard_bounds.upper').value}, 
             placard_prop=self.get_parameter('min_placard_color_prop_between_codes').value,
+            placard_search_range=self.get_parameter('placard_color_search_range').value,
             node=node)
 
         self.debug_pubs = {

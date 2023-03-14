@@ -30,6 +30,7 @@
       lower: [0, 0, 100]
       upper: [180, 25, 255]
     
+    placard_color_search_range: 10
     min_placard_color_prop_between_codes: 0.8
 
     # Processing params
