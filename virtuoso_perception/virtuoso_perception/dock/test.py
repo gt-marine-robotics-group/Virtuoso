@@ -22,3 +22,6 @@ top = 1
 
 above = image[top-1:top,left:right+1]
 print(above)
+
+print(np.reshape(above, (above.shape[0] * above.shape[1], 3)))
+print(np.append(np.reshape(above, (-1, 3)), np.reshape(above, (-1, 3)), axis=0))

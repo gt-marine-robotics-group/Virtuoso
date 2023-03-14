@@ -79,20 +79,27 @@ class FindDockCodes(NodeHelper):
 
             if bounds['top'] - search_range >= 0:
                 top = hsv[bounds['top'] - search_range : bounds['top'], bounds['left']:bounds['right'] + 1,:]
-            else: top = None
+            else: top = np.ndarray((0,0,3))
 
             if bounds['bottom'] + search_range <= hsv.shape[0]:
                 bottom = hsv[bounds['bottom'] + 1 : bounds['bottom'] + search_range + 1, bounds['left']:bounds['right'] + 1,:]
-            else: bottom = None
+            else: bottom = np.ndarray((0,0,3))
 
             if bounds['left'] - search_range >= 0:
                 left = hsv[bounds['top']:bounds['bottom'] + 1, bounds['left'] - search_range : bounds['left'],:]
-            else: left = None
+            else: left = np.ndarray((0,0,3))
 
             if bounds['right'] + search_range <= hsv.shape[1]:
                 right = hsv[bounds['top']:bounds['bottom'] + 1, bounds['right'] + 1 : bounds['right'] + search_range + 1,:]
+            else: right = np.ndarray((0,0,3))
             
             self._debug(f'shapes: {(top.shape, bottom.shape, left.shape, right.shape)}')
+
+            total = np.append(np.reshape(top, (-1,3)), np.reshape(bottom, (-1,3)), axis=0)
+            total = np.append(total, np.reshape(left, (-1,3)), axis=0)
+            total = np.append(total, np.reshape(right, (-1,3)), axis=0)
+
+            self._debug(f'total shapes: {total.shape}')
             
 
     def _find_contour_bounds(self, contour):
