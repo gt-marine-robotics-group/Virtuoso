@@ -75,8 +75,6 @@ class FindDockCodes(NodeHelper):
 
             bounds = self._find_contour_bounds(contour[:,0,:])
 
-            self._debug(f'bounds: {bounds}')
-
             if bounds['top'] - search_range >= 0:
                 top = hsv[bounds['top'] - search_range : bounds['top'], bounds['left']:bounds['right'] + 1,:]
             else: top = np.ndarray((0,0,3))
@@ -92,14 +90,19 @@ class FindDockCodes(NodeHelper):
             if bounds['right'] + search_range <= hsv.shape[1]:
                 right = hsv[bounds['top']:bounds['bottom'] + 1, bounds['right'] + 1 : bounds['right'] + search_range + 1,:]
             else: right = np.ndarray((0,0,3))
-            
-            self._debug(f'shapes: {(top.shape, bottom.shape, left.shape, right.shape)}')
 
             total = np.append(np.reshape(top, (-1,3)), np.reshape(bottom, (-1,3)), axis=0)
             total = np.append(total, np.reshape(left, (-1,3)), axis=0)
             total = np.append(total, np.reshape(right, (-1,3)), axis=0)
 
-            self._debug(f'total shapes: {total.shape}')
+            mask = cv2.inRange(total[np.newaxis,:,:], np.array(self._placard_color_bounds['lower']),
+                np.array(self._placard_color_bounds['upper']))
+
+            num_nonzero = np.count_nonzero(mask)
+
+            prop = num_nonzero / total.shape[0]
+
+            self._debug(f'prop: {prop}')
             
 
     def _find_contour_bounds(self, contour):
