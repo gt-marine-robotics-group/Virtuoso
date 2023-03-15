@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from virtuoso_msgs.srv import DockPlacardCameraPos
+from virtuoso_msgs.srv import DockCodesCameraPos
 from ..camera_processing.resize import Resize
 from ..camera_processing.noise_filter import NoiseFilter
 from .find_dock_codes import FindDockCodes
@@ -49,7 +49,7 @@ class FindDockCodesNode(Node):
 
         base_topic = self.get_parameter('camera_base_topic').value
 
-        self.srv = self.create_service(DockPlacardCameraPos, 'find_dock_placard_offsets',   
+        self.srv = self.create_service(DockCodesCameraPos, 'find_dock_placard_offsets',   
             self.srv_callback)
         
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
@@ -99,7 +99,7 @@ class FindDockCodesNode(Node):
     def camera_info_callback(self, msg:CameraInfo):
         self.camera_info = msg
     
-    def srv_callback(self, req:DockPlacardCameraPos.Request, res:DockPlacardCameraPos.Response):
+    def srv_callback(self, req:DockCodesCameraPos.Request, res:DockCodesCameraPos.Response):
         self.get_logger().info('service called')
 
         if self.image is None:

@@ -4,6 +4,7 @@ from .docking_states import State
 from nav_msgs.msg import Path, Odometry
 from std_msgs.msg import Empty
 from geometry_msgs.msg import PoseStamped, Point, Pose
+from virtuoso_msgs.srv import DockCodesCameraPos
 
 class DockingNode(Node):
 
@@ -18,7 +19,7 @@ class DockingNode(Node):
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
-
+        
         self.state = State.START
 
         self.robot_pose:Pose = None
@@ -47,10 +48,16 @@ class DockingNode(Node):
             return
         if self.state == State.ORIENTING:
             return
+        if self.state == State.SEARCHING_FOR_DOCK_CODE:
+            self.search_for_dock_code()
+            return
     
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED
         self.station_keeping_pub.publish(Empty())
+    
+    def search_for_dock_code(self):
+        pass
 
 
 def main(args=None):

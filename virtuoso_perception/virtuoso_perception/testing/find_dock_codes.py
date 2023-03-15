@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from virtuoso_msgs.srv import DockPlacardCameraPos
+from virtuoso_msgs.srv import DockCodesCameraPos
 
 class TestFindDockCodesNode(Node):
 
@@ -9,7 +9,7 @@ class TestFindDockCodesNode(Node):
 
         self.declare_parameter('camera_base_topic', '')
 
-        self.client = self.create_client(DockPlacardCameraPos, f'find_dock_placard_offsets')
+        self.client = self.create_client(DockCodesCameraPos, f'find_dock_placard_offsets')
         self.req = None
 
         self.create_timer(1.0, self.timer_callback)
@@ -22,7 +22,7 @@ class TestFindDockCodesNode(Node):
 
         self.get_logger().info('sending req')
 
-        msg = DockPlacardCameraPos.Request()
+        msg = DockCodesCameraPos.Request()
         
         self.req = self.client.call_async(msg)
         self.req.add_done_callback(self.response_callback)
