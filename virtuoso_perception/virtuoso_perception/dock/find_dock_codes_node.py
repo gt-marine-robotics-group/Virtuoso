@@ -6,11 +6,17 @@ from ..camera_processing.noise_filter import NoiseFilter
 from .find_dock_codes import FindDockCodes
 from ..utils.color_range import ColorRange
 from sensor_msgs.msg import Image, CameraInfo
+from rclpy.executors import MultiThreadedExecutor
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+import time
 
 class FindDockCodesNode(Node):
 
     def __init__(self):
         super().__init__('perception_find_dock_codes')
+
+        self.cb_group1 = MutuallyExclusiveCallbackGroup()
+        self.cb_group2 = MutuallyExclusiveCallbackGroup()
 
         self.declare_parameters(namespace='', parameters=[
             ('debug', False),
@@ -50,15 +56,17 @@ class FindDockCodesNode(Node):
         base_topic = self.get_parameter('camera_base_topic').value
 
         self.srv = self.create_service(DockCodesCameraPos, 'find_dock_placard_offsets',   
-            self.srv_callback)
+            self.srv_callback, callback_group=self.cb_group1)
         
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
-            self.image_callback, 10)
+            self.image_callback, 10, callback_group=self.cb_group2)
         self.image:Image = None
+        self.old_image = True
 
         self.camera_info_sub = self.create_subscription(CameraInfo, f'{base_topic}/camera_info',
-            self.camera_info_callback, 10)
+            self.camera_info_callback, 10, callback_group=self.cb_group2)
         self.camera_info:CameraInfo = None
+        self.cam_width = 0
         
         self.resize = Resize(resize_factor=self.get_parameter('resize_factor').value)
         self.noise_filter = NoiseFilter(denoising_params=self.get_parameter('denoising_params').value)
@@ -95,9 +103,11 @@ class FindDockCodesNode(Node):
     
     def image_callback(self, msg:Image):
         self.image = msg
+        self.old_image = False
     
     def camera_info_callback(self, msg:CameraInfo):
         self.camera_info = msg
+        self.cam_width = msg.width // self.get_parameter('resize_factor').value
     
     def srv_callback(self, req:DockCodesCameraPos.Request, res:DockCodesCameraPos.Response):
         self.get_logger().info('service called')
@@ -109,6 +119,10 @@ class FindDockCodesNode(Node):
         if self.camera_info is None:
             self.get_logger().info('No camera info')
             return res
+
+        while self.old_image:
+            self.get_logger().info('Waiting for new image')
+            time.sleep(0.5)
 
         self.resize.image = self.image
         self.resize.camera_info = self.camera_info
@@ -129,7 +143,7 @@ class FindDockCodesNode(Node):
         self.find_dock_codes.image = image
         bounds = self.find_dock_codes.run()
 
-        res.image_width = camera_info.width
+        res.image_width = self.cam_width
         res.red = bounds['red']
         res.blue = bounds['blue']
         res.green = bounds['green']
@@ -141,7 +155,13 @@ def main(args=None):
 
     node = FindDockCodesNode()
 
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor(num_threads=2)
 
-    node.destroy_node()
+    executor.add_node(node)
+
+    executor.spin()
+
+    # rclpy.spin(node)
+
+    # node.destroy_node()
     rclpy.shutdown()
