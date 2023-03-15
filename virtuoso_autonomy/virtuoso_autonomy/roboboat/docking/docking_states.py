@@ -1,0 +1,14 @@
+from enum import Enum
+
+class State(Enum):
+    START = 1
+    STATION_KEEPING_ENABLED = 2
+    APPROACHING_DOCK = 3
+    ORIENTING = 4
+    SEARCHING_FOR_DOCK_CODE = 5
+    SEARCH_TRANSLATING = 6
+    CENTERING = 7
+    CENTER_TRANSLATING = 8
+    DOCKING = 9
+    COUNTING_CODE = 10
+    COMPLETE = 11
