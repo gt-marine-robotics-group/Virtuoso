@@ -19,6 +19,9 @@ class DockingNode(Node):
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
+
+        self.code_pos_client = self.create_client(DockCodesCameraPos, 'find_dock_placard_offsets')
+        self.code_pos_req = None
         
         self.state = State.START
 
@@ -57,7 +60,20 @@ class DockingNode(Node):
         self.station_keeping_pub.publish(Empty())
     
     def search_for_dock_code(self):
-        pass
+        if self.code_pos_req is not None:
+            return
+
+        msg = DockCodesCameraPos.Request()
+
+        self.code_pos_req = self.code_pos_client.call_async(msg)        
+        self.code_pos_req.add_done_callback(self.code_pos_callback)
+    
+    def code_pos_callback(self, future):
+        result = future.result()
+
+        self.code_pos_req = None
+
+        self.get_logger().info(f'result: {result}')
 
 
 def main(args=None):

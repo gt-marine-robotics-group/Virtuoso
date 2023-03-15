@@ -5,6 +5,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import LaunchConfiguration
 import os
+import sys
+import yaml
 
 def generate_launch_description():
 
@@ -13,6 +15,8 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
+    camera_processing_param_file = (pkg_share, '/config/', usv_config,
+        '/camera_processing.yaml')
     dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
 
     voxel_grid_node_param_file = (pkg_share,
@@ -23,6 +27,15 @@ def generate_launch_description():
         default_value=voxel_grid_node_param_file,
         description='Path to config file for Voxel Grid Node'
     )
+
+    usv_config_str = None
+    for arg in sys.argv:
+        if arg.startswith('usv:='):
+            usv_config_str = arg.split(':=')[1]
+
+    camera_data = None
+    with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
+        camera_data = yaml.safe_load(stream)
     
     return LaunchDescription([
         usv_arg,
@@ -47,7 +60,11 @@ def generate_launch_description():
         Node(
             package='virtuoso_perception',
             executable='find_dock_codes',
-            parameters=[dock_param_file]
+            parameters=[
+                {'camera_base_topic': camera_data['camera_config']['all_camera_base_topics'][camera_data['camera_config']['dock_camera_index']]},
+                dock_param_file,
+                camera_processing_param_file
+            ]
         ),
         Node(
             package='virtuoso_perception',

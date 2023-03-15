@@ -29,6 +29,8 @@ def generate_launch_description():
         camera_data = yaml.safe_load(stream)
     
     return LaunchDescription([
+        usv_arg,
+
         Node(
             package='virtuoso_perception',
             executable='find_dock_codes',
