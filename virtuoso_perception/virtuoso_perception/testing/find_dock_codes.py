@@ -30,6 +30,7 @@ class TestFindDockCodesNode(Node):
     def response_callback(self, future):
         self.req = None
         self.get_logger().info('received response')
+        self.get_logger().info(str(future.result()))
 
 def main(args=None):
     rclpy.init(args=args)

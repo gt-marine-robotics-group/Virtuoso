@@ -101,7 +101,12 @@ class FindDockCodesNode(Node):
             return res
 
         self.find_dock_codes.image = self.image
-        self.find_dock_codes.run()
+        bounds, image_width = self.find_dock_codes.run()
+
+        res.image_width = image_width
+        res.red = bounds['red']
+        res.blue = bounds['blue']
+        res.green = bounds['green']
 
         return res
 

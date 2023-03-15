@@ -65,17 +65,30 @@ class FindDockCodes(NodeHelper):
 
         contours = unflatten_contours(contours, contour_offsets)
 
-        contours, colors = self._filter_contours_by_placard_backdrop(contours, colors, hsv_image)
+        contours, bounds, colors = self._filter_contours_by_placard_backdrop(contours, colors, hsv_image)
 
         self._debug_pub('codes', self._cv_bridge.cv2_to_imgmsg(cv2.drawContours(
             combo.copy(), tuple(contours), -1, (193,182,255), 1
         ), encoding='bgr8')) 
+
+        color_positions = {'red': [-1,-1], 'blue': [-1,-1], 'green': [-1,-1]}
+
+        for i in range(len(colors)):
+            color = colors[i]
+            bound = bounds[i]
+            if color_positions[color][0] == -1 or bound['left'] < color_positions[color][0]:
+                color_positions[color][0] = int(bound['left'])
+            if color_positions[color][1] == -1 or bound['right'] > color_positions[color][1]:
+                color_positions[color][1] = int(bound['right'])
+        
+        return color_positions, bgr_image.shape[1]
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):
 
         search_range = self._placard_search_range
 
         filtered_contours = list()
+        filtered_bounds = list()
         filtered_colors = list()
 
         for contour_index in range(contours.shape[0]):
@@ -112,9 +125,10 @@ class FindDockCodes(NodeHelper):
 
             if prop > self._placard_prop:
                 filtered_contours.append(contour)
+                filtered_bounds.append(bounds)
                 filtered_colors.append(colors[contour_index])
         
-        return filtered_contours, filtered_colors
+        return filtered_contours, filtered_bounds, filtered_colors
             
 
     def _find_contour_bounds(self, contour):
