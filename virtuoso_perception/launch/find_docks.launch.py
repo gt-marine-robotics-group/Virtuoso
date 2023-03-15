@@ -16,7 +16,7 @@ def generate_launch_description():
     dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
 
     voxel_grid_node_param_file = (pkg_share,
-        '/config/', usv_config, '/voxel_grid_node.yaml')
+        '/config/', usv_config, '/voxel_grid.yaml')
 
     voxel_grid_node_param = DeclareLaunchArgument(
         'voxel_grid_node_param_file',
@@ -30,7 +30,7 @@ def generate_launch_description():
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(pkg_share, 'launch/procesing.launch.py')
+                os.path.join(pkg_share, 'launch/processing.launch.py')
             ),
             launch_arguments={'usv': usv_config}.items()
         ),
@@ -39,8 +39,8 @@ def generate_launch_description():
             executable='voxel_grid_node_exe',
             parameters=[LaunchConfiguration('voxel_grid_node_param_file')],
             remappings=[
-                ('points_in', '/local_costmap/voxel_grid'),
-                ('points_downsampled', '/perception/voxel_voxels')
+                ('points_in', '/perception/lidar/points_shore_filtered'),
+                ('points_downsampled', '/perception/voxels')
             ]
         ),
 
