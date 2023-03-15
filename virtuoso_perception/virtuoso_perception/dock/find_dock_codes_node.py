@@ -55,6 +55,10 @@ class FindDockCodesNode(Node):
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
             self.image_callback, 10)
         self.image:Image = None
+
+        self.camera_info_sub = self.create_subscription(CameraInfo, f'{base_topic}/camera_info',
+            self.camera_info_callback, 10)
+        self.camera_info:CameraInfo = None
         
         self.resize = Resize(resize_factor=self.get_parameter('resize_factor').value)
         self.noise_filter = NoiseFilter(denoising_params=self.get_parameter('denoising_params').value)
@@ -90,8 +94,10 @@ class FindDockCodesNode(Node):
         self.debug_pubs[name].publish(msg)
     
     def image_callback(self, msg:Image):
-        self.get_logger().info('image callback')
         self.image = msg
+    
+    def camera_info_callback(self, msg:CameraInfo):
+        self.camera_info = msg
     
     def srv_callback(self, req:DockPlacardCameraPos.Request, res:DockPlacardCameraPos.Response):
         self.get_logger().info('service called')
@@ -99,11 +105,31 @@ class FindDockCodesNode(Node):
         if self.image is None:
             self.get_logger().info('No image')
             return res
+        
+        if self.camera_info is None:
+            self.get_logger().info('No camera info')
+            return res
 
-        self.find_dock_codes.image = self.image
-        bounds, image_width = self.find_dock_codes.run()
+        self.resize.image = self.image
+        self.resize.camera_info = self.camera_info
 
-        res.image_width = image_width
+        if self.get_parameter('use_resize').value:
+            self.get_logger().info('resizing')
+            image, camera_info = self.resize.resize()
+        else:
+            image = self.image
+            camera_info = self.camera_info
+
+        self.noise_filter.image = image
+        
+        if self.get_parameter('use_noise_filter').value:
+            self.get_logger().info('noise filtering')
+            image = self.noise_filter.filter()
+
+        self.find_dock_codes.image = image
+        bounds = self.find_dock_codes.run()
+
+        res.image_width = camera_info.width
         res.red = bounds['red']
         res.blue = bounds['blue']
         res.green = bounds['green']

@@ -81,7 +81,7 @@ class FindDockCodes(NodeHelper):
             if color_positions[color][1] == -1 or bound['right'] > color_positions[color][1]:
                 color_positions[color][1] = int(bound['right'])
         
-        return color_positions, bgr_image.shape[1]
+        return color_positions
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):
 
