@@ -4,7 +4,7 @@ from .docking_states import State
 from nav_msgs.msg import Path, Odometry
 from std_msgs.msg import Empty
 from geometry_msgs.msg import PoseStamped, Point, Pose
-from virtuoso_msgs.srv import DockCodesCameraPos
+from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes
 import time
 
 TARGET_COLOR = 'red'
@@ -25,6 +25,9 @@ class DockingNode(Node):
 
         self.code_pos_client = self.create_client(DockCodesCameraPos, 'find_dock_placard_offsets')
         self.code_pos_req = None
+
+        self.count_code_client = self.create_client(CountDockCodes, 'count_dock_codes')
+        self.count_code_req = None
         
         self.state = State.START
 
@@ -185,7 +188,22 @@ class DockingNode(Node):
         self.trans_pub.publish(msg)
     
     def count_code(self):
-        pass
+        if self.count_code_req is not None:
+            return
+        
+        msg = CountDockCodes.Request(color=TARGET_COLOR)
+
+        self.count_code_req = self.count_code_client.call_async(msg)
+        self.count_code_req.add_done_callback(self.count_code_callback)
+    
+    def count_code_callback(self, future):
+        result = future.result()
+
+        self.count_code_req = None
+
+        self.get_logger().info(f'COUNTED {result.count}')
+
+        self.state = State.COMPLETE
 
 
 def main(args=None):

@@ -31,7 +31,7 @@ class FindDockCodes(NodeHelper):
 
         self._cv_bridge = CvBridge()
     
-    def run(self):
+    def run(self, search='BOUNDS', search_color='red'):
 
         bgr_image = self._cv_bridge.imgmsg_to_cv2(self.image, desired_encoding='bgr8')
         hsv_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2HSV)
@@ -71,17 +71,25 @@ class FindDockCodes(NodeHelper):
             combo.copy(), tuple(contours), -1, (193,182,255), 1
         ), encoding='bgr8')) 
 
-        color_positions = {'red': [-1,-1], 'blue': [-1,-1], 'green': [-1,-1]}
+        if search == 'BOUNDS':
+            color_positions = {'red': [-1,-1], 'blue': [-1,-1], 'green': [-1,-1]}
 
-        for i in range(len(colors)):
-            color = colors[i]
-            bound = bounds[i]
-            if color_positions[color][0] == -1 or bound['left'] < color_positions[color][0]:
-                color_positions[color][0] = int(bound['left'])
-            if color_positions[color][1] == -1 or bound['right'] > color_positions[color][1]:
-                color_positions[color][1] = int(bound['right'])
+            for i in range(len(colors)):
+                color = colors[i]
+                bound = bounds[i]
+                if color_positions[color][0] == -1 or bound['left'] < color_positions[color][0]:
+                    color_positions[color][0] = int(bound['left'])
+                if color_positions[color][1] == -1 or bound['right'] > color_positions[color][1]:
+                    color_positions[color][1] = int(bound['right'])
+            
+            return color_positions
         
-        return color_positions
+        if search == 'COUNT':
+            count = 0
+            for color in colors:
+                if color == search_color: count += 1
+            
+            return count
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):
 

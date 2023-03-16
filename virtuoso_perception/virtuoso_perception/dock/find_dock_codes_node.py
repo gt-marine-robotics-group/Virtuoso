@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from virtuoso_msgs.srv import DockCodesCameraPos
+from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes
 from ..camera_processing.resize import Resize
 from ..camera_processing.noise_filter import NoiseFilter
 from .find_dock_codes import FindDockCodes
@@ -58,6 +58,9 @@ class FindDockCodesNode(Node):
         self.srv = self.create_service(DockCodesCameraPos, 'find_dock_placard_offsets',   
             self.srv_callback, callback_group=self.cb_group1)
         
+        self.count_srv = self.create_service(CountDockCodes, 'count_dock_codes',
+            self.count_srv_callback, callback_group=self.cb_group1)
+        
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
             self.image_callback, 10, callback_group=self.cb_group2)
         self.image:Image = None
@@ -109,21 +112,7 @@ class FindDockCodesNode(Node):
         self.camera_info = msg
         self.cam_width = msg.width // self.get_parameter('resize_factor').value
     
-    def srv_callback(self, req:DockCodesCameraPos.Request, res:DockCodesCameraPos.Response):
-        self.get_logger().info('service called')
-
-        if self.image is None:
-            self.get_logger().info('No image')
-            return res
-        
-        if self.camera_info is None:
-            self.get_logger().info('No camera info')
-            return res
-
-        while self.old_image:
-            self.get_logger().info('Waiting for new image')
-            time.sleep(0.5)
-
+    def process_image(self):
         self.resize.image = self.image
         self.resize.camera_info = self.camera_info
 
@@ -139,6 +128,54 @@ class FindDockCodesNode(Node):
         if self.get_parameter('use_noise_filter').value:
             self.get_logger().info('noise filtering')
             image = self.noise_filter.filter()
+
+        return image
+    
+    def count_srv_callback(self, req:CountDockCodes.Request, res:CountDockCodes.Response):
+        self.get_logger().info('service called')
+
+        if self.image is None:
+            self.get_logger().info('No image')
+            return res
+        
+        if self.camera_info is None:
+            self.get_logger().info('No camera info')
+            return res
+
+        while self.old_image:
+            self.get_logger().info('Waiting for new image')
+            time.sleep(0.5)
+        
+        self.old_image = True
+
+        image = self.process_image()
+
+        self.find_dock_codes.image = image
+        count = self.find_dock_codes.run(search='COUNT', search_color=req.color)
+
+        res.count = count
+
+        return res
+
+    
+    def srv_callback(self, req:DockCodesCameraPos.Request, res:DockCodesCameraPos.Response):
+        self.get_logger().info('service called')
+
+        if self.image is None:
+            self.get_logger().info('No image')
+            return res
+        
+        if self.camera_info is None:
+            self.get_logger().info('No camera info')
+            return res
+
+        while self.old_image:
+            self.get_logger().info('Waiting for new image')
+            time.sleep(0.5)
+        
+        self.old_image = True
+
+        image = self.process_image()
 
         self.find_dock_codes.image = image
         bounds = self.find_dock_codes.run()
