@@ -67,6 +67,9 @@ class DockingNode(Node):
             return
         if self.state == State.DOCKING:
             return
+        if self.state == State.COUNTING_CODE:
+            self.count_code()
+            return
     
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED
@@ -180,6 +183,9 @@ class DockingNode(Node):
         msg.x = 8.0
 
         self.trans_pub.publish(msg)
+    
+    def count_code(self):
+        pass
 
 
 def main(args=None):
