@@ -34,6 +34,8 @@ class Stereo(NodeHelper):
         pcd_points = list()
         for buoy in buoys.buoys:
             pcd_points.append([buoy.location.x, buoy.location.y, 0])
+    
+        self._debug(f'buoy locs: {buoys}')
         
         pcd = create_cloud_xyz32(pcd.header, pcd_points)
 

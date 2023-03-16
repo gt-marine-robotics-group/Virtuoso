@@ -88,6 +88,8 @@ class ChannelNavNode(Node):
         req.use_camera = True
         req.max_dist_from_usv = self.get_parameter('gate_buoy_max_dist').value
 
+        self.get_logger().info('sending req')
+
         self.channel_call = self.channel_client.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)
 
