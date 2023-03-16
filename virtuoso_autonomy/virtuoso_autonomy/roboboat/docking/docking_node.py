@@ -150,13 +150,13 @@ class DockingNode(Node):
             msg.y = 1.0
         elif targetX < image_width * .2:
             self.get_logger().info('going left')
-            msg.y = 2.0
+            msg.y = 4.0
         elif targetX > image_width * .55 and targetX <= image_width * .8:
             self.get_logger().info('going right')
             msg.y = -1.0
         else:
             self.get_logger().info('going right')
-            msg.y = -2.0
+            msg.y = -4.0
 
         self.trans_pub.publish(msg)
     
@@ -166,9 +166,9 @@ class DockingNode(Node):
         self.state = State.SEARCH_TRANSLATING
 
         if othersX < image_width * .5:
-            msg.y = 1.0
+            msg.y = 5.0
         else:
-            msg.y = -1.0
+            msg.y = -5.0
 
         self.trans_pub.publish(msg)
 
