@@ -30,7 +30,7 @@ class Stereo(NodeHelper):
     
     def _debug_pcd(self, buoys:BuoyArray):
         pcd = PointCloud2()
-        pcd.header.frame_id = 'wamv/lidar_wamv_link'
+        pcd.header.frame_id = 'front_lidar_link'
         pcd_points = list()
         for buoy in buoys.buoys:
             pcd_points.append([buoy.location.x, buoy.location.y, 0])
