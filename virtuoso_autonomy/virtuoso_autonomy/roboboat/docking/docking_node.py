@@ -142,17 +142,17 @@ class DockingNode(Node):
 
         self.state = State.CENTER_TRANSLATING
 
-        if targetX >= image_width * .45 and targetX <= image_width * .55:
+        if targetX >= image_width * .48 and targetX <= image_width * .52:
             self.dock()
             return
         
-        if targetX >= image_width * .2 and targetX < image_width * .45:
+        if targetX >= image_width * .2 and targetX < image_width * .48:
             self.get_logger().info('going left')
             msg.y = 1.0
         elif targetX < image_width * .2:
             self.get_logger().info('going left')
             msg.y = 4.0
-        elif targetX > image_width * .55 and targetX <= image_width * .8:
+        elif targetX > image_width * .52 and targetX <= image_width * .8:
             self.get_logger().info('going right')
             msg.y = -1.0
         else:
@@ -177,7 +177,7 @@ class DockingNode(Node):
         self.get_logger().info('Within bounds, good to dock')
         self.state = State.DOCKING
         msg = Point()
-        msg.x = 5.0
+        msg.x = 8.0
 
         self.trans_pub.publish(msg)
 
