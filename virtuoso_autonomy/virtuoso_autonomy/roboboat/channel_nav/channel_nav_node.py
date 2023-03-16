@@ -74,10 +74,12 @@ class ChannelNavNode(Node):
     
     def nav_to_next_midpoint(self):
 
-        if self.robot_pose is None:
-            return
+        # if self.robot_pose is None:
+        #     return
         if self.channel_call is not None:
             return
+
+        self.robot_pose = PoseStamped()
         
         req = Channel.Request()
         req.left_color = 'red'
