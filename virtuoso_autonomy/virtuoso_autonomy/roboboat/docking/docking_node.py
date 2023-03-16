@@ -65,6 +65,8 @@ class DockingNode(Node):
             return
         if self.state == State.CENTER_TRANSLATING:
             return
+        if self.state == State.DOCKING:
+            return
     
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED
@@ -141,8 +143,7 @@ class DockingNode(Node):
         self.state = State.CENTER_TRANSLATING
 
         if targetX >= image_width * .45 and targetX <= image_width * .55:
-            self.get_logger().info('Within bounds, good to dock')
-            self.state = State.DOCKING
+            self.dock()
             return
         
         if targetX >= image_width * .2 and targetX < image_width * .45:
@@ -169,6 +170,14 @@ class DockingNode(Node):
             msg.y = 5.0
         else:
             msg.y = -5.0
+
+        self.trans_pub.publish(msg)
+    
+    def dock(self):
+        self.get_logger().info('Within bounds, good to dock')
+        self.state = State.DOCKING
+        msg = Point()
+        msg.x = 5.0
 
         self.trans_pub.publish(msg)
 
