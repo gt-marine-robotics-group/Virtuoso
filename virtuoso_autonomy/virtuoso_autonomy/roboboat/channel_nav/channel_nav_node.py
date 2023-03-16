@@ -74,12 +74,10 @@ class ChannelNavNode(Node):
     
     def nav_to_next_midpoint(self):
 
-        # if self.robot_pose is None:
-        #     return
+        if self.robot_pose is None:
+            return
         if self.channel_call is not None:
             return
-
-        self.robot_pose = PoseStamped()
         
         req = Channel.Request()
         req.left_color = 'red'
@@ -87,8 +85,6 @@ class ChannelNavNode(Node):
         req.use_lidar = False
         req.use_camera = True
         req.max_dist_from_usv = self.get_parameter('gate_buoy_max_dist').value
-
-        self.get_logger().info('sending req')
 
         self.channel_call = self.channel_client.call_async(req)
         self.channel_call.add_done_callback(self.channel_response)

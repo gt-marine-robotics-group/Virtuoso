@@ -39,13 +39,5 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name=f'base_to_map',
-            arguments=[
-                '0','0','0','0','0','0', 'base_link', 'map'
-            ]
         )
     ])
