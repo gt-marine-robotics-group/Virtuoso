@@ -8,12 +8,22 @@ from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes, Rotate, ImageD
 import time
 import math
 
-TARGET_COLOR = 'red' # PARAM
-
 class DockingNode(Node):
 
     def __init__(self):
         super().__init__('autonomy_docking')
+
+        self.declare_parameters(namespace='', parameters=[
+            ('target_color', ''),
+            ('camera', ''),
+            ('centering_movement_tranches', []),
+            ('centering_movement_values', []),
+            ('search_movement_value', 0.0),
+            ('docking_entry_value', 0.0)
+        ])
+
+        self.target_color = self.get_parameter('target_color').value
+        cam = self.get_parameter('camera').value
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
@@ -25,11 +35,11 @@ class DockingNode(Node):
             self.odom_callback, 10)
 
         self.code_pos_client = self.create_client(DockCodesCameraPos, 
-            'front_left_camera/find_dock_placard_offsets') # PARAM
+            f'{cam}/find_dock_placard_offsets')
         self.code_pos_req = None
 
         self.count_code_client = self.create_client(CountDockCodes, 
-            'front_left_camera/count_dock_codes') # PARAM
+            f'{cam}/count_dock_codes')
         self.count_code_req = None
 
         self.stereo_client = self.create_client(ImageDockStereo, 'perception/dock_stereo')
@@ -172,7 +182,7 @@ class DockingNode(Node):
 
         if result.red[0] != -1 and result.red[1] != -1:
             mid = (result.red[0] + result.red[1]) // 2
-            if TARGET_COLOR == 'red':
+            if self.target_color == 'red':
                 targetX = mid
             else:
                 othersX += mid
@@ -180,7 +190,7 @@ class DockingNode(Node):
         
         if result.blue[0] != -1 and result.blue[1] != -1:
             mid = (result.blue[0] + result.blue[1]) // 2
-            if TARGET_COLOR == 'blue':
+            if self.target_color == 'blue':
                 targetX = mid
             else:
                 othersX += mid
@@ -188,7 +198,7 @@ class DockingNode(Node):
         
         if result.green[0] != -1 and result.green[1] != -1:
             mid = (result.green[0] + result.green[1]) // 2
-            if TARGET_COLOR == 'green':
+            if self.target_color == 'green':
                 targetX = mid
             else:
                 othersX += mid
@@ -216,22 +226,23 @@ class DockingNode(Node):
 
         self.state = State.CENTER_TRANSLATING
 
-        if targetX >= image_width * .48 and targetX <= image_width * .52: # PARAM
-            self.dock()
-            return
-        
-        if targetX >= image_width * .4 and targetX < image_width * .48: # PARAM
-            self.get_logger().info('going left')
-            msg.y = 1.0 # PARAM
-        elif targetX < image_width * .4: # PARAM
-            self.get_logger().info('going left')
-            msg.y = 4.0 # PARAM
-        elif targetX > image_width * .52 and targetX <= image_width * .6: # PARAM
-            self.get_logger().info('going right')
-            msg.y = -1.0 # PARAM
+        movement_vals = self.get_parameter('centering_movement_values').value
+
+        loc = targetX / image_width
+
+        for i, tranch in enumerate(self.get_parameter('centering_movement_tranches').value):
+            if not loc < tranch: continue
+
+            if movement_vals[i] == 0.0:
+                self.dock()
+                return
+            
+            self.get_logger().info(f'translating: {movement_vals[i]}')
+            msg.y = movement_vals[i]
+            break
         else:
-            self.get_logger().info('going right')
-            msg.y = -4.0 # PARAM
+            self.get_logger().info(f'translating: {movement_vals[-1]}')
+            msg.y = movement_vals[-1]
 
         self.trans_pub.publish(msg)
     
@@ -240,10 +251,10 @@ class DockingNode(Node):
 
         self.state = State.SEARCH_TRANSLATING
 
-        if othersX < image_width * .5: # PARAM
-            msg.y = 5.0 # PARAM
+        if othersX < image_width * .5:
+            msg.y = self.get_parameter('search_movement_value').value
         else:
-            msg.y = -5.0 # PARAM
+            msg.y = -self.get_parameter('search_movement_value').value
 
         self.trans_pub.publish(msg)
     
@@ -251,7 +262,7 @@ class DockingNode(Node):
         self.get_logger().info('Within bounds, good to dock')
         self.state = State.DOCKING
         msg = Point()
-        msg.x = 8.0 # PARAM
+        msg.x = self.get_parameter('docking_entry_value').value
 
         self.trans_pub.publish(msg)
     
@@ -259,7 +270,7 @@ class DockingNode(Node):
         if self.count_code_req is not None:
             return
         
-        msg = CountDockCodes.Request(color=TARGET_COLOR)
+        msg = CountDockCodes.Request(color=self.target_color)
 
         self.count_code_req = self.count_code_client.call_async(msg)
         self.count_code_req.add_done_callback(self.count_code_callback)

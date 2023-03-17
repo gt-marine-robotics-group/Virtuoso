@@ -39,9 +39,5 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
-        ),
-        Node(
-            package='virtuoso_autonomy',
-            executable='roboboat_docking'
         )
     ])

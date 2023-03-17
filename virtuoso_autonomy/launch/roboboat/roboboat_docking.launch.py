@@ -12,11 +12,14 @@ def generate_launch_description():
 
     usv_config = LaunchConfiguration('usv')
 
+    docking_param_file = (pkg_share, '/config/', usv_config, '/docking.yaml')
+
     return LaunchDescription([
         usv_arg, 
 
         Node(
             package='virtuoso_autonomy',
-            executable='roboboat_docking'
+            executable='roboboat_docking',
+            parameters=[docking_param_file]
         )
     ])
