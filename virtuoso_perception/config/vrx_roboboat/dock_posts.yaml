@@ -1,0 +1,39 @@
+
+/**:
+  ros__parameters:
+    debug: True
+
+    # DENSITY clustering params
+    max_cluster_height: 70
+    min_cluster_height: 10
+    max_cluster_width: 70
+    min_cluster_width: 10
+    epsilon: 2
+    min_pts: 12
+
+    post_bounds:
+      red:
+        lower1: [0, 50, 50]
+        upper1: [10, 255, 255]
+        lower2: [160, 50, 50]
+        upper2: [180, 255, 255]
+      green:
+        lower: [50, 50, 100]
+        upper: [86, 255, 255]
+      white:
+        lower: [0, 0, 100]
+        upper: [180, 25, 255]
+
+    post_px_color_sample_size: 0.3 # between 0 and 1
+    post_min_px_density: 0.8
+    
+    placard_bounds:
+      lower: [0, 0, 100]
+      upper: [180, 25, 255]
+    
+    placard_color_search_range: 10
+    max_placard_prop: 0.3
+
+    # Processing params
+    use_resize: True
+    use_noise_filter: False
