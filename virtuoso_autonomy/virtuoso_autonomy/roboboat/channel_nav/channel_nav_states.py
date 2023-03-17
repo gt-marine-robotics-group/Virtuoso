@@ -6,4 +6,5 @@ class State(Enum):
     FINDING_NEXT_GATE = 3
     ROTATING_TO_FIND_NEXT_GATE = 4
     NAVIGATING = 5
-    COMPLETE = 6
+    EXTRA_FORWARD_NAV = 6
+    COMPLETE = 7
