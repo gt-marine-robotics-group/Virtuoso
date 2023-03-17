@@ -4,9 +4,9 @@
     debug: True
 
     # DENSITY clustering params
-    max_cluster_height: 300
+    max_cluster_height: 50
     min_cluster_height: 20
-    max_cluster_width: 300
+    max_cluster_width: 50
     min_cluster_width: 20
     epsilon: 2
     min_pts: 12
@@ -25,7 +25,7 @@
         upper: [180, 25, 255]
 
     post_px_color_sample_size: 0.3 # between 0 and 1
-    post_min_px_density: 0.9
+    post_min_px_density: 0.8
     
     placard_bounds:
       lower: [0, 0, 100]

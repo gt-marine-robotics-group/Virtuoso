@@ -92,12 +92,34 @@ class FindDockPosts(NodeHelper):
 
         for contour_index in range(len(contours)):
             bound = bounds[contour_index]
+            color = colors[contour_index]
 
-            pxs = hsv[bound['top']:bound['bottom'] + 1,bound['left']:bound['right'] + 1]
+            x_diff = bound['right'] - bound['left']
+            left = int(bound['left'] + (.25 * x_diff))
+            right = int(bound['right'] - (.25 * x_diff) + 1)
 
-            self._debug(f'pxs shape: {pxs.shape}')
+            pxs = hsv[bound['top']:bound['bottom'] + 1,left:right]
 
-        return contours, colors
+            if color == 'red':
+                mask = cv2.inRange(pxs, np.array(self._post_color_bounds.ranges[color]['lower1']),
+                    np.array(self._post_color_bounds.ranges[color]['upper1']))
+                mask = cv2.bitwise_or(mask, cv2.inRange(pxs, np.array(self._post_color_bounds.ranges[color]['lower2']),
+                    np.array(self._post_color_bounds.ranges[color]['upper2'])))
+            else:
+                mask = cv2.inRange(pxs, np.array(self._post_color_bounds.ranges[color]['lower']),
+                    np.array(self._post_color_bounds.ranges[color]['upper']))
+            
+            num_nonzero = np.count_nonzero(mask)
+
+            prop = num_nonzero / (pxs.shape[0] * pxs.shape[1])
+
+            self._debug(f'prop: {prop}')
+
+            if prop > self._post_px_density:
+                filtered_contours.append(contours[contour_index])
+                filtered_colors.append(color)
+
+        return filtered_contours, filtered_colors
 
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):

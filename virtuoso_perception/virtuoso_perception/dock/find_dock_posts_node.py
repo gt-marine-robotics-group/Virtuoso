@@ -152,12 +152,17 @@ class FindDockPostsNode(Node):
         image, camera_info = self.process_image()
 
         self.find_dock_posts.image = image
-        contours, offsets, colors = self.find_dock_posts.run()
+        try:
+            contours, offsets, colors = self.find_dock_posts.run()
+        except Exception as e:
+            self.get_logger().info(f'Error: {e}')
 
         res.camera_info = camera_info
         res.contours.contour_points = contours
         res.contours.contour_offsets = offsets
         res.contours.contour_colors = colors
+
+        self.get_logger().info('dock posts node returning')
 
         return res
 

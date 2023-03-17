@@ -102,6 +102,7 @@ class DockStereoNode(Node):
         return self.dock_stereo.end_points
     
     def srv_callback(self, req:ImageDockStereo.Request, res:ImageDockStereo.Response):
+        self.get_logger().info('received req')
         self.dock_stereo.left_img_contours = None
         self.dock_stereo.right_img_contours = None
         
