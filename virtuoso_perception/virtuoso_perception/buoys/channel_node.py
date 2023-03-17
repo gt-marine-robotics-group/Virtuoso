@@ -67,6 +67,7 @@ class ChannelNode(Node):
         self.channel.odom = msg
     
     def channel_callback(self, req:Channel.Request, res:Channel.Response):
+        self.get_logger().info('channel node received request')
         res.header.frame_id = 'map'
         res.left = Point(x=0.0,y=0.0,z=0.0)
         res.right = Point(x=0.0,y=0.0,z=0.0)
@@ -86,6 +87,7 @@ class ChannelNode(Node):
 
         while ((req.use_camera and self.channel.camera_buoys is None) or 
             (req.use_lidar and self.channel.lidar_buoys is None)):
+            self.get_logger().info('waiting')
             time.sleep(0.5)
         
         cam_trans = self.find_cam_to_map_transform()
