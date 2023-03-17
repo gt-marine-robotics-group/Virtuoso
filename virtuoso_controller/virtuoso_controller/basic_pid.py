@@ -7,11 +7,14 @@ import numpy
 
 class BasicPID:
 
-    def __init__(self, kp, kd, ki, rotate_kp, rotate_kd, rotate_ki):
+    def __init__(self, kp_x, kd_x, ki_x, kp_y, kd_y, ki_y,rotate_kp, rotate_kd, rotate_ki):
 
-        self._kp_factor:float = kp
-        self._kd_factor:float = kd
-        self._ki_factor:float = ki
+        self._kp_factor_x:float = kp_x
+        self._kd_factor_x:float = kd_x
+        self._ki_factor_x:float = ki_x
+        self._kp_factor_y:float = kp_y
+        self._kd_factor_y:float = kd_y
+        self._ki_factor_y:float = ki_y
         self._kp_rotate_factor:float = rotate_kp
         self._kd_rotate_factor:float = rotate_kd
         self._ki_rotate_factor:float = rotate_ki
@@ -62,10 +65,10 @@ class BasicPID:
         
         #calculate target forces in the base_link frame
         #note that target_vel is the position error 
-        target_force_y = 1.0*((target_vel[1]*0.15*self._kp_factor - current_vel_y*0.9*0.7*self._kd_factor) 
-            + self.y_integral*0.001*self._ki_factor)
-        target_force_x = ((target_vel[0]*0.11*self._kp_factor - current_vel_x*0.333*0.7*self._kd_factor)
-            + self.x_intergral*0.001*self._ki_factor)
+        target_force_y = 1.0*((target_vel[1]*0.15*self._kp_factor_y - current_vel_y*0.9*0.7*self._kd_factor_y) 
+            + self.y_integral*0.001*self._ki_factor_y)
+        target_force_x = ((target_vel[0]*0.11*self._kp_factor_x - current_vel_x*0.333*0.7*self._kd_factor_x)
+            + self.x_intergral*0.001*self._ki_factor_x)
         
         #arbitrary gain reduction
         target_force_x = target_force_x * (5/3) * 4

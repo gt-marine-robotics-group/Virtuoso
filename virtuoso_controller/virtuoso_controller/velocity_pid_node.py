@@ -14,14 +14,20 @@ class VelocityPIDNode(Node):
         super().__init__('controller_velocity_PID')
 
         self.declare_parameters(namespace='', parameters=[
-            ('velocity_k_drag', 1.0),
-            ('velocity_k_error', 1.0),
-            ('velocity_ki', 1.0)
+            ('velocity_k_drag_x', 1.0),
+            ('velocity_k_error_x', 1.0),
+            ('velocity_ki_x', 1.0),
+            ('velocity_k_drag_y', 1.0),
+            ('velocity_k_error_y', 1.0),
+            ('velocity_ki_y', 1.0)
         ])
 
-        self.pid = VelocityPID(k_drag=self.get_parameter('velocity_k_drag').value,
-            k_error=self.get_parameter('velocity_k_error').value, 
-            ki=self.get_parameter('velocity_ki').value)
+        self.pid = VelocityPID(k_drag_x=self.get_parameter('velocity_k_drag_x').value,
+            k_error_x=self.get_parameter('velocity_k_error_x').value, 
+            ki_x=self.get_parameter('velocity_ki_x').value,
+            k_drag_y=self.get_parameter('velocity_k_drag_y').value,
+            k_error_y=self.get_parameter('velocity_k_error_y').value, 
+            ki_y=self.get_parameter('velocity_ki_y').value)
 
         self.target_force_x_pub = self.create_publisher(Float32, 
             '/controller/velocity_pid/targetForceX', 10)

@@ -15,16 +15,21 @@ class BasicPIDNode(Node):
         super().__init__('controller_basic_PID')
 
         self.declare_parameters(namespace='', parameters=[
-            ('basic_kp', 1.0),
-            ('basic_kd', 1.0),
-            ('basic_ki', 1.0),
+            ('basic_kp_x', 1.0),
+            ('basic_kd_x', 1.0),
+            ('basic_kp_y', 1.0),
+            ('basic_kd_y', 1.0),
+            ('basic_ki_x', 1.0),
+            ('basic_ki_y', 1.0),
             ('basic_rotate_kp', 1.0),
             ('basic_rotate_kd', 1.0),
             ('basic_rotate_ki', 1.0)
         ])
 
-        self.pid = BasicPID(kp=self.get_parameter('basic_kp').value, 
-            kd=self.get_parameter('basic_kd').value, ki=self.get_parameter('basic_ki').value,
+        self.pid = BasicPID(kp_x=self.get_parameter('basic_kp_x').value, 
+            kd_x=self.get_parameter('basic_kd_x').value, ki_x=self.get_parameter('basic_ki_x').value,
+            kp_y=self.get_parameter('basic_kp_y').value, 
+            kd_y=self.get_parameter('basic_kd_y').value, ki_y=self.get_parameter('basic_ki_y').value,
             rotate_kp=self.get_parameter('basic_rotate_kp').value,
             rotate_kd=self.get_parameter('basic_rotate_kd').value,
             rotate_ki=self.get_parameter('basic_rotate_ki').value)

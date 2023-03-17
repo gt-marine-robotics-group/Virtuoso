@@ -1,5 +1,6 @@
 from sensor_msgs.msg import CameraInfo, PointCloud2
 from virtuoso_msgs.msg import Contours, BuoyArray
+from .utils import contour_average_yx
 import numpy as np
 from rclpy.node import Node
 import cv2
@@ -11,7 +12,7 @@ class Stereo(NodeHelper):
 
     def __init__(self, node:Node, multiprocessing:bool):
 
-        self._node = node 
+        super().__init__(node)
         self._multiprocessing = multiprocessing
 
         self._cv_bridge = CvBridge()
@@ -27,17 +28,6 @@ class Stereo(NodeHelper):
         self._left_rect_map:np.ndarray = None
         self._right_rect_map:np.ndarray = None
         self._Q:np.ndarray = None
-    
-    def _debug_pcd(self, buoys:BuoyArray):
-        pcd = PointCloud2()
-        pcd.header.frame_id = 'wamv/lidar_wamv_link'
-        pcd_points = list()
-        for buoy in buoys.buoys:
-            pcd_points.append([buoy.location.x, buoy.location.y, 0])
-        
-        pcd = create_cloud_xyz32(pcd.header, pcd_points)
-
-        self._debug_pub('/perception/stereo/debug/points', pcd)
     
     def _find_intrinsics(cam_info:CameraInfo):
         k = cam_info.k
@@ -75,3 +65,11 @@ class Stereo(NodeHelper):
             
         self._right_rect_map = cv2.initUndistortRectifyMap(right_matrix, right_distortion, 
             R2, P2, image_size, cv2.CV_32F)
+    
+    def _sort_contours(self, images_contours:list, images_contour_colors:list):
+        for i in range(len(images_contours)):
+            combo = list(zip(images_contours[i], images_contour_colors[i]))
+            combo.sort(key=lambda x: contour_average_yx(x[0])[0])
+            for j in range(len(combo)):
+                images_contours[i][j] = combo[j][0]
+                images_contour_colors[i][j] = combo[j][1]

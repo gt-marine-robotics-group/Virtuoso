@@ -7,12 +7,15 @@ import tf_transformations
 
 class VelocityPID:
 
-    def __init__(self, k_drag, k_error, ki):
+    def __init__(self, k_drag_x, k_error_x, ki_x, k_drag_y, k_error_y, ki_y):
 
-        self._k_drag_factor = k_drag #Gain on magnitude of target velocity (to combat drag)
-        self._k_error_factor = k_error  #Gain on magnitude of velocity error
-        self._ki_factor = ki  #gain on integral of error
-
+        self._k_drag_factor_x = k_drag_x #Gain on magnitude of target velocity (to combat drag)
+        self._k_error_factor_x = k_error_x  #Gain on magnitude of velocity error
+        self._ki_factor_x = ki_x  #gain on integral of error
+        self._k_drag_factor_y = k_drag_y #Gain on magnitude of target velocity (to combat drag)
+        self._k_error_factor_y = k_error_y  #Gain on magnitude of velocity error
+        self._ki_factor_y = ki_y  #gain on integral of error
+        
         self.state_estimate  = Odometry()
         self.target_twist = Twist() #target twist in base_link frame
         self.received_cmd_vel = False
@@ -50,10 +53,10 @@ class VelocityPID:
         #calculate target force x and y. Formula is (roughly):
         #target force = target velocity * drag gain + (error in velocity)*gain on error + (integral of error) * (gain on integral error)
         #Note that x and y are in the base_link frame
-        target_force_y = 2.0*(target_vel[1]*.25*self._k_drag_factor + (target_vel[1] - current_vel_y)*0.5*self._k_error_factor
-            + self._y_integral*0.01*self._ki_factor)
-        target_force_x = (target_vel[0]*0.25*self._k_drag_factor + (target_vel[0] - current_vel_x)*0.5*self._k_error_factor
-            + self._x_integral*0.01*self._ki_factor)
+        target_force_y = 2.0*(target_vel[1]*.25*self._k_drag_factor_y + (target_vel[1] - current_vel_y)*0.5*self._k_error_factor_y
+            + self._y_integral*0.01*self._ki_factor_y)
+        target_force_x = (target_vel[0]*0.25*self._k_drag_factor_x + (target_vel[0] - current_vel_x)*0.5*self._k_error_factor_x
+            + self._x_integral*0.01*self._ki_factor_x)
 
         target_x_to_send = Float32(data=target_force_x)
         target_y_to_send = Float32(data=target_force_y)

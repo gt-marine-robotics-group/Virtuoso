@@ -108,6 +108,8 @@ class Waypoints(Node):
             if not self.nav2_goal:
                 self.calc_nav2_path() 
             return        
+        
+        self.path_pub.publish(self.nav2_path)
 
         if (self.distance(self.robot_pose, self.path.poses[self.waypoints_completed].pose) 
                 < self.get_parameter('goal_dist_tolerance').value):
@@ -119,8 +121,6 @@ class Waypoints(Node):
             self.nav2_path = None
             self.nav2_goal = None
             return
-        
-        self.path_pub.publish(self.nav2_path)
     
     def create_straight_path(self):
         goal = Waypoints.pose_deep_copy(self.path.poses[self.waypoints_completed].pose)

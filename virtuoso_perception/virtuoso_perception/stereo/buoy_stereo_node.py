@@ -147,6 +147,7 @@ class BuoyStereoNode(Node):
         return self.buoy_stereo.buoys
     
     def srv_callback(self, req:ImageBuoyStereo.Request, res:ImageBuoyStereo.Response):
+        self.get_logger().info('buoy stereo received request')
         if (self.left_image is None or self.right_image is None 
             or self.left_cam_info is None or self.right_cam_info is None):
             self.get_logger().info('Missing images or camera info')

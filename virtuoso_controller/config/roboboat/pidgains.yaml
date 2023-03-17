@@ -1,8 +1,11 @@
 controller_basic_PID:
   ros__parameters:
-    basic_kp: 0.8
-    basic_kd: 0.8
-    basic_ki: 1.0
+    basic_kp_x: 0.8
+    basic_kd_x: 0.8
+    basic_ki_x: 1.0
+    basic_kp_y: 0.8
+    basic_kd_y: 0.8
+    basic_ki_y: 1.0
     basic_rotate_kp: 1.0
     basic_rotate_kd: 1.0
     basic_rotate_ki: 1.0
@@ -10,8 +13,11 @@ controller_basic_PID:
 controller_velocity_PID:
   ros__parameters:
     #Gain on magnitude of target velocity (to combat drag)
-    velocity_k_drag: 1.0
+    velocity_k_drag_x: 1.0
+    velocity_k_drag_y: 1.0
     #Gain on magnitude of velocity error
-    velocity_k_error: 1.0
+    velocity_k_error_x: 1.0
+    velocity_k_error_y: 1.0
     #gain on integral of error
-    velocity_ki: 1.0
+    velocity_ki_x: 1.0
+    velocity_ki_y: 1.0

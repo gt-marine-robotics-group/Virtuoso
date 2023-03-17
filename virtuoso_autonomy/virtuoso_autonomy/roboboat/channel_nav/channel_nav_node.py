@@ -100,7 +100,6 @@ class ChannelNavNode(Node):
     def rotate_response(self, future):
         result:Rotate.Response = future.result()
         self.get_logger().info(f'rotate response: {result}')
-        time.sleep(10.0) 
         self.state = State.FINDING_NEXT_GATE
     
     def channel_response(self, future):
