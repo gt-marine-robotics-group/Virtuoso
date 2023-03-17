@@ -16,11 +16,13 @@ class ChannelNavNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('num_channels', 0),
+            ('extra_forward_nav', 0.0),
             ('gate_buoy_max_dist', 0.0),
             ('rotation_theta', 0.0)
         ])
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
@@ -39,15 +41,28 @@ class ChannelNavNode(Node):
         
         self.robot_pose:PoseStamped = None
 
+        self.pre_rotation_left = None
+        self.pre_rotation_right = None
+
         self.create_timer(1.0, self.execute)
 
     def nav_success_callback(self, msg:PoseStamped):
         if (self.channels_completed ==
             self.get_parameter('num_channels').value):
+            if self.state != State.COMPLETE:
+                self.nav_forward()
             self.state = State.COMPLETE
-        else:
+        elif (self.state == State.EXTRA_FORWARD_NAV
+            or self.get_parameter('extra_forward_nav').value == 0.0):
             time.sleep(5.0)
             self.state = State.FINDING_NEXT_GATE
+        else:
+            time.sleep(2.0)
+            self.nav_forward()
+        
+    def nav_forward(self):
+        self.state = State.EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('extra_forward_nav').value))
     
     def odom_callback(self, msg:Odometry):
         self.robot_pose = PoseStamped(pose=msg.pose.pose)
@@ -114,13 +129,30 @@ class ChannelNavNode(Node):
             if result.right == null_point:
                 self.get_logger().info('BOTH NULL POINTS')
                 return 
+            if self.pre_rotation_left is not None:
+                result.left = self.pre_rotation_left
+                self.nav_to_midpoint(result)
+                return
+            self.pre_rotation_right = result.right
             self.get_logger().info('ROTATING LEFT')
             self.rotate(self.get_parameter('rotation_theta').value) 
             return
         elif result.right == null_point:
+            if self.pre_rotation_right is not None:
+                result.right = self.pre_rotation_right
+                self.nav_to_midpoint(result)
+                return
+            self.pre_rotation_left = result.left
             self.get_logger().info('ROTATING RIGHT')
             self.rotate(-self.get_parameter('rotation_theta').value)
             return
+        
+        self.nav_to_midpoint(result)
+    
+    def nav_to_midpoint(self, result):
+
+        self.pre_rotation_left = None
+        self.pre_rotation_right = None
 
         channel = (
             point_to_pose_stamped(result.left),
