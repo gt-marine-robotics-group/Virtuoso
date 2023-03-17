@@ -41,6 +41,9 @@ class ChannelNavNode(Node):
         
         self.robot_pose:PoseStamped = None
 
+        self.pre_rotation_left = None
+        self.pre_rotation_right = None
+
         self.create_timer(1.0, self.execute)
 
     def nav_success_callback(self, msg:PoseStamped):
@@ -126,13 +129,30 @@ class ChannelNavNode(Node):
             if result.right == null_point:
                 self.get_logger().info('BOTH NULL POINTS')
                 return 
+            if self.pre_rotation_left is not None:
+                result.left = self.pre_rotation_left
+                self.nav_to_midpoint(result)
+                return
+            self.pre_rotation_right = result.right
             self.get_logger().info('ROTATING LEFT')
             self.rotate(self.get_parameter('rotation_theta').value) 
             return
         elif result.right == null_point:
+            if self.pre_rotation_right is not None:
+                result.right = self.pre_rotation_right
+                self.nav_to_midpoint(result)
+                return
+            self.pre_rotation_left = result.left
             self.get_logger().info('ROTATING RIGHT')
             self.rotate(-self.get_parameter('rotation_theta').value)
             return
+        
+        self.nav_to_midpoint(result)
+    
+    def nav_to_midpoint(self, result):
+
+        self.pre_rotation_left = None
+        self.pre_rotation_right = None
 
         channel = (
             point_to_pose_stamped(result.left),
