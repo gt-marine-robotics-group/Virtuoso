@@ -44,9 +44,11 @@ setup(
             'scan_code = virtuoso_perception.code.scan_code_node:main',
 
             'find_dock_codes = virtuoso_perception.dock.find_dock_codes_node:main',
+            'find_dock_posts = virtuoso_perception.dock.find_dock_posts_node:main',
             'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main',
 
             'buoy_stereo = virtuoso_perception.stereo.buoy_stereo_node:main',
+            'dock_stereo = virtuoso_perception.stereo.dock_stereo_node:main',
 
             'resize = virtuoso_perception.camera_processing.resize_node:main',
             'noise_filter = virtuoso_perception.camera_processing.noise_filter_node:main',
@@ -54,7 +56,8 @@ setup(
             'self_filter = virtuoso_perception.lidar_processing.self_filter_node:main',
             'shore_filter = virtuoso_perception.lidar_processing.shore_filter_node:main',
 
-            'test_buoy_cam_filter = virtuoso_perception.testing.buoy_cam_filter:main'
+            'test_buoy_cam_filter = virtuoso_perception.testing.buoy_cam_filter:main',
+            'test_find_dock_codes = virtuoso_perception.testing.find_dock_codes:main'
         ],
     },
 )

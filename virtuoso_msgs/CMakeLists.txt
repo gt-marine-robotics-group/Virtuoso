@@ -36,6 +36,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ImageBuoyFilter.srv"
   "srv/ImageBuoyStereo.srv"
   "srv/LidarBuoy.srv"
+  "srv/DockCodesCameraPos.srv"
+  "srv/CountDockCodes.srv"
+  "srv/ImageDockStereo.srv"
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs autoware_auto_perception_msgs
  )
 

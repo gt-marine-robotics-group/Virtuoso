@@ -1,0 +1,8 @@
+---
+std_msgs/Header header
+
+int32 image_width
+
+int32[] red # [left_px, right_px]
+int32[] green # [left_px, right_px]
+int32[] blue # [left_px, right_px]

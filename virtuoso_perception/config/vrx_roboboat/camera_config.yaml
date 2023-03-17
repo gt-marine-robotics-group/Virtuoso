@@ -1,5 +1,10 @@
 
 camera_config:
+  all_camera_base_topics: [
+    "/wamv/sensors/cameras/front_left_camera", 
+    "/wamv/sensors/cameras/front_right_camera" 
+  ]
+
   bow_camera_base_topics: [
       "/wamv/sensors/cameras/front_left_camera",
       "/wamv/sensors/cameras/front_right_camera"

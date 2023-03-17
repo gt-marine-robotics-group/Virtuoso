@@ -13,7 +13,7 @@ perception_buoy_filter:
     filter_bounds:
       red:
         lower1: [0, 50, 150]
-        upper1: [10, 255, 255]
+        upper1: [20, 255, 255]
         lower2: [160, 50, 150]
         upper2: [180, 255, 255]
       green:

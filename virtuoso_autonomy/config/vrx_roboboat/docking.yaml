@@ -1,0 +1,13 @@
+
+autonomy_docking:
+  ros__parameters:
+    target_color: "red"
+
+    camera: "front_left_camera"
+
+    centering_movement_tranches: [.2, .4, .48, .52, .6, .8]
+    centering_movement_values: [5.0, 4.0, 1.0, 0.0, -1.0, -4.0, -5.0]
+
+    search_movement_value: 5.0
+
+    docking_entry_value: 8.0
