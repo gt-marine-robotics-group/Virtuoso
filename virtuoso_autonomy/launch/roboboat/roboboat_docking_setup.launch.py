@@ -3,6 +3,7 @@ from launch.actions import IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.actions import DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -38,5 +39,9 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+        ),
+        Node(
+            package='virtuoso_autonomy',
+            executable='roboboat_docking'
         )
     ])

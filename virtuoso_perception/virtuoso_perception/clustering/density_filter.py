@@ -116,7 +116,8 @@ class DensityFilter(Clustering):
                 'green': 0,
                 'yellow': 0,
                 'black': 0,
-                'blue': 0
+                'blue': 0,
+                'white': 0
             }
 
             blank = np.zeros((bgr_img.shape[0], bgr_img.shape[1]))

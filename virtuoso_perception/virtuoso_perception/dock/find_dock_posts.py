@@ -7,21 +7,24 @@ import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
+import random
 
 class FindDockPosts(NodeHelper):
 
     def __init__(self, max_cluster_height:int, min_cluster_height:int,
         max_cluster_width:int, min_cluster_width:int, epsilon:int, min_pts:int,
-        code_px_color_sample_size:float,
-        code_color_bounds:ColorRange, placard_color_bounds:dict, 
+        post_px_color_sample_size:float, post_px_density:float,
+        post_color_bounds:ColorRange, placard_color_bounds:dict, 
         placard_prop:float, placard_search_range:int, node):
         super().__init__(node)
 
-        self._code_color_bounds = code_color_bounds
+        self._post_color_bounds = post_color_bounds
 
         self._clustering = DensityFilter(node, max_cluster_height, min_cluster_height,
-            max_cluster_width, min_cluster_width, epsilon, min_pts, code_px_color_sample_size,
-            code_color_bounds, code_color_bounds)
+            max_cluster_width, min_cluster_width, epsilon, min_pts, post_px_color_sample_size,
+            post_color_bounds, post_color_bounds)
+        
+        self._post_px_density = post_px_density
 
         self._placard_search_range = placard_search_range
         self._placard_color_bounds = placard_color_bounds
@@ -41,7 +44,7 @@ class FindDockPosts(NodeHelper):
             bgr_image
         )
 
-        ranges = self._code_color_bounds.ranges
+        ranges = self._post_color_bounds.ranges
 
         red_filtered = color_filter.red_orange_filter(
             hsv_lower1=ranges['red']['lower1'], hsv_upper1=ranges['red']['upper1'], 
@@ -49,23 +52,25 @@ class FindDockPosts(NodeHelper):
         green_filtered = color_filter.green_filter(
             hsv_lower=ranges['green']['lower'], hsv_upper=ranges['green']['upper']
         )
-        blue_filtered = color_filter.blue_filter(
-            hsv_lower=ranges['blue']['lower'], hsv_upper=ranges['blue']['upper']
+        white_filtered = color_filter.white_filter(
+            hsv_lower=ranges['white']['lower'], hsv_upper=ranges['white']['upper']
         )
 
-        combo = cv2.bitwise_or(cv2.bitwise_or(red_filtered, green_filtered), blue_filtered)
+        combo = cv2.bitwise_or(cv2.bitwise_or(red_filtered, green_filtered), white_filtered)
 
         contours, colors, contour_offsets = self._clustering(combo, contour_color=(193,182,255))
 
         placard_filter = color_filter.filter(lower=np.array(self._placard_color_bounds['lower']),
             upper=np.array(self._placard_color_bounds['upper']))
-        
+
         self._debug_pub('placard_bg_filter', 
             self._cv_bridge.cv2_to_imgmsg(placard_filter, encoding='bgr8')) 
 
         contours = unflatten_contours(contours, contour_offsets)
 
         contours, bounds, colors = self._filter_contours_by_placard_backdrop(contours, colors, hsv_image)
+
+        contours, colors = self._filter_contours_by_px_density(contours, bounds, colors, hsv_image)
 
         self._debug_pub('posts', self._cv_bridge.cv2_to_imgmsg(cv2.drawContours(
             combo.copy(), tuple(contours), -1, (193,182,255), 1
@@ -80,6 +85,20 @@ class FindDockPosts(NodeHelper):
                 flattened_contours.extend([int(pt[0][0]), int(pt[0][1])])    
         
         return flattened_contours, contour_offsets, colors
+    
+    def _filter_contours_by_px_density(self, contours, bounds, colors, hsv):
+        filtered_contours = list()
+        filtered_colors = list()
+
+        for contour_index in range(len(contours)):
+            bound = bounds[contour_index]
+
+            pxs = hsv[bound['top']:bound['bottom'] + 1,bound['left']:bound['right'] + 1]
+
+            self._debug(f'pxs shape: {pxs.shape}')
+
+        return contours, colors
+
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):
 

@@ -29,6 +29,10 @@ class ColorRange:
                 'lower': [0,0,0],
                 'upper': [0,0,0]
             },
+            'white': {
+                'lower': [0,0,0],
+                'upper': [0,0,0]
+            }
         }
 
         self.range_colors = colors

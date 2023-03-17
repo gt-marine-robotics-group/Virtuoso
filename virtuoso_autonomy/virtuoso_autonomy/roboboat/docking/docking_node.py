@@ -89,6 +89,7 @@ class DockingNode(Node):
         if self.stereo_req is not None or self.rotate_req is not None:
             return
         
+        self.get_logger().info('sending req')
         # use different request which gets the position of the codes using 
         # stereo instead of their relative placements
         # also make sure the stereo is using bounds that don't border the camera
