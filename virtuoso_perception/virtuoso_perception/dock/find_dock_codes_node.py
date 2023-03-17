@@ -54,11 +54,12 @@ class FindDockCodesNode(Node):
         ])
 
         base_topic = self.get_parameter('camera_base_topic').value
+        cam = base_topic[base_topic.rfind('/') + 1:]
 
-        self.srv = self.create_service(DockCodesCameraPos, 'find_dock_placard_offsets',   
+        self.srv = self.create_service(DockCodesCameraPos, f'{cam}/find_dock_placard_offsets',   
             self.srv_callback, callback_group=self.cb_group1)
         
-        self.count_srv = self.create_service(CountDockCodes, 'count_dock_codes',
+        self.count_srv = self.create_service(CountDockCodes, f'{cam}/count_dock_codes',
             self.count_srv_callback, callback_group=self.cb_group1)
         
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',

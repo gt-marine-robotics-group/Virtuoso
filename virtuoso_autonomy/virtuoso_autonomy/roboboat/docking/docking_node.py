@@ -23,10 +23,12 @@ class DockingNode(Node):
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
 
-        self.code_pos_client = self.create_client(DockCodesCameraPos, 'find_dock_placard_offsets')
+        self.code_pos_client = self.create_client(DockCodesCameraPos, 
+            'front_left_camera/find_dock_placard_offsets') # PARAM
         self.code_pos_req = None
 
-        self.count_code_client = self.create_client(CountDockCodes, 'count_dock_codes')
+        self.count_code_client = self.create_client(CountDockCodes, 
+            'front_left_camera/count_dock_codes') # PARAM
         self.count_code_req = None
 
         self.rotate_client = self.create_client(Rotate, 'rotate')

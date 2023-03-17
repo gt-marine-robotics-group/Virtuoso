@@ -36,17 +36,22 @@ def generate_launch_description():
     camera_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/camera_config.yaml', 'r') as stream:
         camera_data = yaml.safe_load(stream)
-    
-    return LaunchDescription([
-        usv_arg,
-        voxel_grid_node_param,
 
+    ld = list()
+
+    ld.append(usv_arg)
+    ld.append(voxel_grid_node_param)
+
+    ld.append(
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(pkg_share, 'launch/processing.launch.py')
             ),
             launch_arguments={'usv': usv_config}.items()
-        ),
+        )
+    )
+
+    ld.append(
         Node(
             package='voxel_grid_nodes',
             executable='voxel_grid_node_exe',
@@ -55,20 +60,31 @@ def generate_launch_description():
                 ('points_in', '/perception/lidar/points_shore_filtered'),
                 ('points_downsampled', '/perception/voxels')
             ]
-        ),
+        )
+    )
 
-        Node(
-            package='virtuoso_perception',
-            executable='find_dock_codes',
-            parameters=[
-                {'camera_base_topic': camera_data['camera_config']['all_camera_base_topics'][camera_data['camera_config']['dock_camera_index']]},
-                dock_param_file,
-                camera_processing_param_file
-            ]
-        ),
+    for base_topic in camera_data['camera_config']['bow_camera_base_topics']:
+        ld.append(
+            Node(
+                package='virtuoso_perception',
+                executable='find_dock_codes',
+                name=f'find_dock_codes_{base_topic[base_topic.rfind("/") + 1:]}',
+                parameters=[
+                    {'camera_base_topic': base_topic},
+                    dock_param_file,
+                    camera_processing_param_file
+                ]
+            )
+        )
+
+
+    ld.append(
         Node(
             package='virtuoso_perception',
             executable='find_dock_entrances',
             parameters=[dock_param_file]
         )
-    ])
+    )
+
+    return LaunchDescription(ld)
+    
