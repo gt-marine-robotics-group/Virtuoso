@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes
+from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes, ImageBuoyFilter
 from ..camera_processing.resize import Resize
 from ..camera_processing.noise_filter import NoiseFilter
 from .find_dock_codes import FindDockCodes
@@ -61,6 +61,9 @@ class FindDockCodesNode(Node):
         
         self.count_srv = self.create_service(CountDockCodes, f'{cam}/count_dock_codes',
             self.count_srv_callback, callback_group=self.cb_group1)
+        
+        self.contour_srv = self.create_service(ImageBuoyFilter, f'{cam}/code_contours',
+            self.contour_callback, callback_group=self.cb_group1)
         
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
             self.image_callback, 10, callback_group=self.cb_group2)
@@ -130,7 +133,7 @@ class FindDockCodesNode(Node):
             self.get_logger().info('noise filtering')
             image = self.noise_filter.filter()
 
-        return image
+        return image, camera_info
     
     def count_srv_callback(self, req:CountDockCodes.Request, res:CountDockCodes.Response):
         self.get_logger().info('service called')
@@ -149,7 +152,7 @@ class FindDockCodesNode(Node):
         
         self.old_image = True
 
-        image = self.process_image()
+        image, camera_info = self.process_image()
 
         self.find_dock_codes.image = image
         count = self.find_dock_codes.run(search='COUNT', search_color=req.color)
@@ -158,6 +161,32 @@ class FindDockCodesNode(Node):
 
         return res
 
+    def contour_callback(self, req:ImageBuoyFilter.Request, res:ImageBuoyFilter.Response):
+        self.get_logger().info('service called')
+
+        if self.image is None:
+            self.get_logger().info('No image')
+            return res
+        
+        if self.camera_info is None:
+            self.get_logger().info('No camera info')
+            return res
+
+        while self.old_image:
+            self.get_logger().info('Waiting for new image')
+            time.sleep(0.5)
+        
+        self.old_image = True
+
+        image, camera_info = self.process_image()
+
+        self.find_dock_codes.image = image
+        contours = self.find_dock_codes.run(search='CODE_CONTOURS')
+
+        res.contours = contours
+        res.camera_info = camera_info
+
+        return res
     
     def srv_callback(self, req:DockCodesCameraPos.Request, res:DockCodesCameraPos.Response):
         self.get_logger().info('service called')
@@ -176,7 +205,7 @@ class FindDockCodesNode(Node):
         
         self.old_image = True
 
-        image = self.process_image()
+        image, camera_info = self.process_image()
 
         self.find_dock_codes.image = image
         bounds = self.find_dock_codes.run()

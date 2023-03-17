@@ -90,6 +90,16 @@ class FindDockCodes(NodeHelper):
                 if color == search_color: count += 1
             
             return count
+        
+        if search == 'CODE_CONTOURS':
+            flattened_contours = list()
+            contour_offsets = list()
+
+            for contour in flattened_contours:
+                contour_offsets.append(len(flattened_contours))
+                flattened_contours.extend(contour)
+            
+            return flattened_contours, contour_offsets, colors
 
     def _filter_contours_by_placard_backdrop(self, contours, colors, hsv):
 
@@ -106,19 +116,19 @@ class FindDockCodes(NodeHelper):
 
             if bounds['top'] - search_range >= 0:
                 top = hsv[bounds['top'] - search_range : bounds['top'], bounds['left']:bounds['right'] + 1,:]
-            else: top = np.ndarray((0,0,3))
+            else: top = np.ndarray((0,0,3), dtype=int)
 
             if bounds['bottom'] + search_range <= hsv.shape[0]:
                 bottom = hsv[bounds['bottom'] + 1 : bounds['bottom'] + search_range + 1, bounds['left']:bounds['right'] + 1,:]
-            else: bottom = np.ndarray((0,0,3))
+            else: bottom = np.ndarray((0,0,3), dtype=int)
 
             if bounds['left'] - search_range >= 0:
                 left = hsv[bounds['top']:bounds['bottom'] + 1, bounds['left'] - search_range : bounds['left'],:]
-            else: left = np.ndarray((0,0,3))
+            else: left = np.ndarray((0,0,3), dtype=int)
 
             if bounds['right'] + search_range <= hsv.shape[1]:
                 right = hsv[bounds['top']:bounds['bottom'] + 1, bounds['right'] + 1 : bounds['right'] + search_range + 1,:]
-            else: right = np.ndarray((0,0,3))
+            else: right = np.ndarray((0,0,3), dtype=int)
 
             total = np.append(np.reshape(top, (-1,3)), np.reshape(bottom, (-1,3)), axis=0)
             total = np.append(total, np.reshape(left, (-1,3)), axis=0)

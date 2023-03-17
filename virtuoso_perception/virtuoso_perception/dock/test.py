@@ -25,3 +25,5 @@ print(above)
 
 print(np.reshape(above, (above.shape[0] * above.shape[1], 3)))
 print(np.append(np.reshape(above, (-1, 3)), np.reshape(above, (-1, 3)), axis=0))
+
+print(np.append(np.reshape(above, (-1, 3)), np.reshape(np.ndarray((0,0,3), dtype=int), (-1,3)), axis=0))
