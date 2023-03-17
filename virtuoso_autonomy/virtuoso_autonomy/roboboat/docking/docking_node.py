@@ -61,7 +61,7 @@ class DockingNode(Node):
             return
         if self.state == State.STATION_KEEPING_ENABLED:
             # skip the next 2 states until implemented
-            self.state = State.FINDING_ORIENTATION
+            self.state = State.SEARCHING_FOR_DOCK_CODE
             return
         if self.state == State.APPROACHING_DOCK:
             return
@@ -124,9 +124,13 @@ class DockingNode(Node):
 
         theta = math.atan(abs(x / y))
 
+        self.get_logger().info(f'RAW THETA: {theta * 180}')
+
         if y < 0: theta = math.pi - theta
 
         msg.goal.z = theta
+
+        self.get_logger().info(f'PROCESSED THETA: {msg.goal.z * 180}')
 
         self.state = State.ORIENTING
 
@@ -216,13 +220,13 @@ class DockingNode(Node):
             self.dock()
             return
         
-        if targetX >= image_width * .2 and targetX < image_width * .48: # PARAM
+        if targetX >= image_width * .4 and targetX < image_width * .48: # PARAM
             self.get_logger().info('going left')
             msg.y = 1.0 # PARAM
-        elif targetX < image_width * .2: # PARAM
+        elif targetX < image_width * .4: # PARAM
             self.get_logger().info('going left')
             msg.y = 4.0 # PARAM
-        elif targetX > image_width * .52 and targetX <= image_width * .8: # PARAM
+        elif targetX > image_width * .52 and targetX <= image_width * .6: # PARAM
             self.get_logger().info('going right')
             msg.y = -1.0 # PARAM
         else:

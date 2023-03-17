@@ -5,9 +5,9 @@
 
     # DENSITY clustering params
     max_cluster_height: 300
-    min_cluster_height: 20
+    min_cluster_height: 10
     max_cluster_width: 300
-    min_cluster_width: 20
+    min_cluster_width: 10
     epsilon: 2
     min_pts: 12
 
