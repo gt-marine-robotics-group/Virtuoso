@@ -13,7 +13,7 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 import time
 
-class BuoyStereoNode(Node):
+class DockStereoNode(Node):
 
     def __init__(self):
         super().__init__('perception_dock_stereo')
@@ -39,9 +39,9 @@ class BuoyStereoNode(Node):
             self.srv_callback, callback_group=self.cb_group_1)
         
         self.left_cam_client = self.create_client(ImageBuoyFilter, 
-            f'{cams[0]}/dock_code_contours', callback_group=self.cb_group_2)
+            f'{cams[0]}/find_dock_posts', callback_group=self.cb_group_2)
         self.right_cam_client = self.create_client(ImageBuoyFilter,
-            f'{cams[1]}/dock_code_contours', callback_group=self.cb_group_3)
+            f'{cams[1]}/find_dock_posts', callback_group=self.cb_group_3)
 
         self.single_debug_pubs = {
             '/perception/stereo/debug/points': self.create_publisher(PointCloud2,
@@ -85,7 +85,7 @@ class BuoyStereoNode(Node):
         
         self.dock_stereo.cam_transform = cv2_trans
         
-    def execute_code_stereo(self):
+    def execute_dock_stereo(self):
 
         if self.dock_stereo.cam_transform is None:
             self.find_cam_transform()
@@ -121,7 +121,7 @@ class BuoyStereoNode(Node):
                 self.get_logger().info('Waiting for contours')
             time.sleep(0.5)
             
-        end_points = self.execute_code_stereo()
+        end_points = self.execute_dock_stereo()
 
         res.end_points = end_points
         res.header.frame_id = self.frames[0]
@@ -143,7 +143,7 @@ def main(args=None):
     
     rclpy.init(args=args)
 
-    node = BuoyStereoNode()
+    node = DockStereoNode()
 
     executor = MultiThreadedExecutor(num_threads=3)
     executor.add_node(node)

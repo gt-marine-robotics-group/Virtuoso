@@ -44,6 +44,7 @@ setup(
             'scan_code = virtuoso_perception.code.scan_code_node:main',
 
             'find_dock_codes = virtuoso_perception.dock.find_dock_codes_node:main',
+            'find_dock_posts = virtuoso_perception.dock.find_dock_posts_node:main',
             'find_dock_entrances = virtuoso_perception.dock.find_dock_entrances_node:main',
 
             'buoy_stereo = virtuoso_perception.stereo.buoy_stereo_node:main',

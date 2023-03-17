@@ -17,7 +17,8 @@ def generate_launch_description():
 
     camera_processing_param_file = (pkg_share, '/config/', usv_config,
         '/camera_processing.yaml')
-    dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
+    dock_codes_param_file = (pkg_share, '/config/', usv_config, '/dock_codes.yaml')
+    dock_posts_param_file = (pkg_share, '/config/', usv_config, '/dock_posts.yaml')
     stereo_param_file = (pkg_share, '/config/', usv_config, '/stereo.yaml')
 
     voxel_grid_node_param_file = (pkg_share,
@@ -72,7 +73,19 @@ def generate_launch_description():
                 name=f'find_dock_codes_{base_topic[base_topic.rfind("/") + 1:]}',
                 parameters=[
                     {'camera_base_topic': base_topic},
-                    dock_param_file,
+                    dock_codes_param_file,
+                    camera_processing_param_file
+                ]
+            )
+        )
+        ld.append(
+            Node(
+                package='virtuoso_perception',
+                executable='find_dock_posts',
+                name=f'find_dock_posts_{base_topic[base_topic.rfind("/") + 1:]}',
+                parameters=[
+                    {'camera_base_topic': base_topic},
+                    dock_posts_param_file,
                     camera_processing_param_file
                 ]
             )
@@ -90,13 +103,13 @@ def generate_launch_description():
         )
     )
 
-    ld.append(
-        Node(
-            package='virtuoso_perception',
-            executable='find_dock_entrances',
-            parameters=[dock_param_file]
-        )
-    )
+    # ld.append(
+    #     Node(
+    #         package='virtuoso_perception',
+    #         executable='find_dock_entrances',
+    #         parameters=[dock_param_file]
+    #     )
+    # )
 
     return LaunchDescription(ld)
     
