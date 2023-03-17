@@ -45,7 +45,15 @@ class BuoyStereoNode(Node):
 
         self.single_debug_pubs = {
             '/perception/stereo/debug/points': self.create_publisher(PointCloud2,
-                '/perception/stereo/debug/points', 10)
+                '/perception/stereo/debug/points', 10),
+            '/perception/dock_stereo/left_cam_left': self.create_publisher(Image,
+                '/perception/dock_stereo/left_cam_left', 10),
+            '/perception/dock_stereo/left_cam_right': self.create_publisher(Image,
+                '/perception/dock_stereo/left_cam_right', 10),
+            '/perception/dock_stereo/right_cam_left': self.create_publisher(Image,
+                '/perception/dock_stereo/right_cam_left', 10),
+            '/perception/dock_stereo/right_cam_right': self.create_publisher(Image,
+                '/perception/dock_stereo/right_cam_right', 10)
         }
 
         self.tf_buffer = Buffer()
@@ -83,7 +91,10 @@ class BuoyStereoNode(Node):
             self.find_cam_transform()
             return list()
         
-        self.dock_stereo.run()
+        try:
+            self.dock_stereo.run()
+        except Exception as e:
+            self.get_logger().info(str(e))
 
         if self.dock_stereo.end_points is None:
             return list()

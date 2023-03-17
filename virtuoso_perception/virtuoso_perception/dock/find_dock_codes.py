@@ -95,9 +95,10 @@ class FindDockCodes(NodeHelper):
             flattened_contours = list()
             contour_offsets = list()
 
-            for contour in flattened_contours:
+            for contour in contours:
                 contour_offsets.append(len(flattened_contours))
-                flattened_contours.extend(contour)
+                for pt in contour:
+                    flattened_contours.extend([int(pt[0][0]), int(pt[0][1])])    
             
             return flattened_contours, contour_offsets, colors
 

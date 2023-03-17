@@ -183,6 +183,7 @@ class FindDockCodesNode(Node):
         self.find_dock_codes.image = image
         contours, offsets, colors = self.find_dock_codes.run(search='CODE_CONTOURS')
 
+
         res.contours.contour_points = contours
         res.contours.contour_offsets = offsets
         res.contours.contour_colors = colors

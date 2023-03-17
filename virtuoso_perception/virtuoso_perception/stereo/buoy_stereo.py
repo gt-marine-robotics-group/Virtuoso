@@ -2,9 +2,11 @@ from rclpy.node import Node
 from .stereo import Stereo
 import numpy as np
 import cv2
+from sensor_msgs.msg import PointCloud2
 from virtuoso_msgs.msg import Contours, Buoy, BuoyArray
 from geometry_msgs.msg import Point
 from .utils import unflatten_contours, img_points_to_physical_xy, contour_average_yx
+from ..utils.pointcloud import create_cloud_xyz32
 from multiprocessing import Process, Array
 from sensor_msgs.msg import CameraInfo
 from cv_bridge import CvBridge
@@ -25,19 +27,6 @@ class BuoyStereo(Stereo):
         if self.node is None:
             return
         self.node.update_debug_pub_sizes(num)
-    
-    def _sort_contours(self, images_contours:list, images_contour_colors:list):
-        for i in range(len(images_contours)):
-            combo = list(zip(images_contours[i], images_contour_colors[i]))
-            combo.sort(key=lambda x: contour_average_yx(x[0])[0])
-            for j in range(len(combo)):
-                images_contours[i][j] = combo[j][0]
-                images_contour_colors[i][j] = combo[j][1]
-        # for contours in images_contours:
-        #     contours_list = list(contours)
-        #     contours_list.sort(key=lambda c: contour_average_yx(c)[0])
-        #     for i in range(len(contours_list)):
-        #         contours[i] = contours_list[i]
     
     def run(self):
         self._debug('executing')
@@ -185,3 +174,13 @@ class BuoyStereo(Stereo):
         self._points[points_base_index] = x
         self._points[points_base_index + 1] = y
 
+    def _debug_pcd(self, buoys:BuoyArray):
+        pcd = PointCloud2()
+        pcd.header.frame_id = 'wamv/lidar_wamv_link'
+        pcd_points = list()
+        for buoy in buoys.buoys:
+            pcd_points.append([buoy.location.x, buoy.location.y, 0])
+        
+        pcd = create_cloud_xyz32(pcd.header, pcd_points)
+
+        self._debug_pub('/perception/stereo/debug/points', pcd)
