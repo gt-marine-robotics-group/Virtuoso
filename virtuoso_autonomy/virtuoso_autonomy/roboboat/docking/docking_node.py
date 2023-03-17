@@ -3,9 +3,10 @@ from rclpy.node import Node
 from .docking_states import State
 from nav_msgs.msg import Path, Odometry
 from std_msgs.msg import Empty
-from geometry_msgs.msg import PoseStamped, Point, Pose
+from geometry_msgs.msg import PoseStamped, Point, Pose, Vector3
 from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes, Rotate, ImageDockStereo
 import time
+import math
 
 TARGET_COLOR = 'red' # PARAM
 
@@ -105,8 +106,37 @@ class DockingNode(Node):
 
         self.get_logger().info(f'result: {result}')
 
-        msg = Rotate.Request()
+        if len(result.end_points) < 2:
+            self.get_logger().info('Not enough end_points')
+            return
+        
+        if result.end_points[0].x > result.end_points[1].x:
+            p1 = result.end_points[0]
+            p2 = result.end_points[1]
+        else:
+            p1 = result.end_points[1]
+            p2 = result.end_points[0]
 
+        msg = Rotate.Request()
+        
+        x = p1.x - p2.x
+        y = -1 * (p1.y - p2.y)
+
+        theta = math.atan(abs(x / y))
+
+        if y < 0: theta = math.pi - theta
+
+        msg.goal.z = theta
+
+        self.state = State.ORIENTING
+
+        self.rotate_req = self.rotate_client.call_async(msg)
+        self.rotate_req.add_done_callback(self.rotate_callback)
+    
+    def rotate_callback(self, future):
+        self.get_logger().info('Finished rotation')
+
+        self.state = State.SEARCHING_FOR_DOCK_CODE        
         
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED
