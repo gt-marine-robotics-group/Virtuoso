@@ -75,17 +75,19 @@ class DockStereo(Stereo):
                 return list()
             used_colors.add(contour_colors[0][i])
         
+        mid_index = (len(contours[0]) // 2) - 1
+        
         left_cam_left = np.zeros((self.left_cam_info.height, self.left_cam_info.width))
-        left_cam_left = cv2.drawContours(left_cam_left, contours[0], 0, 255, 1).astype('uint8')
+        left_cam_left = cv2.drawContours(left_cam_left, contours[0], mid_index, 255, 1).astype('uint8')
 
         left_cam_right = np.zeros((self.left_cam_info.height, self.left_cam_info.width))
-        left_cam_right = cv2.drawContours(left_cam_right, contours[0], len(contours[0]) - 1, 255, 1).astype('uint8')
+        left_cam_right = cv2.drawContours(left_cam_right, contours[0], mid_index + 1, 255, 1).astype('uint8')
 
         right_cam_left = np.zeros((self.left_cam_info.height, self.left_cam_info.width))
-        right_cam_left = cv2.drawContours(right_cam_left, contours[1], 0, 255, 1).astype('uint8')
+        right_cam_left = cv2.drawContours(right_cam_left, contours[1], mid_index, 255, 1).astype('uint8')
 
         right_cam_right = np.zeros((self.left_cam_info.height, self.left_cam_info.width))
-        right_cam_right = cv2.drawContours(right_cam_right, contours[1], len(contours[1]) - 1, 255, 1).astype('uint8')
+        right_cam_right = cv2.drawContours(right_cam_right, contours[1], mid_index + 1, 255, 1).astype('uint8')
 
         left = self._find_point(left_cam_left, right_cam_left, 'left')
 
