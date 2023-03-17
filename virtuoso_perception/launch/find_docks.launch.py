@@ -18,6 +18,7 @@ def generate_launch_description():
     camera_processing_param_file = (pkg_share, '/config/', usv_config,
         '/camera_processing.yaml')
     dock_param_file = (pkg_share, '/config/', usv_config, '/dock.yaml')
+    stereo_param_file = (pkg_share, '/config/', usv_config, '/stereo.yaml')
 
     voxel_grid_node_param_file = (pkg_share,
         '/config/', usv_config, '/voxel_grid.yaml')
@@ -77,6 +78,17 @@ def generate_launch_description():
             )
         )
 
+    ld.append(
+        Node(
+            package='virtuoso_perception',
+            executable='dock_stereo',
+            parameters=[
+                {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
+                {'frames': camera_data['camera_config']['bow_camera_frames']}, 
+                stereo_param_file
+            ]
+        )
+    )
 
     ld.append(
         Node(

@@ -62,7 +62,7 @@ class FindDockCodesNode(Node):
         self.count_srv = self.create_service(CountDockCodes, f'{cam}/count_dock_codes',
             self.count_srv_callback, callback_group=self.cb_group1)
         
-        self.contour_srv = self.create_service(ImageBuoyFilter, f'{cam}/code_contours',
+        self.contour_srv = self.create_service(ImageBuoyFilter, f'{cam}/dock_code_contours',
             self.contour_callback, callback_group=self.cb_group1)
         
         self.image_sub = self.create_subscription(Image, f'{base_topic}/image_raw',
@@ -181,9 +181,11 @@ class FindDockCodesNode(Node):
         image, camera_info = self.process_image()
 
         self.find_dock_codes.image = image
-        contours = self.find_dock_codes.run(search='CODE_CONTOURS')
+        contours, offsets, colors = self.find_dock_codes.run(search='CODE_CONTOURS')
 
-        res.contours = contours
+        res.contours.contour_points = contours
+        res.contours.contour_offsets = offsets
+        res.contours.contour_colors = colors
         res.camera_info = camera_info
 
         return res

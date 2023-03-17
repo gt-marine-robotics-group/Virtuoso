@@ -4,7 +4,7 @@ from .docking_states import State
 from nav_msgs.msg import Path, Odometry
 from std_msgs.msg import Empty
 from geometry_msgs.msg import PoseStamped, Point, Pose
-from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes, Rotate
+from virtuoso_msgs.srv import DockCodesCameraPos, CountDockCodes, Rotate, ImageDockStereo
 import time
 
 TARGET_COLOR = 'red' # PARAM
@@ -30,6 +30,9 @@ class DockingNode(Node):
         self.count_code_client = self.create_client(CountDockCodes, 
             'front_left_camera/count_dock_codes') # PARAM
         self.count_code_req = None
+
+        self.stereo_client = self.create_client(ImageDockStereo, 'perception/dock_stereo')
+        self.stereo_req = None
 
         self.rotate_client = self.create_client(Rotate, 'rotate')
         self.rotate_req = None
@@ -57,7 +60,7 @@ class DockingNode(Node):
             return
         if self.state == State.STATION_KEEPING_ENABLED:
             # skip the next 2 states until implemented
-            self.state = State.SEARCHING_FOR_DOCK_CODE
+            self.state = State.FINDING_ORIENTATION
             return
         if self.state == State.APPROACHING_DOCK:
             return
@@ -83,33 +86,26 @@ class DockingNode(Node):
             return
         
     def find_orientation(self):
-        if self.code_pos_req is not None or self.rotate_req is not None:
+        if self.stereo_req is not None or self.rotate_req is not None:
             return
         
         # use different request which gets the position of the codes using 
         # stereo instead of their relative placements
         # also make sure the stereo is using bounds that don't border the camera
-        msg = DockCodesCameraPos.Request()
-
-        self.code_pos_req = self.code_pos_client.call_async(msg)
-        self.code_pos_req.add_done_callback(self.orientation_code_pos_callback)
+        msg = ImageDockStereo.Request()
+        
+        self.stereo_req = self.stereo_client.call_async(msg)
+        self.stereo_req.add_done_callback(self.stereo_callback)
     
-    def orientation_code_pos_callback(self, future):
+    def stereo_callback(self, future):
         result = future.result()
 
-        self.code_pos_req = None
+        self.stereo_req = None
 
         self.get_logger().info(f'result: {result}')
 
         msg = Rotate.Request()
 
-        if len(result.red) == 0:
-            self.get_logger().info(f'No dock code positions sent')
-            msg.goal.z = 0.523599 # PARAM
-            return
-        
-        leftX = None
-        rightX = None
         
     def enable_station_keeping(self):
         self.state = State.STATION_KEEPING_ENABLED
