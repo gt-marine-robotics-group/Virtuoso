@@ -38,7 +38,8 @@ setup(
 
             # Testing
             'test_ball_shooter = virtuoso_auxiliary.testing.ball_shooter_node:main',
-            'test_water_shooter = virtuoso_auxiliary.testing.water_shooter_node:main'
+            'test_water_shooter = virtuoso_auxiliary.testing.water_shooter_node:main',
+            'test_stop_all = virtuoso_auxiliary.testing.stop_all_node:main'
         ],
     },
 )
