@@ -33,6 +33,7 @@
   <exec_depend>virtuoso_mapping</exec_depend>
   <exec_depend>virtuoso_controller</exec_depend>
   <exec_depend>virtuoso_sensors</exec_depend>
+  <exec_depend>virtuoso_auxiliary</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
