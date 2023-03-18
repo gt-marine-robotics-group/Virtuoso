@@ -37,7 +37,8 @@ setup(
         'console_scripts': [
 
             # Testing
-            'test_ball_shooter = virtuoso_auxiliary.testing.ball_shooter_node:main'
+            'test_ball_shooter = virtuoso_auxiliary.testing.ball_shooter_node:main',
+            'test_water_shooter = virtuoso_auxiliary.testing.water_shooter_node:main'
         ],
     },
 )
