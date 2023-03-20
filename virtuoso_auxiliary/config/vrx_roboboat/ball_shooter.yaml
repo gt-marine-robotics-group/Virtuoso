@@ -2,4 +2,11 @@
 auxiliary_ball_shooter:
   ros__parameters:
     sim: True
-    shooter_motor_topic: "/wamv/shooters/ball_shooter/fire"
+    shooter_motor_topic: '/wamv/shooters/ball_shooter/fire'
+    loading_motor_topic: ''
+    num_shots: 3
+    between_load_time_gap: 1
+    shooter_motor_speed: 0.0
+    loading_motor_speed: 0.0
+    shooter_motor_spinup_time: 0.0
+    single_shot_time: 0.0

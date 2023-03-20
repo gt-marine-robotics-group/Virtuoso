@@ -12,11 +12,12 @@ class BallShooterNode(Node):
         self.declare_parameters(namespace='', parameters=[
             ('sim', False),
             ('shooter_motor_topic', ''),
+            ('num_shots', 0),
             ('loading_motor_topic', ''),
             ('shooter_motor_speed', 0.0),
             ('loading_motor_speed', 0.0),
             ('shooter_motor_spinup_time', 0.0),
-            ('single_load_time', 0.0),
+            ('single_shot_time', 0.0),
             ('between_load_time_gap', 0.0)
         ])
 
@@ -37,9 +38,41 @@ class BallShooterNode(Node):
     def action_server_callback(self, goal_handle):
         self.get_logger().info('Received action request')
 
+        if self.sim:
+            self.shoot_sim(goal_handle)
+            result = ShootBalls.Result()
+            result.success = True
+            return result
+
+        loop_iter_count = 0
+        load_iter_count = 0
+        shoot_iter_count = 0
+
+        shot_count = 0
+
+        while True:
+            break
+
+
         result = ShootBalls.Result()
         result.success = True
         return result
+
+    def shoot_sim(self, goal_handle):
+        loop_iter_count = 0
+        shot_count = 0
+        while True:
+            if loop_iter_count < self.get_parameter('between_load_time_gap').value:
+                loop_iter_count += 1
+                continue
+            if shot_count == self.get_parameter('num_shots').value: 
+                break
+            shot_count += 1
+            loop_iter_count = 0
+            self.shooter_pub.publish(Empty())
+            msg = ShootBalls.Feedback()
+            msg.state = f'Shot ball {shot_count}'
+            goal_handle.publish_feedback(msg)
 
 
 def main(args=None):

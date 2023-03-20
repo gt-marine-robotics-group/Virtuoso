@@ -43,9 +43,14 @@ class BallShooterNode(Node):
 
         msg = ShootBalls.Goal()
         
-        self.ball_shooter_req = self.ball_shooter_client.send_goal_async(msg)
+        self.ball_shooter_req = self.ball_shooter_client.send_goal_async(msg,
+            feedback_callback=self.ball_shooter_feedback_callback)
 
         self.ball_shooter_req.add_done_callback(self.ball_shooter_response_callback)
+    
+    def ball_shooter_feedback_callback(self, msg):
+        feedback = msg.feedback
+        self.get_logger().info(f'Feedback: {feedback}')
     
     def ball_shooter_response_callback(self, future):
         goal_handle = future.result()
