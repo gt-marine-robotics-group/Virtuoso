@@ -6,24 +6,17 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    pkg_share = get_package_share_directory('virtuoso_autonomy')
+    pkg_share = get_package_share_directory('virtuoso_auxiliary')
 
     usv_arg = DeclareLaunchArgument('usv')
 
     usv_config = LaunchConfiguration('usv')
 
-    water_shooter_params = (pkg_share, '/config/', usv_config, '/water_shooter.yaml')
-
     return LaunchDescription([
-        usv_arg, 
+        usv_arg,
 
         Node(
-            package='virtuoso_autonomy',
-            executable='roboboat_water_shooter',
-            parameters=[water_shooter_params]
-        ),
-        Node(
-            package='virtuoso_navigation',
-            executable='waypoint_player'
+            package='virtuoso_auxiliary',
+            executable='water_shooter'
         )
     ])
