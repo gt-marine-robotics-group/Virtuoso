@@ -59,7 +59,8 @@ setup(
             'roboboat_safety_check = virtuoso_autonomy.roboboat.safety_check.safety_check_node:main',
             'roboboat_loop = virtuoso_autonomy.roboboat.loop.loop_node:main',
             'roboboat_docking = virtuoso_autonomy.roboboat.docking.docking_node:main',
-            'roboboat_ball_shooter = virtuoso_autonomy.roboboat.ball_shooter.ball_shooter_node:main'
+            'roboboat_ball_shooter = virtuoso_autonomy.roboboat.ball_shooter.ball_shooter_node:main',
+            'roboboat_water_shooter = virtuoso_autonomy.roboboat.water_shooter.water_shooter_node:main'
         ],
     },
 )
