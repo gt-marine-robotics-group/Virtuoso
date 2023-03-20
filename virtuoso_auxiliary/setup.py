@@ -36,6 +36,8 @@ setup(
     entry_points={
         'console_scripts': [
 
+            'ball_shooter = virtuoso_auxiliary.ball_shooter_node:main',
+
             # Testing
             'test_ball_shooter = virtuoso_auxiliary.testing.ball_shooter_node:main',
             'test_water_shooter = virtuoso_auxiliary.testing.water_shooter_node:main',

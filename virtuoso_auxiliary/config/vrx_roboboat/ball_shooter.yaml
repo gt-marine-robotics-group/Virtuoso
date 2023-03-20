@@ -1,0 +1,5 @@
+
+auxiliary_ball_shooter:
+  ros__parameters:
+    sim: True
+    shooter_motor_topic: "/wamv/shooters/ball_shooter/fire"

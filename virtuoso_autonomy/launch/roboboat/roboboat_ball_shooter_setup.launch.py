@@ -19,6 +19,7 @@ def generate_launch_description():
     localization = get_package_share_directory('virtuoso_localization')
     perception = get_package_share_directory('virtuoso_perception')
     controller = get_package_share_directory('virtuoso_controller')
+    auxiliary = get_package_share_directory('virtuoso_auxiliary')
 
     return LaunchDescription([
         sim_time_arg,
@@ -41,5 +42,9 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(auxiliary, 'launch', 'ball_shooter.launch.py')),
+            launch_arguments={'usv': usv_config}.items()
         )
     ])
