@@ -1,21 +1,32 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float32
+from virtuoso_msgs.srv import ShootWater
 
-CMD = 1.0
+NUM_SECONDS = 5.0
 
 class TestWaterShooter(Node):
 
     def __init__(self):
         super().__init__('test_ball_shooter_node')
 
-        self.cmd_pub = self.create_publisher(Float32, '/water_shooter/throttle_cmd', 10)
+        self.shooter_client = self.create_client(ShootWater, 'shoot_water')
+        self.shooter_req = None
     
         self.create_timer(1.0, self.timer_callback)
     
     def timer_callback(self):
-        self.get_logger().info('Publishing command')
-        self.cmd_pub.publish(Float32(data=CMD))
+        if self.shooter_req is not None:
+            return
+        
+        msg = ShootWater.Request()
+        msg.num_seconds = NUM_SECONDS
+
+        self.shooter_req = self.shooter_client.call_async(msg)
+        self.shooter_req.add_done_callback(self.shoot_callback)
+    
+    def shoot_callback(self, future):
+        result = future.result()
+        self.get_logger().info(f'Result: {result}')
 
 
 def main(args=None):
