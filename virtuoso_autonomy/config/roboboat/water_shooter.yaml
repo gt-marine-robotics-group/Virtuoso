@@ -1,0 +1,4 @@
+
+autonomy_water_shooter:
+  ros__parameters:
+    shoot_seconds: 5.0

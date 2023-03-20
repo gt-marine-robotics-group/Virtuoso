@@ -39,6 +39,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/DockCodesCameraPos.srv"
   "srv/CountDockCodes.srv"
   "srv/ImageDockStereo.srv"
+  "srv/ShootWater.srv"
   "action/ShootBalls.action"
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs autoware_auto_perception_msgs
  )
