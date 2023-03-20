@@ -41,6 +41,7 @@ class BallShooterNode(Node):
 
         if self.sim:
             self.shoot_sim(goal_handle)
+            goal_handle.succeed()
             result = ShootBalls.Result()
             result.success = True
             return result
@@ -56,14 +57,15 @@ class BallShooterNode(Node):
 
         while True:
             time.sleep(0.01)
-            if loop_iter_count*100 < self.get_parameter('shooter_motor_spinup_time').value:
+            if loop_iter_count/100 < self.get_parameter('shooter_motor_spinup_time').value:
                 loop_iter_count += 1
                 continue
             
             if shooting:
                 shoot_iter_count += 1
-                if shoot_iter_count*100 > self.get_parameter('single_shot_time').value:
-                    if shot_count == self.get_parameter('num_shots'): 
+                if shoot_iter_count/100 > self.get_parameter('single_shot_time').value:
+                    self.get_logger().info(f'shot iter: {shoot_iter_count}')
+                    if shot_count == self.get_parameter('num_shots').value: 
                         break
                     shooting = False
                     shoot_iter_count = 0
@@ -71,7 +73,8 @@ class BallShooterNode(Node):
                     self.loading_pub.publish(Float32(data=0.0)) 
                 continue
             
-            if shot_count == 0 or load_iter_count*100 > self.get_parameter('between_load_time_gap').value:
+            if shot_count == 0 or load_iter_count/100 > self.get_parameter('between_load_time_gap').value:
+                self.get_logger().info(f'load iter: {load_iter_count}')
                 shot_count += 1
                 load_iter_count = 0
                 shooting = True
@@ -83,6 +86,7 @@ class BallShooterNode(Node):
                 
             load_iter_count += 1
 
+        goal_handle.succeed()
 
         result = ShootBalls.Result()
         result.success = True
