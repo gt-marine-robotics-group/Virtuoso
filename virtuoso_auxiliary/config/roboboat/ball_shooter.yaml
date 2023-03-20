@@ -1,0 +1,12 @@
+
+auxiliary_ball_shooter:
+  ros__parameters:
+    sim: False
+    shooter_motor_topic: '/ball_shooter/throttle_a_cmd'
+    loading_motor_topic: '/ball_shooter/throttle_b_cmd'
+    num_shots: 2
+    between_load_time_gap: 1
+    shooter_motor_speed: 1.0
+    loading_motor_speed: 0.2
+    shooter_motor_spinup_time: 3.0
+    single_shot_time: 0.1

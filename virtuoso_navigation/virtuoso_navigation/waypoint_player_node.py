@@ -23,6 +23,9 @@ class WaypointPlayerNode(Node):
 
         self.nav_success_sub = self.create_subscription(PoseStamped,
             '/navigation/success', self.nav_success_callback ,10)
+        
+        self.success_pub = self.create_publisher(PoseStamped, 
+            '/navigation/waypoint_player/success', 10)
 
         self.fromLL_cli = self.create_client(FromLL, '/fromLL')
 
@@ -67,13 +70,14 @@ class WaypointPlayerNode(Node):
 
         return f'{Path.home()}/mrg/waypoints_raw/points_{max_num}.yaml'
     
-    def send_next_waypoint(self):
+    def send_next_waypoint(self, curr_pose=PoseStamped()):
 
         while not self.fromLL_cli.service_is_ready():
             self.get_logger().info('waiting for service')
             time.sleep(1.0)
 
         if self.waypoint_num >= len(self.ll_points):
+            self.success_pub.publish(curr_pose)
             return
         
         def ll_callback(future):
@@ -104,7 +108,7 @@ class WaypointPlayerNode(Node):
     
     def nav_success_callback(self, msg:PoseStamped):
         self.waypoint_num += 1
-        self.send_next_waypoint()
+        self.send_next_waypoint(curr_pose=msg)
 
 
 def main(args=None):
