@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from .ball_shooter_states import State
+from rclpy.action import ActionClient
+from virtuoso_msgs.action import ShootBalls
 
 class BallShooterNode(Node):
 
@@ -12,6 +14,10 @@ class BallShooterNode(Node):
             '/navigation/waypoint_player/success', self.waypoint_player_success_callback, 10)
 
         self.state = State.NAVIGATING
+
+        self.ball_shooter_client = ActionClient(self, ShootBalls, 'shoot_balls')
+        self.ball_shooter_req = None
+        self.ball_shooter_result = None
 
         self.create_timer(1.0, self.execute)
     
@@ -31,6 +37,30 @@ class BallShooterNode(Node):
     
     def shoot(self):
         self.get_logger().info('shooting')
+
+        if self.ball_shooter_req is not None:
+            return
+
+        msg = ShootBalls.Goal()
+        
+        self.ball_shooter_req = self.ball_shooter_client.send_goal_async(msg)
+
+        self.ball_shooter_req.add_done_callback(self.ball_shooter_response_callback)
+    
+    def ball_shooter_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.ball_shooter_result = goal_handle.get_result_async()
+        self.ball_shooter_result.add_done_callback(self.ball_shooter_result_callback)
+    
+    def ball_shooter_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
 
 
 def main(args=None):
