@@ -4,6 +4,7 @@ from geometry_msgs.msg import PoseStamped
 from .ball_shooter_states import State
 from rclpy.action import ActionClient
 from virtuoso_msgs.action import ShootBalls
+import time
 
 class BallShooterNode(Node):
 
@@ -25,6 +26,8 @@ class BallShooterNode(Node):
         self.get_logger().info('Waypoint player finished')
 
         self.state = State.SHOOTING
+
+        time.sleep(3.0)  
     
     def execute(self):
         self.get_logger().info(str(self.state))
@@ -66,6 +69,7 @@ class BallShooterNode(Node):
     def ball_shooter_result_callback(self, future):
         result = future.result().result
         self.get_logger().info(f'Result: {result}')
+        self.state = State.COMPLETE
 
 
 def main(args=None):

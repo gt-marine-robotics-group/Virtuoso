@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.action import ActionServer
 from virtuoso_msgs.action import ShootBalls
 from std_msgs.msg import Empty, Float32
+import time
 
 class BallShooterNode(Node):
 
@@ -47,11 +48,40 @@ class BallShooterNode(Node):
         loop_iter_count = 0
         load_iter_count = 0
         shoot_iter_count = 0
+        shooting = False
 
         shot_count = 0
 
+        self.shooter_pub.publish(Float32(data=self.get_parameter('shooter_motor_speed').value))
+
         while True:
-            break
+            time.sleep(0.01)
+            if loop_iter_count*100 < self.get_parameter('shooter_motor_spinup_time').value:
+                loop_iter_count += 1
+                continue
+            
+            if shooting:
+                shoot_iter_count += 1
+                if shoot_iter_count*100 > self.get_parameter('single_shot_time').value:
+                    if shot_count == self.get_parameter('num_shots'): 
+                        break
+                    shooting = False
+                    shoot_iter_count = 0
+                    load_iter_count = 0
+                    self.loading_pub.publish(Float32(data=0.0)) 
+                continue
+            
+            if shot_count == 0 or load_iter_count*100 > self.get_parameter('between_load_time_gap').value:
+                shot_count += 1
+                load_iter_count = 0
+                shooting = True
+                self.loading_pub.publish(Float32(data=self.get_parameter('loading_motor_speed').value))
+                msg = ShootBalls.Feedback()
+                msg.state = f'Shot ball {shot_count}'
+                goal_handle.publish_feedback(msg)
+                continue
+                
+            load_iter_count += 1
 
 
         result = ShootBalls.Result()
@@ -62,6 +92,7 @@ class BallShooterNode(Node):
         loop_iter_count = 0
         shot_count = 0
         while True:
+            time.sleep(1.0)
             if loop_iter_count < self.get_parameter('between_load_time_gap').value:
                 loop_iter_count += 1
                 continue
