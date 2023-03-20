@@ -64,7 +64,6 @@ class BallShooterNode(Node):
             if shooting:
                 shoot_iter_count += 1
                 if shoot_iter_count/100 > self.get_parameter('single_shot_time').value:
-                    self.get_logger().info(f'shot iter: {shoot_iter_count}')
                     if shot_count == self.get_parameter('num_shots').value: 
                         break
                     shooting = False
@@ -74,7 +73,6 @@ class BallShooterNode(Node):
                 continue
             
             if shot_count == 0 or load_iter_count/100 > self.get_parameter('between_load_time_gap').value:
-                self.get_logger().info(f'load iter: {load_iter_count}')
                 shot_count += 1
                 load_iter_count = 0
                 shooting = True
@@ -85,6 +83,9 @@ class BallShooterNode(Node):
                 continue
                 
             load_iter_count += 1
+        
+        self.shooter_pub.publish(Float32())
+        self.loading_pub.publish(Float32())
 
         goal_handle.succeed()
 
