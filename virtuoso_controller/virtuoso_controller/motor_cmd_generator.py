@@ -128,10 +128,10 @@ class MotorCmdGenerator:
              right_front_angle.data = -0.785
              right_rear_angle.data = 0.785
              
-             left_front_cmd.data = (target_force_x - target_torque)
-             right_front_cmd.data = (target_force_x + target_torque)
-             left_rear_cmd.data = (target_force_x - target_torque)
-             right_rear_cmd.data = (target_force_x + target_torque)
+             left_front_cmd.data = (target_force_x + target_torque)
+             right_front_cmd.data = (target_force_x - target_torque)
+             left_rear_cmd.data = (target_force_x + target_torque)
+             right_rear_cmd.data = (target_force_x - target_torque)
              left_middle_cmd.data = -target_force_y
              right_middle_cmd.data = target_force_y
              
