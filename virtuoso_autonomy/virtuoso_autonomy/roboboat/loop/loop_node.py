@@ -68,6 +68,7 @@ class LoopNode(Node):
         elif self.state == State.NAVIGATING_STRAIGHT:
             self.state = State.CHECKING_FOR_LOOP_BUOY
         elif self.state == State.LOOPING:
+            self.nav_forward()
             self.state = State.COMPLETE
     
     def execute(self):
