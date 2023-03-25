@@ -1,0 +1,4 @@
+
+auxiliary_aux_serial:
+  ros__parameters:
+    serial_port: '/dev/ttyACM0'
