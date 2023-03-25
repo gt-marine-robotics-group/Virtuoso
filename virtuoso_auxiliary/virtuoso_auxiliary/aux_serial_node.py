@@ -12,6 +12,8 @@ class AuxSerialNode(Node):
             ('serial_port', '')
         ])
 
+        self.get_logger().info(str(self.get_parameter('serial_port').value))
+
         self.ser = serial.Serial(self.get_parameter('serial_port').value)
 
         self.water_sub = self.create_subscription(Float32, '/water_shooter/throttle_cmd',
@@ -39,11 +41,13 @@ class AuxSerialNode(Node):
     
     def execute(self):
         
-        s = '5555'
-        s += str(int(self.a_cmd * 1000))[:4]
-        s += str(int(self.b_cmd * 1000))[:4]
-        s += str(int(self.water_cmd * 1000))[:4]
-        s += '8888'
+        s = 'AAAA'
+        s += str(int(self.a_cmd * 1000)) * 4
+        s += str(int(self.b_cmd * 1000)) * 4
+        s += str(int(self.water_cmd * 1000)) * 4
+        s += 'BBBB'
+
+        s = s.encode('ascii')
 
         self.get_logger().info(f'Sending over serial: {s}')
 

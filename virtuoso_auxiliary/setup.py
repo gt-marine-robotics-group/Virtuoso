@@ -38,6 +38,7 @@ setup(
 
             'ball_shooter = virtuoso_auxiliary.ball_shooter_node:main',
             'water_shooter = virtuoso_auxiliary.water_shooter_node:main',
+            'aux_serial = virtuoso_auxiliary.aux_serial_node:main',
 
             # Testing
             'test_ball_shooter = virtuoso_auxiliary.testing.ball_shooter_node:main',
