@@ -4,7 +4,7 @@ autonomy_loop:
     gate_use_lidar: True
     gate_use_camera: False
     gate_max_buoy_dist: 25.0 
-    gate_extra_forward_nav: 10.0
+    gate_extra_forward_nav: 15.0
 
     loop_use_lidar: True
     loop_use_camera: False
