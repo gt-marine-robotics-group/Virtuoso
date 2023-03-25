@@ -28,7 +28,7 @@ class AuxSerialNode(Node):
             self.b_callback, 10)
         self.b_cmd = 0.0
 
-        self.create_timer(1.0, self.execute)
+        self.create_timer(0.05, self.execute)
     
     def water_callback(self, msg:Float32):
         self.water_cmd = msg.data
@@ -42,9 +42,9 @@ class AuxSerialNode(Node):
     def execute(self):
         
         s = 'AAAA'
-        s += str(int(self.a_cmd * 1000)) * 4
-        s += str(int(self.b_cmd * 1000)) * 4
-        s += str(int(self.water_cmd * 1000)) * 4
+        s += self.num_str(self.a_cmd)
+        s += self.num_str(self.b_cmd)
+        s += self.num_str(self.water_cmd)
         s += 'BBBB'
 
         s = s.encode('ascii')
@@ -52,6 +52,12 @@ class AuxSerialNode(Node):
         self.get_logger().info(f'Sending over serial: {s}')
 
         self.ser.write(s)
+    
+    def num_str(self, val:float):
+        s = str(str(int(val * 1000)))
+        if len(s) < 4:
+            s = (str(0) * (4 - len(s))) + s
+        return s[:4]
 
 
 def main(args=None):
