@@ -1,0 +1,4 @@
+
+localization_multi_task_waypoint_saver:
+  ros__parameters:
+    num_tasks: 8
