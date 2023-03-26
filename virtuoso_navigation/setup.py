@@ -41,6 +41,7 @@ setup(
             'rotate = virtuoso_navigation.rotate_node:main',
 
             'waypoint_player = virtuoso_navigation.waypoint_player_node:main',
+            'multi_tasks_waypoint_player = virtuoso_navigation.multi_tasks_waypoint_player_node:main',
 
             'test_set_goal = virtuoso_navigation.testing.set_goal:main',
             'test_change_goal = virtuoso_navigation.testing.change_goal:main',
