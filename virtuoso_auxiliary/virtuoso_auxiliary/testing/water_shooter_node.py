@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from virtuoso_msgs.srv import ShootWater
 
-NUM_SECONDS = 120.0
+NUM_SECONDS = 2.0
 
 class TestWaterShooter(Node):
 

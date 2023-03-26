@@ -64,7 +64,7 @@ def generate_launch_description():
             ld.append(Node(
                 package='urg_node',
                 executable='urg_node_driver',
-                parameters=[urg_params_file, {'serial_port': f'/dev/ttyACM{i + 0}'}],
+                parameters=[urg_params_file, {'serial_port': f'/dev/serial/by-id/usb-Hokuyo_Data_Flex_for_USB_URG-Series_USB_Driver-if00'}],
                 remappings=[('/scan', f'{lidars["lidar_config"]["all_lidar_base_topics"][i]}/laser')]
             ))
             ld.append(Node(

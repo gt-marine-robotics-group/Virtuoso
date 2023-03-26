@@ -1,4 +1,4 @@
 
 auxiliary_aux_serial:
   ros__parameters:
-    serial_port: '/dev/ttyACM0'
+    serial_port: '/dev/serial/by-id/usb-Arduino__www.arduino.org__Arduino_Due_Prog._Port_75439313737351F001A0-if00'
