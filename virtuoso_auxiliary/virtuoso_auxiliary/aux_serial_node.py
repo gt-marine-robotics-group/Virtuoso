@@ -12,6 +12,9 @@ class AuxSerialNode(Node):
             ('serial_port', '')
         ])
 
+        self.prev_str = None
+        self.prev_count = 0
+
         self.get_logger().info(str(self.get_parameter('serial_port').value))
 
         self.ser = serial.Serial(self.get_parameter('serial_port').value)
@@ -40,14 +43,22 @@ class AuxSerialNode(Node):
         self.b_cmd = msg.data
     
     def execute(self):
+
+        self.prev_count += 1
         
         s = 'AAAA'
-        s += self.num_str(self.a_cmd)
-        s += self.num_str(self.b_cmd)
-        s += self.num_str(self.water_cmd)
+        s += self.num_str(abs(self.a_cmd))
+        s += self.num_str(abs(self.b_cmd))
+        s += self.num_str(abs(self.water_cmd))
         s += 'BBBB'
 
         s = s.encode('ascii')
+
+        if self.prev_str == s and self.prev_count < 10:
+            return
+        
+        self.prev_str = s
+        self.prev_count = 0
 
         self.get_logger().info(f'Sending over serial: {s}')
 
