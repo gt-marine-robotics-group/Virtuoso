@@ -119,12 +119,13 @@ class MultiTasksWaypointPlayerNode(Node):
             return
         
         def ll_callback(future):
+            self.get_logger().info('received ll callback')
             point = future.result().map_point
 
             pose_stamped = PoseStamped()
             pose_stamped.pose.position = point
 
-            orientation = self.orientations[self.waypoint_num]
+            orientation = self.orientations[str(self.task_num)][self.waypoint_num]
             pose_stamped.pose.orientation.x = orientation[0]
             pose_stamped.pose.orientation.y = orientation[1]
             pose_stamped.pose.orientation.z = orientation[2]
@@ -133,6 +134,7 @@ class MultiTasksWaypointPlayerNode(Node):
             path = NavPath()
             path.poses.append(pose_stamped)
 
+            self.get_logger().info('sending path')
             self.path_pub.publish(path)
         
         self.req = FromLL.Request() 
@@ -141,6 +143,7 @@ class MultiTasksWaypointPlayerNode(Node):
         self.req.ll_point.longitude = self.ll_points[str(self.task_num)][self.waypoint_num][1]
         self.req.ll_point.altitude = self.ll_points[str(self.task_num)][self.waypoint_num][2]
 
+        self.get_logger().info('sending ll request')
         map_dest = self.fromLL_cli.call_async(self.req)
         map_dest.add_done_callback(ll_callback) 
 
