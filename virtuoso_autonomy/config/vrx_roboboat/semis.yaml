@@ -1,8 +1,10 @@
 
 autonomy_semis:
   ros__parameters:
-    task_nums: [1, 2, 3, 4, 5, 7, 8]
+    task_nums: [1, 2, 3, 4, 5, 6, 7, 8]
     docking_num: 3
     ball_shooter_num: 6
+    water_shooter_num: 7
 
     docking_secs: 5
+    water_secs: 5

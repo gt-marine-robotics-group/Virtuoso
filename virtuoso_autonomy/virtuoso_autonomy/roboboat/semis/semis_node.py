@@ -3,6 +3,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 from virtuoso_msgs.action import TaskWaypointNav
 from virtuoso_msgs.action import ShootBalls
+from virtuoso_msgs.srv import ShootWater
 from .semis_states import State
 
 class SemisNode(Node):
@@ -14,7 +15,9 @@ class SemisNode(Node):
             ('task_nums', []),
             ('docking_num', -1),
             ('ball_shooter_num', -1),
-            ('docking_secs', 1)
+            ('water_shooter_num', -1),
+            ('docking_secs', 1),
+            ('water_secs', 1)
         ])
 
         self.task_nums = self.get_parameter('task_nums').value
@@ -28,6 +31,9 @@ class SemisNode(Node):
         self.ball_shooter_client = ActionClient(self, ShootBalls, 'shoot_balls')
         self.ball_shooter_req = None
         self.ball_shooter_result = None
+
+        self.water_shooter_client = self.create_client(ShootWater, 'shoot_water')
+        self.water_shooter_req = None
 
         self.curr_docking_time = 0
 
@@ -51,6 +57,8 @@ class SemisNode(Node):
                 self.curr_docking_time += 1
         elif self.state == State.BALL_SHOOTING:
             self.shoot_balls()
+        elif self.state == State.WATER_SHOOTING:
+            self.shoot_water()
     
     def start_next_task(self):
         self.get_logger().info('Starting next task')
@@ -93,6 +101,8 @@ class SemisNode(Node):
             self.state = State.DOCKING_STOP
         elif task_num == self.get_parameter('ball_shooter_num').value:
             self.state = State.BALL_SHOOTING
+        elif task_num == self.get_parameter('water_shooter_num').value:
+            self.state = State.WATER_SHOOTING
         else:
             self.start_next_task()
     
@@ -125,6 +135,22 @@ class SemisNode(Node):
 
     def ball_shooter_result_callback(self, future):
         result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        self.start_next_task()
+    
+    def shoot_water(self):
+
+        if self.water_shooter_req is not None:
+            return
+        
+        msg = ShootWater.Request()
+        msg.num_seconds = float(self.get_parameter('water_secs').value)
+
+        self.water_shooter_req = self.water_shooter_client.call_async(msg)
+        self.water_shooter_req.add_done_callback(self.water_callback)
+    
+    def water_callback(self, future):
+        result = future.result()
         self.get_logger().info(f'Result: {result}')
         self.start_next_task()
 
