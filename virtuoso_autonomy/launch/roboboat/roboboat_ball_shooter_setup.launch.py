@@ -45,6 +45,6 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(auxiliary, 'launch', 'main.launch.py')),
-            launch_arguments={'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config, 'sim_time': sim_time_config}.items()
         )
     ])
