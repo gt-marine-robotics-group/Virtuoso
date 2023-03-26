@@ -40,7 +40,8 @@ setup(
             'localization_debugger = virtuoso_localization.localization_debugger_node:main',
 
             'keyboard_listener = virtuoso_localization.utils.keyboard_listener_node:main',
-            'waypoint_saver = virtuoso_localization.waypoint_saver_node:main'
+            'waypoint_saver = virtuoso_localization.waypoint_saver_node:main',
+            'multi_tasks_waypoint_saver = virtuoso_localization.multi_tasks_waypoint_saver_node:main'
         ],
     },
 )
