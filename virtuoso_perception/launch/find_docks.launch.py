@@ -53,18 +53,6 @@ def generate_launch_description():
         )
     )
 
-    ld.append(
-        Node(
-            package='voxel_grid_nodes',
-            executable='voxel_grid_node_exe',
-            parameters=[LaunchConfiguration('voxel_grid_node_param_file')],
-            remappings=[
-                ('points_in', '/perception/lidar/points_shore_filtered'),
-                ('points_downsampled', '/perception/voxels')
-            ]
-        )
-    )
-
     for base_topic in camera_data['camera_config']['bow_camera_base_topics']:
         ld.append(
             Node(

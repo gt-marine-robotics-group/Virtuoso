@@ -9,4 +9,4 @@ auxiliary_ball_shooter:
     shooter_motor_speed: 1.2
     loading_motor_speed: -1.0
     shooter_motor_spinup_time: 3.0
-    single_shot_time: 1.15
+    single_shot_time: 10.15
