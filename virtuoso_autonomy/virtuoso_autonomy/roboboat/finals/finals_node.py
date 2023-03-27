@@ -72,7 +72,9 @@ class FinalsNode(Node):
         self.find_attempts = 0
         self.loop_buoy_loc:Point = None
         self.t3_mid_waypoint:PoseStamped = None
+        self.t3_mid_waypoint_back:PoseStamped = None
         self.t3_gate_waypoint:PoseStamped = None
+        self.t3_gate_waypoint_back:PoseStamped = None
 
         self.create_timer(1.0, self.execute)
 
@@ -114,6 +116,15 @@ class FinalsNode(Node):
             self.t3_find_gate()
         elif self.state == State.T3_GATE_ENTER:
             self.t3_gate_extra_forward()
+        elif self.state == State.T3_GATE_EXTRA_FORWARD_NAV:
+            self.t3_reenter()
+    
+    def t3_reenter(self):
+        self.state = State.T3_GATE_REENTER
+        path = Path()
+        path.poses.append(self.t3_gate_waypoint)
+        path.poses.append(self.t3_mid_waypoint)
+        self.path_pub.publish(path)
     
     def t3_gate_extra_forward(self):
         self.state = State.T3_GATE_EXTRA_FORWARD_NAV
@@ -162,12 +173,20 @@ class FinalsNode(Node):
         ps.pose.orientation = self.find_reverse_orientation(self.robot_pose.pose.orientation)
         self.t3_mid_waypoint = ps
 
+        ps = PoseStamped()
+        ps.pose = self.robot_pose.pose
+        self.t3_mid_waypoint_back = ps
+
         mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
 
         ps = PoseStamped()
         ps.pose.position = mid.pose.position
         ps.pose.orientation = self.find_reverse_orientation(mid.pose.orientation)
         self.t3_gate_waypoint = ps
+
+        ps = PoseStamped()
+        ps.pose = self.robot_pose.pose
+        self.t3_gate_waypoint_back = ps
 
         path = Path()
         path.poses.append(mid)
