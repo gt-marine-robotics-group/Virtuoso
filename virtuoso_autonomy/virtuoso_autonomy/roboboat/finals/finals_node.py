@@ -6,6 +6,7 @@ from virtuoso_msgs.srv import Channel, Rotate, LidarBuoy
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+from ...utils.looping_buoy.looping_buoy import LoopingBuoy
 from virtuoso_perception.utils.geometry_msgs import do_transform_point
 import time
 import tf_transformations
@@ -36,7 +37,9 @@ class FinalsNode(Node):
             ('t3_gate_buoy_max_dist', 0.0),
             ('t3_gate_explore_find_attempts', 0),
             ('t3_gate_explore_extra_nav_distance', 0.0),
-            ('t3_gate_extra_forward_nav', 0.0)
+            ('t3_gate_extra_forward_nav', 0.0),
+            ('t3_looping_radius', 0.0),
+            ('t3_exit_extra_forward_nav', 0.0)
         ])
 
         self.tf_buffer = Buffer()
@@ -118,6 +121,26 @@ class FinalsNode(Node):
             self.t3_gate_extra_forward()
         elif self.state == State.T3_GATE_EXTRA_FORWARD_NAV:
             self.t3_reenter()
+        elif self.state == State.T3_GATE_REENTER:
+            self.t3_loop()
+        elif self.state == State.T3_BUOY_LOOPING:
+            self.t3_exit_extra_forward()
+    
+    def t3_exit_extra_forward(self):
+        self.state = State.T3_EXIT_EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('t3_exit_extra_forward_nav').value))
+    
+    def t3_loop(self):
+        buoy = PoseStamped()
+        buoy.pose.position = self.loop_buoy_loc
+
+        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, buoy,
+            looping_radius=self.get_parameter('t3_looping_radius').value)
+        path.poses.append(self.t3_mid_waypoint_back)
+        path.poses.append(self.t3_gate_waypoint_back)
+
+        self.state = State.T3_BUOY_LOOPING
+        self.path_pub.publish(path)
     
     def t3_reenter(self):
         self.state = State.T3_GATE_REENTER
@@ -185,7 +208,7 @@ class FinalsNode(Node):
         self.t3_gate_waypoint = ps
 
         ps = PoseStamped()
-        ps.pose = self.robot_pose.pose
+        ps.pose = mid.pose
         self.t3_gate_waypoint_back = ps
 
         path = Path()
