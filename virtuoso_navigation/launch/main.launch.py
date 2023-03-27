@@ -51,6 +51,10 @@ def generate_launch_description():
         ),
         Node(
             package='virtuoso_navigation',
+            executable='single_waypoint'
+        ),
+        Node(
+            package='virtuoso_navigation',
             executable='translate'
         ),
         Node(

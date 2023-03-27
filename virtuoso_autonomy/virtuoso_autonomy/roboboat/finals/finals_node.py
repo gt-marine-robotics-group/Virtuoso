@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import Point, PoseStamped, Quaternion
+from geometry_msgs.msg import Point, PoseStamped, Quaternion, Pose
 from virtuoso_msgs.srv import Channel
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
@@ -22,13 +22,15 @@ class FinalsNode(Node):
             ('t2_enter_distance', 0.0),
             ('t2_backing_distance', 0.0),
             ('t3_direction', ''),
-            ('t3_explore_orientation', [])
+            ('t3_explore_orientation', []),
+            ('t3_loop_explore_initial_nav_distance', 0.0)
         ])
 
         self.t3_explore_orientation = self.get_parameter('t3_explore_orientation').value
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
+        self.pose_pub = self.create_publisher(Pose, '/navigation/set_single_waypoint', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
             self.nav_success_callback, 10)
@@ -69,6 +71,15 @@ class FinalsNode(Node):
         elif self.state == State.T2_ENTERING:
             time.sleep(2.0) 
             self.t2_exit()
+        elif self.state == State.T2_BACKING:
+            time.sleep(5.0)
+            self.t3_initial_nav()
+    
+    def t3_initial_nav(self):
+        self.state = State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION
+        pose = Pose()
+        pose.position.x = self.get_parameter('t3_loop_explore_initial_nav_distance').value
+        self.pose_pub.publish(pose)
     
     def find_perp_orientation(self, orientation):
         euler = list(tf_transformations.euler_from_quaternion(orientation))

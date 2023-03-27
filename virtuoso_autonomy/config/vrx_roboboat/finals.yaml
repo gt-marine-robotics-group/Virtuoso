@@ -4,7 +4,10 @@ autonomy_finals:
     t1_extra_forward_nav: 3.0
     t1_final_extra_forward_nav: 2.0
     t1_gate_buoy_max_dist: 25.0
+
     t2_enter_distance: 5.0
     t2_backing_distance: 4.0
+
     t3_direction: "right"
     t3_explore_orientation: [0,0,0,0]
+    t3_loop_explore_initial_nav_distance: 20.0
