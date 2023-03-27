@@ -97,6 +97,7 @@ class FinalsNode(Node):
         elif self.state == State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION:
             self.state = State.T3_LOOP_EXPLORE_ROTATING
         elif self.state == State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION:
+            time.sleep(5.0)
             self.t3_find_loop()
     
     def find_lidar_to_map_transform(self):
@@ -173,7 +174,7 @@ class FinalsNode(Node):
     def t3_loop_explore_nav_forward(self):
         self.state = State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION
         pose = Pose()
-        pose.position.y = self.get_parameter('t3_loop_explore_extra_nav_distance').value
+        pose.position.y = -1 * self.get_parameter('t3_loop_explore_extra_nav_distance').value
         self.pose_pub.publish(pose)
     
     def t3_initial_nav(self):
