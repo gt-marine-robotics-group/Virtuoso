@@ -36,6 +36,7 @@ setup(
     entry_points={
         'console_scripts': [
             'waypoints = virtuoso_navigation.waypoints_node:main',
+            'single_waypoint = virtuoso_navigation.single_waypoint_node:main',
             'translate = virtuoso_navigation.translate_node:main',
             'station_keeping = virtuoso_navigation.station_keeping_node:main',
             'rotate = virtuoso_navigation.rotate_node:main',

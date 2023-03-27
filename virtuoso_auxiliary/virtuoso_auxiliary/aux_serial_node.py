@@ -60,7 +60,7 @@ class AuxSerialNode(Node):
         self.prev_str = s
         self.prev_count = 0
 
-        self.get_logger().info(f'Sending over serial: {s}')
+        # self.get_logger().info(f'Sending over serial: {s}')
 
         self.ser.write(s)
     
