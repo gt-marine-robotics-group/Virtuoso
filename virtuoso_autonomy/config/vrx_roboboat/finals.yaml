@@ -16,6 +16,7 @@ autonomy_finals:
     t3_loop_explore_find_attempts: 3
     t3_loop_explore_extra_nav_distance: 5.0
     t3_loop_explore_buoy_max_dist: 10.0
+    t3_loop_approach_dist: 1.0
     t3_gate_explore_initial_nav_distance: 20.0
     t3_gate_buoy_max_dist: 25.0
     t3_gate_explore_find_attempts: 3

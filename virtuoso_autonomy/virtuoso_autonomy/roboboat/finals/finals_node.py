@@ -33,6 +33,7 @@ class FinalsNode(Node):
             ('t3_loop_explore_find_attempts', 0),
             ('t3_loop_explore_extra_nav_distance', 0.0),
             ('t3_loop_explore_buoy_max_dist', 0.0),
+            ('t3_loop_approach_dist', 0.0),
             ('t3_gate_explore_initial_nav_distance', 0.0),
             ('t3_gate_buoy_max_dist', 0.0),
             ('t3_gate_explore_find_attempts', 0),
@@ -299,7 +300,7 @@ class FinalsNode(Node):
         self.find_attempts = 0
 
         pose = Pose()
-        pose.position.x = point.x - 1
+        pose.position.x = point.x - self.get_parameter('t3_loop_approach_dist').value
         self.pose_pub.publish(pose)
     
     def t3_loop_explore_nav_forward(self):
