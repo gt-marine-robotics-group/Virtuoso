@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
 from geometry_msgs.msg import Point, PoseStamped, Quaternion, Pose
-from virtuoso_msgs.srv import Channel
+from virtuoso_msgs.srv import Channel, Rotate
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
@@ -36,6 +36,9 @@ class FinalsNode(Node):
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
+
+        self.rotate_client = self.create_client(Rotate, 'rotate')
+        self.rotate_call = None
         
         self.state = State.START
 
@@ -74,6 +77,8 @@ class FinalsNode(Node):
         elif self.state == State.T2_BACKING:
             time.sleep(5.0)
             self.t3_initial_nav()
+        elif self.state == State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION:
+            self.state = State.T3_LOOP_EXPLORE_ROTATING
     
     def t3_initial_nav(self):
         self.state = State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION
@@ -136,8 +141,29 @@ class FinalsNode(Node):
 
         if self.state == State.START:
             self.state = State.T1_FINDING_NEXT_GATE
-        if self.state == State.T1_FINDING_NEXT_GATE:
+        elif self.state == State.T1_FINDING_NEXT_GATE:
             self.t1_nav_to_channel_midpoint()
+        elif self.state == State.T3_LOOP_EXPLORE_ROTATING:
+            self.t3_rotate()
+    
+    def t3_rotate(self):
+        if self.rotate_call is not None:
+            return
+
+        req = Rotate.Request()
+        req.goal.z = math.pi / 2
+
+        self.rotate_call = self.rotate_client.call_async(req)
+        self.rotate_call.add_done_callback(self.rotate_callback)
+    
+    def rotate_callback(self, future):
+        result = future.result()
+        self.get_logger().info(f'response: {result}')
+
+        self.rotate_call = None
+
+        if self.state == State.T3_LOOP_EXPLORE_ROTATING:
+            self.state = State.T3_LOOP_EXPLORE_FINDING
     
     def t1_nav_to_channel_midpoint(self):
 
