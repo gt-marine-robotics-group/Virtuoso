@@ -1,14 +1,18 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import Point, PoseStamped, Quaternion, Pose
-from virtuoso_msgs.srv import Channel, Rotate
+from geometry_msgs.msg import Point, PoseStamped, Quaternion, Pose, PointStamped
+from virtuoso_msgs.srv import Channel, Rotate, LidarBuoy
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+from virtuoso_perception.utils.geometry_msgs import do_transform_point
 import time
 import tf_transformations
 import math
+from tf2_ros.buffer import Buffer
+from tf2_ros.transform_listener import TransformListener
+from rclpy.time import Time
 
 class FinalsNode(Node):
 
@@ -16,6 +20,7 @@ class FinalsNode(Node):
         super().__init__('autonomy_finals')
 
         self.declare_parameters(namespace='', parameters=[
+            ('lidar_frame', ''),
             ('t1_extra_forward_nav', 0.0),
             ('t1_final_extra_forward_nav', 0.0),
             ('t1_gate_buoy_max_dist', 0.0),
@@ -23,8 +28,14 @@ class FinalsNode(Node):
             ('t2_backing_distance', 0.0),
             ('t3_direction', ''),
             ('t3_explore_orientation', []),
-            ('t3_loop_explore_initial_nav_distance', 0.0)
+            ('t3_loop_explore_initial_nav_distance', 0.0),
+            ('t3_loop_explore_find_attempts', 0.0),
+            ('t3_loop_explore_extra_nav_distance', 0.0),
+            ('t3_loop_explore_buoy_max_dist', 0.0)
         ])
+
+        self.tf_buffer = Buffer()
+        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.t3_explore_orientation = self.get_parameter('t3_explore_orientation').value
 
@@ -45,10 +56,16 @@ class FinalsNode(Node):
         self.channel_client = self.create_client(Channel, 'channel')
         self.channel_call = None
 
+        self.lidar_buoy_client = self.create_client(LidarBuoy, 'perception/lidar_buoy')
+        self.lidar_buoy_call = None
+
         self.robot_pose:PoseStamped = None
 
         self.t1_channels_completed = 0
         self.t1_final_pose:PoseStamped = None
+
+        self.find_attempts = 0
+        self.loop_buoy_loc:Point = None
 
         self.create_timer(1.0, self.execute)
 
@@ -79,6 +96,85 @@ class FinalsNode(Node):
             self.t3_initial_nav()
         elif self.state == State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION:
             self.state = State.T3_LOOP_EXPLORE_ROTATING
+        elif self.state == State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION:
+            self.t3_find_loop()
+    
+    def find_lidar_to_map_transform(self):
+        try:
+            trans = self.tf_buffer.lookup_transform(
+                'map', self.get_parameter('lidar_frame').value, Time()
+            )
+            self.get_logger().info('got lidar to map transform')
+            return trans
+        except Exception:
+            return None
+    
+    def t3_find_loop(self):
+        
+        if self.lidar_buoy_call is not None:
+            return
+        
+        msg = LidarBuoy.Request()
+
+        self.lidar_buoy_call = self.lidar_buoy_client.call_async(msg)
+        self.lidar_buoy_call.add_done_callback(self.lidar_buoy_callback)
+    
+    def lidar_buoy_callback(self, future):
+        result = future.result()
+        # self.get_logger().info(f'response: {result}')
+
+        self.lidar_buoy_call = None
+
+        try:
+            self.find_attempts += 1
+
+            buoys = result.buoys
+
+            if len(buoys.boxes) == 0:
+                self.get_logger().info('No lidar buoys found')
+                if self.find_attempts >= self.get_parameter('t3_loop_explore_find_attempts').value:  
+                    self.t3_loop_explore_nav_forward()
+                return
+
+            closest = None 
+            closest_dist = None
+            for buoy in buoys.boxes:
+                dist = math.sqrt(buoy.centroid.x**2 + buoy.centroid.y**2)
+                if (closest is None or dist < closest_dist) and dist < self.get_parameter('t3_loop_explore_buoy_max_dist').value:
+                    closest = buoy
+                    closest_dist = dist
+            
+            if closest is None:
+                self.get_logger().info('No buoys within distance')
+                return
+            
+            point = Point(x=closest.centroid.x,y=closest.centroid.y)
+            ps = PointStamped(point=point)
+
+            lidar_to_map = self.find_lidar_to_map_transform()
+
+            if lidar_to_map is None:
+                self.get_logger().info('No lidar to map')
+                return
+            
+            map_point = do_transform_point(ps, lidar_to_map)
+
+            self.loop_buoy_loc = map_point.point
+            
+            self.state = State.T3_LOOP_APPROACH
+
+            pose = Pose()
+            pose.position.x = point.x - 1
+            self.pose_pub.publish(pose)
+        except Exception as e:
+            self.get_logger().info(str(e))
+            return
+    
+    def t3_loop_explore_nav_forward(self):
+        self.state = State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION
+        pose = Pose()
+        pose.position.y = self.get_parameter('t3_loop_explore_extra_nav_distance').value
+        self.pose_pub.publish(pose)
     
     def t3_initial_nav(self):
         self.state = State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION
@@ -145,6 +241,8 @@ class FinalsNode(Node):
             self.t1_nav_to_channel_midpoint()
         elif self.state == State.T3_LOOP_EXPLORE_ROTATING:
             self.t3_rotate()
+        elif self.state == State.T3_LOOP_EXPLORE_FINDING:
+            self.t3_find_loop()
     
     def t3_rotate(self):
         if self.rotate_call is not None:
