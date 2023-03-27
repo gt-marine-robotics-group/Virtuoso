@@ -99,6 +99,20 @@ class FinalsNode(Node):
         elif self.state == State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION:
             time.sleep(5.0)
             self.t3_find_loop()
+        elif self.state == State.T3_LOOP_APPROACH:
+            self.t3_loop_buoy_rotate()
+        
+    def t3_loop_buoy_rotate(self):
+        if self.rotate_call is not None:
+            return
+        
+        self.state = State.T3_LOOP_ORIENTING
+
+        req = Rotate.Request()
+        req.goal.z = -1 * math.pi / 2
+
+        self.rotate_call = self.rotate_client.call_async(req)
+        self.rotate_call.add_done_callback(self.rotate_callback)
     
     def find_lidar_to_map_transform(self):
         try:
@@ -126,52 +140,49 @@ class FinalsNode(Node):
 
         self.lidar_buoy_call = None
 
-        try:
-            self.find_attempts += 1
+        self.find_attempts += 1
 
-            buoys = result.buoys
+        buoys = result.buoys
 
-            if len(buoys.boxes) == 0:
-                self.get_logger().info('No lidar buoys found')
-                if self.find_attempts >= self.get_parameter('t3_loop_explore_find_attempts').value:  
-                    self.t3_loop_explore_nav_forward()
-                return
-
-            closest = None 
-            closest_dist = None
-            for buoy in buoys.boxes:
-                dist = math.sqrt(buoy.centroid.x**2 + buoy.centroid.y**2)
-                if (closest is None or dist < closest_dist) and dist < self.get_parameter('t3_loop_explore_buoy_max_dist').value:
-                    closest = buoy
-                    closest_dist = dist
-            
-            if closest is None:
-                self.get_logger().info('No buoys within distance')
-                return
-            
-            point = Point(x=closest.centroid.x,y=closest.centroid.y)
-            ps = PointStamped(point=point)
-
-            lidar_to_map = self.find_lidar_to_map_transform()
-
-            if lidar_to_map is None:
-                self.get_logger().info('No lidar to map')
-                return
-            
-            map_point = do_transform_point(ps, lidar_to_map)
-
-            self.loop_buoy_loc = map_point.point
-            
-            self.state = State.T3_LOOP_APPROACH
-
-            pose = Pose()
-            pose.position.x = point.x - 1
-            self.pose_pub.publish(pose)
-        except Exception as e:
-            self.get_logger().info(str(e))
+        if len(buoys.boxes) == 0:
+            self.get_logger().info('No lidar buoys found')
+            if self.find_attempts >= self.get_parameter('t3_loop_explore_find_attempts').value:  
+                self.t3_loop_explore_nav_forward()
             return
+
+        closest = None 
+        closest_dist = None
+        for buoy in buoys.boxes:
+            dist = math.sqrt(buoy.centroid.x**2 + buoy.centroid.y**2)
+            if (closest is None or dist < closest_dist) and dist < self.get_parameter('t3_loop_explore_buoy_max_dist').value:
+                closest = buoy
+                closest_dist = dist
+        
+        if closest is None:
+            self.get_logger().info('No buoys within distance')
+            return
+        
+        point = Point(x=closest.centroid.x,y=closest.centroid.y)
+        ps = PointStamped(point=point)
+
+        lidar_to_map = self.find_lidar_to_map_transform()
+
+        if lidar_to_map is None:
+            self.get_logger().info('No lidar to map')
+            return
+        
+        map_point = do_transform_point(ps, lidar_to_map)
+
+        self.loop_buoy_loc = map_point.point
+        
+        self.state = State.T3_LOOP_APPROACH
+
+        pose = Pose()
+        pose.position.x = point.x - 1
+        self.pose_pub.publish(pose)
     
     def t3_loop_explore_nav_forward(self):
+        self.find_attempts = 0
         self.state = State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION
         pose = Pose()
         pose.position.y = -1 * self.get_parameter('t3_loop_explore_extra_nav_distance').value
@@ -263,6 +274,8 @@ class FinalsNode(Node):
 
         if self.state == State.T3_LOOP_EXPLORE_ROTATING:
             self.state = State.T3_LOOP_EXPLORE_FINDING
+        elif self.state == State.T3_LOOP_ORIENTING:
+            pass
     
     def t1_nav_to_channel_midpoint(self):
 
