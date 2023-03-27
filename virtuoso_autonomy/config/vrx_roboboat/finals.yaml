@@ -20,3 +20,4 @@ autonomy_finals:
     t3_gate_buoy_max_dist: 25.0
     t3_gate_explore_find_attempts: 3
     t3_gate_explore_extra_nav_distance: 5.0
+    t3_gate_extra_forward_nav: 3.0

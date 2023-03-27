@@ -35,7 +35,8 @@ class FinalsNode(Node):
             ('t3_gate_explore_initial_nav_distance', 0.0),
             ('t3_gate_buoy_max_dist', 0.0),
             ('t3_gate_explore_find_attempts', 0),
-            ('t3_gate_explore_extra_nav_distance', 0.0)
+            ('t3_gate_explore_extra_nav_distance', 0.0),
+            ('t3_gate_extra_forward_nav', 0.0)
         ])
 
         self.tf_buffer = Buffer()
@@ -70,6 +71,8 @@ class FinalsNode(Node):
 
         self.find_attempts = 0
         self.loop_buoy_loc:Point = None
+        self.t3_mid_waypoint:PoseStamped = None
+        self.t3_gate_waypoint:PoseStamped = None
 
         self.create_timer(1.0, self.execute)
 
@@ -109,6 +112,12 @@ class FinalsNode(Node):
             self.t3_find_gate()
         elif self.state == State.T3_GATE_EXPLORE_EXTRA_NAVIGATION:
             self.t3_find_gate()
+        elif self.state == State.T3_GATE_ENTER:
+            self.t3_gate_extra_forward()
+    
+    def t3_gate_extra_forward(self):
+        self.state = State.T3_GATE_EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('t3_gate_extra_forward_nav').value))
     
     def t3_find_gate(self):
         if self.channel_call is not None:
@@ -139,13 +148,26 @@ class FinalsNode(Node):
                 self.t3_channel_exploration_nav_forward()
             else:
                 self.t3_find_gate()
+            return
         
         channel = (
             point_to_pose_stamped(result.left),
             point_to_pose_stamped(result.right)
         )
 
+        self.find_attempts = 0
+
+        ps = PoseStamped()
+        ps.pose.position = self.robot_pose.pose.position
+        ps.pose.orientation = self.find_reverse_orientation(self.robot_pose.pose.orientation)
+        self.t3_mid_waypoint = ps
+
         mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
+
+        ps = PoseStamped()
+        ps.pose.position = mid.pose.position
+        ps.pose.orientation = self.find_reverse_orientation(mid.pose.orientation)
+        self.t3_gate_waypoint = ps
 
         path = Path()
         path.poses.append(mid)
@@ -250,6 +272,23 @@ class FinalsNode(Node):
         pose = Pose()
         pose.position.x = self.get_parameter('t3_loop_explore_initial_nav_distance').value
         self.pose_pub.publish(pose)
+    
+    def find_reverse_orientation(self, o:Quaternion):
+        euler = list(tf_transformations.euler_from_quaternion([o.x, o.y, o.z, o.w]))
+        if euler[2] > math.pi:
+            euler[2] -= math.pi
+        else:
+            euler[2] += math.pi
+
+        quat = tf_transformations.quaternion_from_euler(euler[0], euler[1], euler[2])
+
+        q = Quaternion()
+        q.x = quat[0]
+        q.y = quat[1]
+        q.z = quat[2]
+        q.w = quat[3]
+
+        return q
     
     def find_perp_orientation(self, orientation):
         euler = list(tf_transformations.euler_from_quaternion(orientation))
