@@ -31,7 +31,8 @@ class FinalsNode(Node):
             ('t3_loop_explore_initial_nav_distance', 0.0),
             ('t3_loop_explore_find_attempts', 0.0),
             ('t3_loop_explore_extra_nav_distance', 0.0),
-            ('t3_loop_explore_buoy_max_dist', 0.0)
+            ('t3_loop_explore_buoy_max_dist', 0.0),
+            ('t3_gate_explore_initial_nav_distance', 0.0)
         ])
 
         self.tf_buffer = Buffer()
@@ -275,7 +276,13 @@ class FinalsNode(Node):
         if self.state == State.T3_LOOP_EXPLORE_ROTATING:
             self.state = State.T3_LOOP_EXPLORE_FINDING
         elif self.state == State.T3_LOOP_ORIENTING:
-            pass
+            self.t3_initial_forward_nav()
+    
+    def t3_initial_forward_nav(self):
+        self.state = State.T3_GATE_EXPLORE_NAVIGATION
+        pose = Pose()
+        pose.position.x = self.get_parameter('t3_gate_explore_initial_nav_distance').value
+        self.pose_pub.publish(pose)
     
     def t1_nav_to_channel_midpoint(self):
 
