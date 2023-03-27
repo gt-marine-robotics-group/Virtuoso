@@ -1,12 +1,14 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import Point, PoseStamped
+from geometry_msgs.msg import Point, PoseStamped, Quaternion
 from virtuoso_msgs.srv import Channel
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
 import time
+import tf_transformations
+import math
 
 class FinalsNode(Node):
 
@@ -19,6 +21,7 @@ class FinalsNode(Node):
             ('t1_gate_buoy_max_dist', 0.0),
             ('t2_enter_distance', 0.0),
             ('t2_backing_distance', 0.0),
+            ('t3_direction', ''),
             ('t3_explore_orientation', [])
         ])
 
@@ -67,7 +70,30 @@ class FinalsNode(Node):
             time.sleep(2.0) 
             self.t2_exit()
     
+    def find_perp_orientation(self, orientation):
+        euler = list(tf_transformations.euler_from_quaternion(orientation))
+        if self.get_parameter('t3_direction').value == 'right':
+            euler[2] -= (math.pi / 2)
+        else:
+            euler[2] += (math.pi / 2)
+        
+        if euler[2] > math.pi:
+            euler[2] -= 2*math.pi
+        elif euler[2] < -math.pi:
+            euler[2] += 2*math.pi
+        
+        quat = tf_transformations.quaternion_from_euler(euler[0], euler[1], euler[2])
+
+        q = Quaternion()
+        q.x = quat[0]
+        q.y = quat[1]
+        q.z = quat[2]
+        q.w = quat[3]
+
+        return q
+    
     def t3_save_explore_orientation(self, pose:PoseStamped):
+        self.get_logger().info('using new orientation')
         self.t3_explore_orientation = list()
         self.t3_explore_orientation.append(pose.pose.orientation.x)
         self.t3_explore_orientation.append(pose.pose.orientation.y)
@@ -76,7 +102,8 @@ class FinalsNode(Node):
     
     def t2_exit(self):
         self.state = State.T2_BACKING
-        # adjust for new orientation
+        orientation = self.find_perp_orientation(self.t3_explore_orientation)
+        self.t1_final_pose.pose.orientation = orientation
         path = Path()
         path.poses.append(self.t1_final_pose)
         self.path_pub.publish(path)
