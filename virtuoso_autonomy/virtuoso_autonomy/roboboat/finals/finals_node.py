@@ -29,10 +29,13 @@ class FinalsNode(Node):
             ('t3_direction', ''),
             ('t3_explore_orientation', []),
             ('t3_loop_explore_initial_nav_distance', 0.0),
-            ('t3_loop_explore_find_attempts', 0.0),
+            ('t3_loop_explore_find_attempts', 0),
             ('t3_loop_explore_extra_nav_distance', 0.0),
             ('t3_loop_explore_buoy_max_dist', 0.0),
-            ('t3_gate_explore_initial_nav_distance', 0.0)
+            ('t3_gate_explore_initial_nav_distance', 0.0),
+            ('t3_gate_buoy_max_dist', 0.0),
+            ('t3_gate_explore_find_attempts', 0),
+            ('t3_gate_explore_extra_nav_distance', 0.0)
         ])
 
         self.tf_buffer = Buffer()
@@ -102,6 +105,58 @@ class FinalsNode(Node):
             self.t3_find_loop()
         elif self.state == State.T3_LOOP_APPROACH:
             self.t3_loop_buoy_rotate()
+        elif self.state == State.T3_GATE_EXPLORE_NAVIGATION:
+            self.t3_find_gate()
+        elif self.state == State.T3_GATE_EXPLORE_EXTRA_NAVIGATION:
+            self.t3_find_gate()
+    
+    def t3_find_gate(self):
+        if self.channel_call is not None:
+            return
+        
+        req = Channel.Request()
+        req.left_color = 'red'
+        req.right_color = 'green'
+        req.use_lidar = True
+        req.use_camera = False
+        req.max_dist_from_usv = self.get_parameter('t3_gate_buoy_max_dist').value
+
+        self.channel_call = self.channel_client.call_async(req)
+        self.channel_call.add_done_callback(self.t3_channel_response)
+    
+    def t3_channel_response(self, future):
+        result:Channel.Response = future.result()
+        self.get_logger().info(f'response: {result}')
+
+        null_point = Point(x=0.0,y=0.0,z=0.0)
+
+        self.channel_call = None
+        
+        if result.left == null_point or result.right == null_point:
+            self.get_logger().info('No Gate Found')
+            self.find_attempts += 1
+            if self.find_attempts >= self.get_parameter('t3_gate_explore_find_attempts').value:
+                self.t3_channel_exploration_nav_forward()
+            else:
+                self.t3_find_gate()
+        
+        channel = (
+            point_to_pose_stamped(result.left),
+            point_to_pose_stamped(result.right)
+        )
+
+        mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
+
+        path = Path()
+        path.poses.append(mid)
+
+        self.state = State.T3_GATE_ENTER
+        self.path_pub.publish(path)
+
+    def t3_channel_exploration_nav_forward(self):
+        self.find_attempts = 0
+        self.state = State.T3_GATE_EXPLORE_EXTRA_NAVIGATION
+        self.trans_pub.publish(Point(x=self.get_parameter('t3_gate_explore_extra_nav_distance').value))
         
     def t3_loop_buoy_rotate(self):
         if self.rotate_call is not None:
@@ -177,6 +232,7 @@ class FinalsNode(Node):
         self.loop_buoy_loc = map_point.point
         
         self.state = State.T3_LOOP_APPROACH
+        self.find_attempts = 0
 
         pose = Pose()
         pose.position.x = point.x - 1
