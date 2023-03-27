@@ -49,7 +49,7 @@ class AuxSerialNode(Node):
 
         s = s.encode('ascii')
 
-        self.get_logger().info(f'Sending over serial: {s}')
+        # self.get_logger().info(f'Sending over serial: {s}')
 
         self.ser.write(s)
     
