@@ -5,4 +5,5 @@ class State(Enum):
     TASK_WAYPOINT_NAVIGATING = 2
     DOCKING_STOP = 3
     BALL_SHOOTING = 4
-    COMPLETE = 5
+    WATER_SHOOTING = 5
+    COMPLETE = 6
