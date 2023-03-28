@@ -65,6 +65,7 @@ class FinalsNode(Node):
             ('timeouts.t4_gate', 0),
             ('timeouts.t4_loop', 0),
             ('timeouts.t6_approach', 0),
+            ('timeouts.t6_rotate', 0),
             ('timeouts.t6_back_up', 0),
 
             ('timeout_responses.t1_find_next_gate_trans', 0.0),
@@ -117,6 +118,7 @@ class FinalsNode(Node):
         self.t4_gate_midpoint = None
 
         self.t6_backup_time = 0
+        self.t6_rotate_time = 0
 
         self.robot_pose:PoseStamped = None
 
@@ -167,6 +169,7 @@ class FinalsNode(Node):
         self.get_logger().info(str(self.state))
         self.timeout_secs += 1
         self.t6_backup_time += 1
+        self.t6_rotate_time += 1
 
         if self.state.value >= 8:
             self.docking_timeout_secs += 1
@@ -176,6 +179,12 @@ class FinalsNode(Node):
             self.get_logger().info('Timed out backing up')
             self.trans_pub.publish(Point())
             self.shoot_balls()
+            return
+        
+        if (self.state == State.T6_ROTATING 
+            and self.t6_rotate_time > self.get_parameter('timeouts.t6_rotate').value):
+            self.get_logger().info('Timed out rotating')
+            self.t6_back_up()
             return
 
         if self.state == State.START:
@@ -285,9 +294,10 @@ class FinalsNode(Node):
         self.t6_rotate()
     
     def t6_rotate(self):
+        self.t6_rotate_time = 0
         self.state = State.T6_ROTATING
         msg = Rotate.Request()
-        msg.goal = Vector3(z=math.pi/2)
+        msg.goal = Vector3(z=math.pi)
 
         self.rotate_call = self.rotate_client.call_async(msg)
         self.rotate_call.add_done_callback(self.t6_rotate_response)

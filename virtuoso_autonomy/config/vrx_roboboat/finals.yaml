@@ -49,6 +49,7 @@ autonomy_finals:
       t4_gate: 10
       t4_loop: 10
       t6_approach: 10
+      t6_rotate: 10
       t6_back_up: 5
     
     timeout_responses:
