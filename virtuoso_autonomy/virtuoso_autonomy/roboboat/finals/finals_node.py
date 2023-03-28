@@ -69,7 +69,7 @@ class FinalsNode(Node):
 
         self.task_nums = self.get_parameter('task_nums').value
 
-        self.curr_task = 3 # TEMP -1
+        self.curr_task = 2 # TEMP -1
 
         self.nav_client = ActionClient(self, TaskWaypointNav, 'task_waypoint_nav')
         self.nav_req = None
@@ -97,7 +97,7 @@ class FinalsNode(Node):
         self.timeout_secs = 0
         self.docking_timeout_secs = 0
 
-        self.state = State.T4_FINDING_GATE # TEMP State.START
+        self.state = State.T3_CODE_SEARCH # TEMP State.START
 
         self.channels_completed = 0
 
@@ -135,6 +135,8 @@ class FinalsNode(Node):
             self.state = State.T4_CHECKING_FOR_LOOP_BUOY
         elif self.state == State.T4_LOOPING:
             self.t4_final_nav_forward() 
+        elif self.state == State.T4_FINAL_EXTRA_FORWARD_NAV:
+            self.state = State.START
     
     def t1_nav_extra(self):
         self.state = State.T1_EXTRA_FORWARD_NAVIGATING
@@ -193,6 +195,7 @@ class FinalsNode(Node):
     def nav_result_callback(self, future):
         result = future.result().result
         self.get_logger().info(f'Result: {result}')
+        time.sleep(2.0)
         self.post_waypoint_nav_op()
     
     def post_waypoint_nav_op(self):
@@ -346,7 +349,8 @@ class FinalsNode(Node):
             return
         
         if self.timeout_secs > self.get_parameter('timeouts.t3_code_search').value:
-            self.state = State.T3_DOCKING
+            self.get_logger().info('Timed out of code search')
+            self.t3_dock()
             return
         if self.get_parameter('t3_skip_line_up').value:
             self.t3_dock()
