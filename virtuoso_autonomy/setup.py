@@ -61,7 +61,8 @@ setup(
             'roboboat_docking = virtuoso_autonomy.roboboat.docking.docking_node:main',
             'roboboat_ball_shooter = virtuoso_autonomy.roboboat.ball_shooter.ball_shooter_node:main',
             'roboboat_water_shooter = virtuoso_autonomy.roboboat.water_shooter.water_shooter_node:main',
-            'roboboat_semis = virtuoso_autonomy.roboboat.semis.semis_node:main'
+            'roboboat_semis = virtuoso_autonomy.roboboat.semis.semis_node:main',
+            'roboboat_finals = virtuoso_autonomy.roboboat.finals.finals_node:main'
         ],
     },
 )

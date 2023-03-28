@@ -1,0 +1,26 @@
+
+autonomy_finals:
+  ros__parameters:
+    lidar_frame: 'wamv/lidar_wamv_link'
+
+    t1_extra_forward_nav: 3.0
+    t1_final_extra_forward_nav: 2.0
+    t1_gate_buoy_max_dist: 25.0
+
+    t2_enter_distance: 5.0
+    t2_backing_distance: 4.0
+
+    t3_direction: "right"
+    t3_explore_orientation: [0,0,0,0]
+    t3_loop_explore_initial_nav_distance: 20.0
+    t3_loop_explore_find_attempts: 3
+    t3_loop_explore_extra_nav_distance: 5.0
+    t3_loop_explore_buoy_max_dist: 10.0
+    t3_loop_approach_dist: 1.0
+    t3_gate_explore_initial_nav_distance: 20.0
+    t3_gate_buoy_max_dist: 25.0
+    t3_gate_explore_find_attempts: 3
+    t3_gate_explore_extra_nav_distance: 5.0
+    t3_gate_extra_forward_nav: 5.0
+    t3_looping_radius: 4.0
+    t3_exit_extra_forward_nav: 5.0
