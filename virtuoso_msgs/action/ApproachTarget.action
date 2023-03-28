@@ -1,0 +1,6 @@
+float32 scan_width
+float32 approach_dist
+float32 timeout
+---
+bool success
+---
