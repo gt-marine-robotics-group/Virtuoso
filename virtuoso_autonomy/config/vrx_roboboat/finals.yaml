@@ -38,12 +38,18 @@ autonomy_finals:
     t4_final_extra_forward_nav: 5.0
     t4_looping_radius: 4.0
 
+    t6_approach_dist: 2.0
+    t6_approach_scan_width: 0.1
+    t6_back_up_dist: 1.9
+
     timeouts:
       t1_find_next_gate: 5
       t3_code_search: 20
       t3_approach: 10
       t4_gate: 10
       t4_loop: 10
+      t6_approach: 10
+      t6_back_up: 5
     
     timeout_responses:
       t1_find_next_gate_trans: 10.0

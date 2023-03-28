@@ -1,10 +1,10 @@
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
-from geometry_msgs.msg import Point, PoseStamped, Quaternion
+from geometry_msgs.msg import Point, PoseStamped, Quaternion, Vector3
 from nav_msgs.msg import Path, Odometry
-from virtuoso_msgs.srv import Channel, DockCodesCameraPos
-from virtuoso_msgs.action import TaskWaypointNav, ApproachTarget
+from virtuoso_msgs.srv import Channel, DockCodesCameraPos, Rotate
+from virtuoso_msgs.action import TaskWaypointNav, ApproachTarget, ShootBalls
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
@@ -55,11 +55,17 @@ class FinalsNode(Node):
             ('t4_final_extra_forward_nav', 0.0),
             ('t4_looping_radius', 0.0),
 
+            ('t6_approach_dist', 0.0),
+            ('t6_approach_scan_width', 0.0),
+            ('t6_back_up_dist', 0.0),
+
             ('timeouts.t1_find_next_gate', 0),
             ('timeouts.t3_code_search', 0),
             ('timeouts.t3_approach', 0),
             ('timeouts.t4_gate', 0),
             ('timeouts.t4_loop', 0),
+            ('timeouts.t6_approach', 0),
+            ('timeouts.t6_back_up', 0),
 
             ('timeout_responses.t1_find_next_gate_trans', 0.0),
             ('timeout_responses.t4_gate_trans', 0.0)
@@ -69,7 +75,9 @@ class FinalsNode(Node):
 
         self.task_nums = self.get_parameter('task_nums').value
 
-        self.curr_task = 2 # TEMP -1
+        self.curr_task = 4 # TEMP -1
+
+        self.state = State.T6_ENTERING_BALL_TARGET # TEMP State.START
 
         self.nav_client = ActionClient(self, TaskWaypointNav, 'task_waypoint_nav')
         self.nav_req = None
@@ -94,14 +102,21 @@ class FinalsNode(Node):
         self.approach_req = None
         self.approach_result = None
 
+        self.rotate_client = self.create_client(Rotate, 'rotate')
+        self.rotate_call = None
+
+        self.ball_shooter_client = ActionClient(self, ShootBalls, 'shoot_balls')
+        self.ball_shooter_req = None
+        self.ball_shooter_result = None
+
         self.timeout_secs = 0
         self.docking_timeout_secs = 0
-
-        self.state = State.T3_CODE_SEARCH # TEMP State.START
 
         self.channels_completed = 0
 
         self.t4_gate_midpoint = None
+
+        self.t6_backup_time = 0
 
         self.robot_pose:PoseStamped = None
 
@@ -137,6 +152,8 @@ class FinalsNode(Node):
             self.t4_final_nav_forward() 
         elif self.state == State.T4_FINAL_EXTRA_FORWARD_NAV:
             self.state = State.START
+        elif self.state == State.T6_BACKING_UP:
+            self.shoot_balls()
     
     def t1_nav_extra(self):
         self.state = State.T1_EXTRA_FORWARD_NAVIGATING
@@ -149,9 +166,17 @@ class FinalsNode(Node):
     def execute(self):
         self.get_logger().info(str(self.state))
         self.timeout_secs += 1
+        self.t6_backup_time += 1
 
         if self.state.value >= 8:
             self.docking_timeout_secs += 1
+        
+        if (self.state == State.T6_BACKING_UP 
+            and self.t6_backup_time > self.get_parameter('timeouts.t6_back_up').value):
+            self.get_logger().info('Timed out backing up')
+            self.trans_pub.publish(Point())
+            self.shoot_balls()
+            return
 
         if self.state == State.START:
             self.get_logger().info(f'On task {self.curr_task+2} of {len(self.task_nums)}')
@@ -164,6 +189,8 @@ class FinalsNode(Node):
             self.t4_find_gate()
         elif self.state == State.T4_CHECKING_FOR_LOOP_BUOY:
             self.t4_find_loop_buoy()
+        elif self.state == State.T6_ENTERING_BALL_TARGET:
+            self.t6_enter_ball_target()
     
     def start_next_task(self):
         if self.curr_task + 1 == len(self.task_nums):
@@ -221,6 +248,84 @@ class FinalsNode(Node):
                 self.state = State.T4_FINDING_GATE
             else:
                 self.state = State.START
+        elif self.task_nums[self.curr_task] == 6:
+            if self.get_parameter('t6_auto').value:
+                self.state = State.T6_ENTERING_BALL_TARGET
+            else:
+                self.state = State.START
+    
+    def t6_enter_ball_target(self):
+        if self.approach_req is not None:
+            return
+
+        msg = ApproachTarget.Goal()
+        msg.approach_dist = self.get_parameter('t6_approach_dist').value
+        msg.scan_width = self.get_parameter('t6_approach_scan_width').value
+        msg.timeout = float(self.get_parameter('timeouts.t6_approach').value)
+
+        self.approach_req = self.approach_client.send_goal_async(msg)
+        self.approach_req.add_done_callback(self.t6_approach_response_callback)
+    
+    def t6_approach_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.approach_result = goal_handle.get_result_async()
+        self.approach_result.add_done_callback(self.t6_approach_result_callback)
+    
+    def t6_approach_result_callback(self, future):
+        self.approach_req = None
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        time.sleep(3.0)
+        self.t6_rotate()
+    
+    def t6_rotate(self):
+        self.state = State.T6_ROTATING
+        msg = Rotate.Request()
+        msg.goal = Vector3(z=math.pi/2)
+
+        self.rotate_call = self.rotate_client.call_async(msg)
+        self.rotate_call.add_done_callback(self.t6_rotate_response)
+    
+    def t6_rotate_response(self, future):
+        result:Rotate.Response = future.result()
+        self.get_logger().info(f'rotate response: {result}')
+        self.t6_back_up()
+    
+    def t6_back_up(self):
+        self.t6_backup_time = 0
+        self.state = State.T6_BACKING_UP
+        self.trans_pub.publish(Point(x=-self.get_parameter('t6_back_up_dist').value))
+    
+    def shoot_balls(self):
+        self.state = State.T6_SHOOTING
+
+        msg = ShootBalls.Goal()
+
+        self.ball_shooter_req = self.ball_shooter_client.send_goal_async(msg) 
+
+        self.ball_shooter_req.add_done_callback(self.t6_ball_shooter_response_callback)
+    
+    def t6_ball_shooter_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.ball_shooter_result = goal_handle.get_result_async()
+        self.ball_shooter_result.add_done_callback(self.t6_ball_shooter_result_callback)
+    
+    def t6_ball_shooter_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        self.state = State.START
     
     def t4_nav_forward(self):
         self.state = State.T4_EXTRA_FORWARD_NAV
@@ -478,6 +583,7 @@ class FinalsNode(Node):
         self.approach_result.add_done_callback(self.t3_approach_result_callback)
     
     def t3_approach_result_callback(self, future):
+        self.approach_req = None
         result = future.result().result
         self.get_logger().info(f'Result: {result}')
         self.state = State.START
