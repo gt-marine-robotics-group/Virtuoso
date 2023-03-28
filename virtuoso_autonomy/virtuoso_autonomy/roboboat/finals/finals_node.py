@@ -76,9 +76,9 @@ class FinalsNode(Node):
 
         self.task_nums = self.get_parameter('task_nums').value
 
-        self.curr_task = 4 # TEMP -1
+        self.curr_task = -1 # TEMP -1
 
-        self.state = State.T6_ENTERING_BALL_TARGET # TEMP State.START
+        self.state = State.START # TEMP State.START
 
         self.nav_client = ActionClient(self, TaskWaypointNav, 'task_waypoint_nav')
         self.nav_req = None
@@ -236,7 +236,7 @@ class FinalsNode(Node):
     
     def post_waypoint_nav_op(self):
         self.timeout_secs = 0
-        self.docking_timeout_secs += 1
+        self.docking_timeout_secs = 0
         if self.task_nums[self.curr_task] == 1:
             if self.get_parameter('t1_auto').value:
                 self.state = State.T1_FINDING_NEXT_GATE
@@ -352,7 +352,15 @@ class FinalsNode(Node):
         if self.timeout_secs > self.get_parameter('timeouts.t4_gate').value:
             self.get_logger().info('Timed out of finding gate')
             self.state = State.T4_NAVIGATING_TO_GATE_MIDPOINT
-            self.trans_pub.publish(Point(x=self.get_parameter('timeout_responses.t4_gate_trans').value))
+            point = Point(x=self.get_parameter('timeout_responses.t4_gate_trans').value)
+            self.trans_pub.publish(point)
+            self.t4_gate_midpoint = PoseStamped()
+            self.t4_gate_midpoint.pose.position.x = self.robot_pose.pose.position.x
+            self.t4_gate_midpoint.pose.position.y = self.robot_pose.pose.position.y
+            self.t4_gate_midpoint.pose.orientation.x = self.robot_pose.pose.orientation.x
+            self.t4_gate_midpoint.pose.orientation.y = self.robot_pose.pose.orientation.y
+            self.t4_gate_midpoint.pose.orientation.z = self.robot_pose.pose.orientation.z
+            self.t4_gate_midpoint.pose.orientation.w = self.robot_pose.pose.orientation.w
             return
 
         req = Channel.Request()
@@ -463,7 +471,7 @@ class FinalsNode(Node):
         if self.code_pos_req is not None:
             return
         
-        if self.timeout_secs > self.get_parameter('timeouts.t3_code_search').value:
+        if self.docking_timeout_secs > self.get_parameter('timeouts.t3_code_search').value:
             self.get_logger().info('Timed out of code search')
             self.t3_dock()
             return
