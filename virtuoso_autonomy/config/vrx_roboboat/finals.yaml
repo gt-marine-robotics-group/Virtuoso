@@ -3,9 +3,6 @@ autonomy_finals:
   ros__parameters:
 
     task_nums: [1, 2, 3, 4, 6, 8]
-    docking_num: 3
-    ball_shooter_num: 6
-    water_shooter_num: 7
     
     docking_secs: 5
     water_secs: 5
@@ -26,8 +23,16 @@ autonomy_finals:
     t2_trans_x: 8.0
     t2_trans_y: 3.0
 
+    t3_target_color: 'red'
+    t3_camera: 'front_left_camera'
+    t3_skip_line_up: False
+    t3_centering_movement_tranches: [.2, .4, .48, .52, .6, .8]
+    t3_centering_movement_values: [5.0, 4.0, 1.0, 0.0, -1.0, -4.0, -5.0]
+    t3_search_movement_value: 5.0
+
     timeouts:
       t1_find_next_gate: 5
+      t3_code_search: 20
     
     timeout_responses:
       t1_find_next_gate_trans: 10.0

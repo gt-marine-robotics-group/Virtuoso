@@ -42,6 +42,10 @@ def generate_launch_description():
             launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_docks.launch.py')),
+            launch_arguments={'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
         ),
