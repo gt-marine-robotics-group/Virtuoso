@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
-from geometry_msgs.msg import Point, PoseStamped
+from geometry_msgs.msg import Point, PoseStamped, Quaternion
 from nav_msgs.msg import Path, Odometry
 from virtuoso_msgs.srv import Channel, DockCodesCameraPos
 from virtuoso_msgs.action import TaskWaypointNav, ApproachTarget
@@ -11,6 +11,8 @@ from ...utils.geometry_conversions import point_to_pose_stamped
 from ...utils.math import distance_pose_stamped
 from ...utils.looping_buoy.looping_buoy import LoopingBuoy
 import time
+import tf_transformations
+import math
 
 class FinalsNode(Node):
 
@@ -130,7 +132,7 @@ class FinalsNode(Node):
         elif self.state == State.T4_NAVIGATING_TO_GATE_MIDPOINT:
             self.t4_nav_forward()
         elif self.state == State.T4_EXTRA_FORWARD_NAV:
-            self.t4_find_loop_buoy()
+            self.state = State.T4_CHECKING_FOR_LOOP_BUOY
         elif self.state == State.T4_LOOPING:
             self.t4_final_nav_forward() 
     
@@ -277,7 +279,13 @@ class FinalsNode(Node):
             return
 
         if self.timeout_secs > self.get_parameter('timeouts.t4_loop').value:
-            self.get_logger().info('Timed out of finding gate')
+            self.get_logger().info('Timed out of finding loop')
+            self.t4_gate_midpoint.pose.orientation = self.find_reverse_orientation(self.t4_gate_midpoint.pose.orientation)
+            path = Path()
+            path.poses.append(self.t4_gate_midpoint)
+            self.state = State.T4_LOOPING
+            self.path_pub.publish(path)
+            return
 
         req = Channel.Request()
         req.left_color = 'blue'
@@ -327,6 +335,11 @@ class FinalsNode(Node):
         self.state = State.T4_LOOPING
         self.channel_call = None
         self.path_pub.publish(path)
+
+    def find_reverse_orientation(self, o:Quaternion):
+        e = tf_transformations.euler_from_quaternion([o.x, o.y, o.z, o.w])
+        q = tf_transformations.quaternion_from_euler(e[0], e[1], e[2] + math.pi)
+        return Quaternion(x=q[0],y=q[1],z=q[2],w=q[3])
     
     def t3_code_search(self):
         if self.code_pos_req is not None:
