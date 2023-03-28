@@ -8,6 +8,7 @@ from virtuoso_msgs.action import TaskWaypointNav
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+import time
 
 class FinalsNode(Node):
 
@@ -21,6 +22,7 @@ class FinalsNode(Node):
             ('water_shooter_num', -1),
             ('docking_secs', 1),
             ('water_secs', 1),
+
             ('t1_auto', False),
             ('t2_auto', False),
             ('t3_auto', False),
@@ -29,9 +31,13 @@ class FinalsNode(Node):
             ('t6_auto', False),
             ('t7_auto', False),
             ('t8_auto', False),
+
             ('t1_extra_forward_nav', 0.0),
             ('t1_final_extra_forward_nav', 0.0),
             ('t1_gate_buoy_max_dist', 0.0),
+
+            ('t2_trans_x', 0.0),
+            ('t2_trans_y', 0.0),
 
             ('timeouts.t1_find_next_gate', 0),
 
@@ -72,14 +78,16 @@ class FinalsNode(Node):
     def nav_success_callback(self, msg:PoseStamped):
         self.timeout_secs = 0
         if self.state == State.T1_GATE_NAVIGATING:
+            time.sleep(2.0)
             if self.channels_completed < 2:
                 self.t1_nav_extra()
             else:
                 self.t1_nav_extra_final()
         elif self.state == State.T1_EXTRA_FORWARD_NAVIGATING:
+            time.sleep(5.0)
             self.state = State.T1_FINDING_NEXT_GATE
         elif self.state == State.T1_FINAL_EXTRA_FORWARD_NAVIGATING:
-            pass
+            self.state = State.START
     
     def t1_nav_extra(self):
         self.state = State.T1_EXTRA_FORWARD_NAVIGATING
@@ -94,6 +102,7 @@ class FinalsNode(Node):
         self.timeout_secs += 1
 
         if self.state == State.START:
+            self.get_logger().info(f'On task {self.curr_task+1} of {len(self.task_nums)}')
             self.start_next_task()
         elif self.state == State.T1_FINDING_NEXT_GATE:
             self.t1_find_next_gate()
@@ -137,6 +146,18 @@ class FinalsNode(Node):
                 self.state = State.T1_FINDING_NEXT_GATE
             else:
                 self.state = State.START
+        elif self.task_nums[self.curr_task] == 2:
+            if self.get_parameter('t2_auto').value:
+                self.t2_auto_enter()
+            else:
+                self.state = State.START
+
+    def t2_auto_enter(self):
+        self.state = State.T2_ENTERING
+        self.trans_pub.publish(Point(
+            x=self.get_parameter('t2_trans_x').value,
+            y=self.get_parameter('t2_trans_y').value
+        ))
     
     def t1_find_next_gate(self):
 

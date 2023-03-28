@@ -23,6 +23,9 @@ autonomy_finals:
     t1_final_extra_forward_nav: 2.0
     t1_gate_buoy_max_dist: 25.0
 
+    t2_trans_x: 8.0
+    t2_trans_y: 3.0
+
     timeouts:
       t1_find_next_gate: 5
     
