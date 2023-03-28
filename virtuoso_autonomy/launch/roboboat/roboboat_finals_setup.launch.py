@@ -34,7 +34,15 @@ def generate_launch_description():
             launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'multi_tasks_waypoint_player.launch.py')),
+            launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py')),
+            launch_arguments={'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_docks.launch.py')),
             launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(

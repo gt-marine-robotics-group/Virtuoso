@@ -42,6 +42,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ShootWater.srv"
   "action/ShootBalls.action"
   "action/TaskWaypointNav.action"
+  "action/ApproachTarget.action"
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs autoware_auto_perception_msgs
  )
 

@@ -1,19 +1,18 @@
 import rclpy
+from rclpy.action import ActionClient
 from rclpy.node import Node
+from geometry_msgs.msg import Point, PoseStamped, Quaternion, Vector3
 from nav_msgs.msg import Path, Odometry
-from geometry_msgs.msg import Point, PoseStamped, Quaternion, Pose, PointStamped
-from virtuoso_msgs.srv import Channel, Rotate, LidarBuoy
+from virtuoso_msgs.srv import Channel, DockCodesCameraPos, Rotate
+from virtuoso_msgs.action import TaskWaypointNav, ApproachTarget, ShootBalls
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+from ...utils.math import distance_pose_stamped
 from ...utils.looping_buoy.looping_buoy import LoopingBuoy
-from virtuoso_perception.utils.geometry_msgs import do_transform_point
 import time
 import tf_transformations
 import math
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-from rclpy.time import Time
 
 class FinalsNode(Node):
 
@@ -21,156 +20,362 @@ class FinalsNode(Node):
         super().__init__('autonomy_finals')
 
         self.declare_parameters(namespace='', parameters=[
-            ('lidar_frame', ''),
+            ('task_nums', []),
+            ('docking_secs', 1),
+            ('water_secs', 1),
+
+            ('t1_auto', False),
+            ('t2_auto', False),
+            ('t3_auto', False),
+            ('t4_auto', False),
+            ('t5_auto', False),
+            ('t6_auto', False),
+            ('t7_auto', False),
+            ('t8_auto', False),
+
             ('t1_extra_forward_nav', 0.0),
             ('t1_final_extra_forward_nav', 0.0),
             ('t1_gate_buoy_max_dist', 0.0),
-            ('t2_enter_distance', 0.0),
-            ('t2_backing_distance', 0.0),
-            ('t3_direction', ''),
-            ('t3_explore_orientation', []),
-            ('t3_loop_explore_initial_nav_distance', 0.0),
-            ('t3_loop_explore_find_attempts', 0),
-            ('t3_loop_explore_extra_nav_distance', 0.0),
-            ('t3_loop_explore_buoy_max_dist', 0.0),
-            ('t3_loop_approach_dist', 0.0),
-            ('t3_gate_explore_initial_nav_distance', 0.0),
-            ('t3_gate_buoy_max_dist', 0.0),
-            ('t3_gate_explore_find_attempts', 0),
-            ('t3_gate_explore_extra_nav_distance', 0.0),
-            ('t3_gate_extra_forward_nav', 0.0),
-            ('t3_looping_radius', 0.0),
-            ('t3_exit_extra_forward_nav', 0.0)
+
+            ('t2_trans_x', 0.0),
+            ('t2_trans_y', 0.0),
+
+            ('t3_target_color', ''),
+            ('t3_camera', ''),
+            ('t3_skip_line_up', False),
+            ('t3_centering_movement_tranches', []),
+            ('t3_centering_movement_values', []),
+            ('t3_search_movement_value', 0.0),
+            ('t3_approach_dist', 0.0),
+            ('t3_approach_scan_width', 0.0),
+
+            ('t4_gate_max_buoy_dist', 0.0),
+            ('t4_loop_max_buoy_dist', 0.0),
+            ('t4_gate_extra_forward_nav', 0.0),
+            ('t4_final_extra_forward_nav', 0.0),
+            ('t4_looping_radius', 0.0),
+
+            ('t6_approach_dist', 0.0),
+            ('t6_approach_scan_width', 0.0),
+            ('t6_back_up_dist', 0.0),
+
+            ('timeouts.t1_find_next_gate', 0),
+            ('timeouts.t3_code_search', 0),
+            ('timeouts.t3_approach', 0),
+            ('timeouts.t4_gate', 0),
+            ('timeouts.t4_loop', 0),
+            ('timeouts.t6_approach', 0),
+            ('timeouts.t6_rotate', 0),
+            ('timeouts.t6_back_up', 0),
+
+            ('timeout_responses.t1_find_next_gate_trans', 0.0),
+            ('timeout_responses.t4_gate_trans', 0.0)
         ])
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.t3_target_color = self.get_parameter('t3_target_color').value
 
-        self.t3_explore_orientation = self.get_parameter('t3_explore_orientation').value
+        self.task_nums = self.get_parameter('task_nums').value
+
+        self.curr_task = -1 # TEMP -1
+
+        self.state = State.START # TEMP State.START
+
+        self.nav_client = ActionClient(self, TaskWaypointNav, 'task_waypoint_nav')
+        self.nav_req = None
+        self.nav_result = None
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
         self.trans_pub = self.create_publisher(Point, '/navigation/translate', 10)
-        self.pose_pub = self.create_publisher(Pose, '/navigation/set_single_waypoint', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 
             self.nav_success_callback, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', 
             self.odom_callback, 10)
 
-        self.rotate_client = self.create_client(Rotate, 'rotate')
-        self.rotate_call = None
-        
-        self.state = State.START
-
         self.channel_client = self.create_client(Channel, 'channel')
         self.channel_call = None
 
-        self.lidar_buoy_client = self.create_client(LidarBuoy, 'perception/lidar_buoy')
-        self.lidar_buoy_call = None
+        self.code_pos_client = self.create_client(DockCodesCameraPos, 
+            f'{self.get_parameter("t3_camera").value}/find_dock_placard_offsets')
+        self.code_pos_req = None
+
+        self.approach_client = ActionClient(self, ApproachTarget, 'approach_target')
+        self.approach_req = None
+        self.approach_result = None
+
+        self.rotate_client = self.create_client(Rotate, 'rotate')
+        self.rotate_call = None
+
+        self.ball_shooter_client = ActionClient(self, ShootBalls, 'shoot_balls')
+        self.ball_shooter_req = None
+        self.ball_shooter_result = None
+
+        self.timeout_secs = 0
+        self.docking_timeout_secs = 0
+
+        self.channels_completed = 0
+
+        self.t4_gate_midpoint = None
+
+        self.t6_backup_time = 0
+        self.t6_rotate_time = 0
 
         self.robot_pose:PoseStamped = None
 
-        self.t1_channels_completed = 0
-        self.t1_final_pose:PoseStamped = None
-
-        self.find_attempts = 0
-        self.loop_buoy_loc:Point = None
-        self.t3_mid_waypoint:PoseStamped = None
-        self.t3_mid_waypoint_back:PoseStamped = None
-        self.t3_gate_waypoint:PoseStamped = None
-        self.t3_gate_waypoint_back:PoseStamped = None
-
         self.create_timer(1.0, self.execute)
-
+    
     def odom_callback(self, msg:Odometry):
         self.robot_pose = PoseStamped(pose=msg.pose.pose)
     
     def nav_success_callback(self, msg:PoseStamped):
-        if self.state == State.T1_NAVIGATING:
-            if self.t1_channels_completed < 2:
-                time.sleep(2.0)
-                self.t1_nav_forward()
+        self.timeout_secs = 0
+        if self.state == State.T1_GATE_NAVIGATING:
+            time.sleep(2.0)
+            if self.channels_completed < 2:
+                self.t1_nav_extra()
             else:
-                if self.t3_explore_orientation[0] == 0:
-                    self.t3_save_explore_orientation(msg) 
-                time.sleep(2.0)
-                self.t1_final_nav_forward()
-        elif self.state == State.T1_EXTRA_FORWARD_NAV:
+                self.t1_nav_extra_final()
+        elif self.state == State.T1_EXTRA_FORWARD_NAVIGATING:
             time.sleep(5.0)
             self.state = State.T1_FINDING_NEXT_GATE
-        elif self.state == State.T1_FINAL_EXTRA_FORWARD_NAV:
-            self.t1_final_pose = msg
-            self.t2_enter()
+        elif self.state == State.T1_FINAL_EXTRA_FORWARD_NAVIGATING:
+            self.state = State.START
         elif self.state == State.T2_ENTERING:
-            time.sleep(2.0) 
-            self.t2_exit()
-        elif self.state == State.T2_BACKING:
-            time.sleep(5.0)
-            self.t3_initial_nav()
-        elif self.state == State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION:
-            self.state = State.T3_LOOP_EXPLORE_ROTATING
-        elif self.state == State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION:
-            time.sleep(5.0)
-            self.t3_find_loop()
-        elif self.state == State.T3_LOOP_APPROACH:
-            self.t3_loop_buoy_rotate()
-        elif self.state == State.T3_GATE_EXPLORE_NAVIGATION:
-            self.t3_find_gate()
-        elif self.state == State.T3_GATE_EXPLORE_EXTRA_NAVIGATION:
-            self.t3_find_gate()
-        elif self.state == State.T3_GATE_ENTER:
-            self.t3_gate_extra_forward()
-        elif self.state == State.T3_GATE_EXTRA_FORWARD_NAV:
-            self.t3_reenter()
-        elif self.state == State.T3_GATE_REENTER:
-            self.t3_loop()
-        elif self.state == State.T3_BUOY_LOOPING:
-            self.t3_exit_extra_forward()
+            self.state = State.START
+        elif self.state == State.T3_SEARCH_TRANSLATING:
+            self.state = State.T3_CODE_SEARCH
+        elif self.state == State.T3_CENTERING:
+            self.state = State.T3_CODE_SEARCH
+        elif self.state == State.T4_NAVIGATING_TO_GATE_MIDPOINT:
+            self.t4_nav_forward()
+        elif self.state == State.T4_EXTRA_FORWARD_NAV:
+            self.state = State.T4_CHECKING_FOR_LOOP_BUOY
+        elif self.state == State.T4_LOOPING:
+            self.t4_final_nav_forward() 
+        elif self.state == State.T4_FINAL_EXTRA_FORWARD_NAV:
+            self.state = State.START
+        elif self.state == State.T6_BACKING_UP:
+            self.shoot_balls()
     
-    def t3_exit_extra_forward(self):
-        self.state = State.T3_EXIT_EXTRA_FORWARD_NAV
-        self.trans_pub.publish(Point(x=self.get_parameter('t3_exit_extra_forward_nav').value))
+    def t1_nav_extra(self):
+        self.state = State.T1_EXTRA_FORWARD_NAVIGATING
+        self.trans_pub.publish(Point(x=self.get_parameter('t1_extra_forward_nav').value))
     
-    def t3_loop(self):
-        buoy = PoseStamped()
-        buoy.pose.position = self.loop_buoy_loc
+    def t1_nav_extra_final(self):
+        self.state = State.T1_FINAL_EXTRA_FORWARD_NAVIGATING
+        self.trans_pub.publish(Point(x=self.get_parameter('t1_final_extra_forward_nav').value))
+    
+    def execute(self):
+        self.get_logger().info(str(self.state))
+        self.timeout_secs += 1
+        self.t6_backup_time += 1
+        self.t6_rotate_time += 1
 
-        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, buoy,
-            looping_radius=self.get_parameter('t3_looping_radius').value)
-        path.poses.append(self.t3_mid_waypoint_back)
-        path.poses.append(self.t3_gate_waypoint_back)
+        if self.state.value >= 8:
+            self.docking_timeout_secs += 1
+        
+        if (self.state == State.T6_BACKING_UP 
+            and self.t6_backup_time > self.get_parameter('timeouts.t6_back_up').value):
+            self.get_logger().info('Timed out backing up')
+            self.trans_pub.publish(Point())
+            self.shoot_balls()
+            return
+        
+        if (self.state == State.T6_ROTATING 
+            and self.t6_rotate_time > self.get_parameter('timeouts.t6_rotate').value):
+            self.get_logger().info('Timed out rotating')
+            self.t6_back_up()
+            return
 
-        self.state = State.T3_BUOY_LOOPING
-        self.path_pub.publish(path)
+        if self.state == State.START:
+            self.get_logger().info(f'On task {self.curr_task+2} of {len(self.task_nums)}')
+            self.start_next_task()
+        elif self.state == State.T1_FINDING_NEXT_GATE:
+            self.t1_find_next_gate()
+        elif self.state == State.T3_CODE_SEARCH:
+            self.t3_code_search()
+        elif self.state == State.T4_FINDING_GATE:
+            self.t4_find_gate()
+        elif self.state == State.T4_CHECKING_FOR_LOOP_BUOY:
+            self.t4_find_loop_buoy()
+        elif self.state == State.T6_ENTERING_BALL_TARGET:
+            self.t6_enter_ball_target()
     
-    def t3_reenter(self):
-        self.state = State.T3_GATE_REENTER
-        path = Path()
-        path.poses.append(self.t3_gate_waypoint)
-        path.poses.append(self.t3_mid_waypoint)
-        self.path_pub.publish(path)
+    def start_next_task(self):
+        if self.curr_task + 1 == len(self.task_nums):
+            self.state = State.COMPLETE
+            return
+
+        self.curr_task += 1
+
+        self.state = State.TASK_WAYPOINT_NAVIGATING
+
+        msg = TaskWaypointNav.Goal()
+        msg.task_num = self.task_nums[self.curr_task]
+
+        self.nav_req = self.nav_client.send_goal_async(msg)
+
+        self.nav_req.add_done_callback(self.nav_response_callback)
+
+    def nav_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.nav_result = goal_handle.get_result_async()
+        self.nav_result.add_done_callback(self.nav_result_callback)
     
-    def t3_gate_extra_forward(self):
-        self.state = State.T3_GATE_EXTRA_FORWARD_NAV
-        self.trans_pub.publish(Point(x=self.get_parameter('t3_gate_extra_forward_nav').value))
+    def nav_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        time.sleep(2.0)
+        self.post_waypoint_nav_op()
     
-    def t3_find_gate(self):
+    def post_waypoint_nav_op(self):
+        self.timeout_secs = 0
+        self.docking_timeout_secs = 0
+        if self.task_nums[self.curr_task] == 1:
+            if self.get_parameter('t1_auto').value:
+                self.state = State.T1_FINDING_NEXT_GATE
+            else:
+                self.state = State.START
+        elif self.task_nums[self.curr_task] == 2:
+            if self.get_parameter('t2_auto').value:
+                self.t2_auto_enter()
+            else:
+                self.state = State.START
+        elif self.task_nums[self.curr_task] == 3:
+            if self.get_parameter('t3_auto').value:
+                self.state = State.T3_CODE_SEARCH
+            else:
+                self.state = State.START
+        elif self.task_nums[self.curr_task] == 4:
+            if self.get_parameter('t4_auto').value:
+                self.state = State.T4_FINDING_GATE
+            else:
+                self.state = State.START
+        elif self.task_nums[self.curr_task] == 6:
+            if self.get_parameter('t6_auto').value:
+                self.state = State.T6_ENTERING_BALL_TARGET
+            else:
+                self.state = State.START
+    
+    def t6_enter_ball_target(self):
+        if self.approach_req is not None:
+            return
+
+        msg = ApproachTarget.Goal()
+        msg.approach_dist = self.get_parameter('t6_approach_dist').value
+        msg.scan_width = self.get_parameter('t6_approach_scan_width').value
+        msg.timeout = float(self.get_parameter('timeouts.t6_approach').value)
+
+        self.approach_req = self.approach_client.send_goal_async(msg)
+        self.approach_req.add_done_callback(self.t6_approach_response_callback)
+    
+    def t6_approach_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.approach_result = goal_handle.get_result_async()
+        self.approach_result.add_done_callback(self.t6_approach_result_callback)
+    
+    def t6_approach_result_callback(self, future):
+        self.approach_req = None
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        time.sleep(3.0)
+        self.t6_rotate()
+    
+    def t6_rotate(self):
+        self.t6_rotate_time = 0
+        self.state = State.T6_ROTATING
+        msg = Rotate.Request()
+        msg.goal = Vector3(z=math.pi)
+
+        self.rotate_call = self.rotate_client.call_async(msg)
+        self.rotate_call.add_done_callback(self.t6_rotate_response)
+    
+    def t6_rotate_response(self, future):
+        result:Rotate.Response = future.result()
+        self.get_logger().info(f'rotate response: {result}')
+        self.t6_back_up()
+    
+    def t6_back_up(self):
+        self.t6_backup_time = 0
+        self.state = State.T6_BACKING_UP
+        self.trans_pub.publish(Point(x=-self.get_parameter('t6_back_up_dist').value))
+    
+    def shoot_balls(self):
+        self.state = State.T6_SHOOTING
+
+        msg = ShootBalls.Goal()
+
+        self.ball_shooter_req = self.ball_shooter_client.send_goal_async(msg) 
+
+        self.ball_shooter_req.add_done_callback(self.t6_ball_shooter_response_callback)
+    
+    def t6_ball_shooter_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.ball_shooter_result = goal_handle.get_result_async()
+        self.ball_shooter_result.add_done_callback(self.t6_ball_shooter_result_callback)
+    
+    def t6_ball_shooter_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        self.state = State.START
+    
+    def t4_nav_forward(self):
+        self.state = State.T4_EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('t4_gate_extra_forward_nav').value))
+    
+    def t4_final_nav_forward(self):
+        self.state = State.T4_FINAL_EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('t4_final_extra_forward_nav').value))
+    
+    def t4_find_gate(self):
         if self.channel_call is not None:
             return
         
+        if self.timeout_secs > self.get_parameter('timeouts.t4_gate').value:
+            self.get_logger().info('Timed out of finding gate')
+            self.state = State.T4_NAVIGATING_TO_GATE_MIDPOINT
+            point = Point(x=self.get_parameter('timeout_responses.t4_gate_trans').value)
+            self.trans_pub.publish(point)
+            self.t4_gate_midpoint = PoseStamped()
+            self.t4_gate_midpoint.pose.position.x = self.robot_pose.pose.position.x
+            self.t4_gate_midpoint.pose.position.y = self.robot_pose.pose.position.y
+            self.t4_gate_midpoint.pose.orientation.x = self.robot_pose.pose.orientation.x
+            self.t4_gate_midpoint.pose.orientation.y = self.robot_pose.pose.orientation.y
+            self.t4_gate_midpoint.pose.orientation.z = self.robot_pose.pose.orientation.z
+            self.t4_gate_midpoint.pose.orientation.w = self.robot_pose.pose.orientation.w
+            return
+
         req = Channel.Request()
         req.left_color = 'red'
         req.right_color = 'green'
         req.use_lidar = True
         req.use_camera = False
-        req.max_dist_from_usv = self.get_parameter('t3_gate_buoy_max_dist').value
+        req.max_dist_from_usv = self.get_parameter('t4_gate_max_buoy_dist').value
 
         self.channel_call = self.channel_client.call_async(req)
-        self.channel_call.add_done_callback(self.t3_channel_response)
+        self.channel_call.add_done_callback(self.t4_channel_response)
     
-    def t3_channel_response(self, future):
+    def t4_channel_response(self, future):
         result:Channel.Response = future.result()
-        self.get_logger().info(f'response: {result}')
+        self.get_logger().info(f'channel response: {result}')
 
         null_point = Point(x=0.0,y=0.0,z=0.0)
 
@@ -178,255 +383,247 @@ class FinalsNode(Node):
         
         if result.left == null_point or result.right == null_point:
             self.get_logger().info('No Gate Found')
-            self.find_attempts += 1
-            if self.find_attempts >= self.get_parameter('t3_gate_explore_find_attempts').value:
-                self.t3_channel_exploration_nav_forward()
-            else:
-                self.t3_find_gate()
             return
-        
+
         channel = (
             point_to_pose_stamped(result.left),
             point_to_pose_stamped(result.right)
         )
 
-        self.find_attempts = 0
-
-        ps = PoseStamped()
-        ps.pose.position = self.robot_pose.pose.position
-        ps.pose.orientation = self.find_reverse_orientation(self.robot_pose.pose.orientation)
-        self.t3_mid_waypoint = ps
-
-        ps = PoseStamped()
-        ps.pose = self.robot_pose.pose
-        self.t3_mid_waypoint_back = ps
-
         mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
-
-        ps = PoseStamped()
-        ps.pose.position = mid.pose.position
-        ps.pose.orientation = self.find_reverse_orientation(mid.pose.orientation)
-        self.t3_gate_waypoint = ps
-
-        ps = PoseStamped()
-        ps.pose = mid.pose
-        self.t3_gate_waypoint_back = ps
 
         path = Path()
         path.poses.append(mid)
 
-        self.state = State.T3_GATE_ENTER
+        self.state = State.T4_NAVIGATING_TO_GATE_MIDPOINT
+        self.t4_gate_midpoint = mid
+        self.channel_call = None
+        self.path_pub.publish(path)
+    
+    def t4_find_loop_buoy(self):
+        if self.channel_call is not None:
+            return
+
+        if self.timeout_secs > self.get_parameter('timeouts.t4_loop').value:
+            self.get_logger().info('Timed out of finding loop')
+            self.t4_gate_midpoint.pose.orientation = self.find_reverse_orientation(self.t4_gate_midpoint.pose.orientation)
+            path = Path()
+            path.poses.append(self.t4_gate_midpoint)
+            self.state = State.T4_LOOPING
+            self.path_pub.publish(path)
+            return
+
+        req = Channel.Request()
+        req.left_color = 'blue'
+        req.right_color = 'blue'
+        req.use_lidar = True
+        req.use_camera = False
+        req.max_dist_from_usv = self.get_parameter('t4_loop_max_buoy_dist').value
+
+        self.get_logger().info('sending channel request')
+        self.channel_call = self.channel_client.call_async(req)
+        self.channel_call.add_done_callback(self.t4_loop_buoy_response)
+    
+    def t4_loop_buoy_response(self, future):
+        result:Channel.Response = future.result()
+        self.get_logger().info(f'channel response: {result}')
+
+        null_point = Point(x=0.0,y=0.0,z=0.0)
+
+        self.channel_call = None
+
+        left_ps = point_to_pose_stamped(result.left)
+        right_ps = point_to_pose_stamped(result.right)
+        
+        if ((result.left == null_point) 
+            and (result.right == null_point)):
+            self.get_logger().info('No loop buoy found')
+            return
+        
+        if result.left == null_point:
+            pose = right_ps
+        elif result.right == null_point:
+            pose = left_ps
+        elif (distance_pose_stamped(left_ps, self.robot_pose)
+            < distance_pose_stamped(right_ps, self.robot_pose)):
+            pose = left_ps
+        else:
+            pose = right_ps
+        
+        self.get_logger().info(f'pose: {pose}')
+        
+        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, pose,
+            looping_radius=self.get_parameter('t4_looping_radius').value)
+        
+        self.t4_gate_midpoint.pose.orientation = path.poses[-1].pose.orientation
+        path.poses.append(self.t4_gate_midpoint)
+
+        self.state = State.T4_LOOPING
+        self.channel_call = None
         self.path_pub.publish(path)
 
-    def t3_channel_exploration_nav_forward(self):
-        self.find_attempts = 0
-        self.state = State.T3_GATE_EXPLORE_EXTRA_NAVIGATION
-        self.trans_pub.publish(Point(x=self.get_parameter('t3_gate_explore_extra_nav_distance').value))
-        
-    def t3_loop_buoy_rotate(self):
-        if self.rotate_call is not None:
-            return
-        
-        self.state = State.T3_LOOP_ORIENTING
-
-        req = Rotate.Request()
-        req.goal.z = -1 * math.pi / 2
-
-        self.rotate_call = self.rotate_client.call_async(req)
-        self.rotate_call.add_done_callback(self.rotate_callback)
-    
-    def find_lidar_to_map_transform(self):
-        try:
-            trans = self.tf_buffer.lookup_transform(
-                'map', self.get_parameter('lidar_frame').value, Time()
-            )
-            self.get_logger().info('got lidar to map transform')
-            return trans
-        except Exception:
-            return None
-    
-    def t3_find_loop(self):
-        
-        if self.lidar_buoy_call is not None:
-            return
-        
-        msg = LidarBuoy.Request()
-
-        self.lidar_buoy_call = self.lidar_buoy_client.call_async(msg)
-        self.lidar_buoy_call.add_done_callback(self.lidar_buoy_callback)
-    
-    def lidar_buoy_callback(self, future):
-        result = future.result()
-        # self.get_logger().info(f'response: {result}')
-
-        self.lidar_buoy_call = None
-
-        self.find_attempts += 1
-
-        buoys = result.buoys
-
-        if len(buoys.boxes) == 0:
-            self.get_logger().info('No lidar buoys found')
-            if self.find_attempts >= self.get_parameter('t3_loop_explore_find_attempts').value:  
-                self.t3_loop_explore_nav_forward()
-            return
-
-        closest = None 
-        closest_dist = None
-        for buoy in buoys.boxes:
-            dist = math.sqrt(buoy.centroid.x**2 + buoy.centroid.y**2)
-            if (closest is None or dist < closest_dist) and dist < self.get_parameter('t3_loop_explore_buoy_max_dist').value:
-                closest = buoy
-                closest_dist = dist
-        
-        if closest is None:
-            self.get_logger().info('No buoys within distance')
-            return
-        
-        point = Point(x=closest.centroid.x,y=closest.centroid.y)
-        ps = PointStamped(point=point)
-
-        lidar_to_map = self.find_lidar_to_map_transform()
-
-        if lidar_to_map is None:
-            self.get_logger().info('No lidar to map')
-            return
-        
-        map_point = do_transform_point(ps, lidar_to_map)
-
-        self.loop_buoy_loc = map_point.point
-        
-        self.state = State.T3_LOOP_APPROACH
-        self.find_attempts = 0
-
-        pose = Pose()
-        pose.position.x = point.x - self.get_parameter('t3_loop_approach_dist').value
-        self.pose_pub.publish(pose)
-    
-    def t3_loop_explore_nav_forward(self):
-        self.find_attempts = 0
-        self.state = State.T3_LOOP_EXPLORE_EXTRA_NAVIGATION
-        pose = Pose()
-        pose.position.y = -1 * self.get_parameter('t3_loop_explore_extra_nav_distance').value
-        self.pose_pub.publish(pose)
-    
-    def t3_initial_nav(self):
-        self.state = State.T3_LOOP_EXPLORE_INITIAL_NAVIGATION
-        pose = Pose()
-        pose.position.x = self.get_parameter('t3_loop_explore_initial_nav_distance').value
-        self.pose_pub.publish(pose)
-    
     def find_reverse_orientation(self, o:Quaternion):
-        euler = list(tf_transformations.euler_from_quaternion([o.x, o.y, o.z, o.w]))
-        if euler[2] > math.pi:
-            euler[2] -= math.pi
-        else:
-            euler[2] += math.pi
-
-        quat = tf_transformations.quaternion_from_euler(euler[0], euler[1], euler[2])
-
-        q = Quaternion()
-        q.x = quat[0]
-        q.y = quat[1]
-        q.z = quat[2]
-        q.w = quat[3]
-
-        return q
+        e = tf_transformations.euler_from_quaternion([o.x, o.y, o.z, o.w])
+        q = tf_transformations.quaternion_from_euler(e[0], e[1], e[2] + math.pi)
+        return Quaternion(x=q[0],y=q[1],z=q[2],w=q[3])
     
-    def find_perp_orientation(self, orientation):
-        euler = list(tf_transformations.euler_from_quaternion(orientation))
-        if self.get_parameter('t3_direction').value == 'right':
-            euler[2] -= (math.pi / 2)
-        else:
-            euler[2] += (math.pi / 2)
+    def t3_code_search(self):
+        if self.code_pos_req is not None:
+            return
         
-        if euler[2] > math.pi:
-            euler[2] -= 2*math.pi
-        elif euler[2] < -math.pi:
-            euler[2] += 2*math.pi
-        
-        quat = tf_transformations.quaternion_from_euler(euler[0], euler[1], euler[2])
-
-        q = Quaternion()
-        q.x = quat[0]
-        q.y = quat[1]
-        q.z = quat[2]
-        q.w = quat[3]
-
-        return q
-    
-    def t3_save_explore_orientation(self, pose:PoseStamped):
-        self.get_logger().info('using new orientation')
-        self.t3_explore_orientation = list()
-        self.t3_explore_orientation.append(pose.pose.orientation.x)
-        self.t3_explore_orientation.append(pose.pose.orientation.y)
-        self.t3_explore_orientation.append(pose.pose.orientation.z)
-        self.t3_explore_orientation.append(pose.pose.orientation.w)
-    
-    def t2_exit(self):
-        self.state = State.T2_BACKING
-        orientation = self.find_perp_orientation(self.t3_explore_orientation)
-        self.t1_final_pose.pose.orientation = orientation
-        path = Path()
-        path.poses.append(self.t1_final_pose)
-        self.path_pub.publish(path)
-        
-    def t2_enter(self):
-        self.state = State.T2_ENTERING
-        self.trans_pub.publish(Point(x=self.get_parameter('t2_enter_distance').value))
-    
-    def t1_final_nav_forward(self):
-        self.state = State.T1_FINAL_EXTRA_FORWARD_NAV
-        self.trans_pub.publish(Point(x=self.get_parameter('t1_final_extra_forward_nav').value))
-    
-    def t1_nav_forward(self):
-        self.state = State.T1_EXTRA_FORWARD_NAV
-        self.trans_pub.publish(Point(x=self.get_parameter('t1_extra_forward_nav').value))
-    
-    def execute(self):
-        self.get_logger().info(str(self.state))
-
-        if self.state == State.START:
-            self.state = State.T1_FINDING_NEXT_GATE
-        elif self.state == State.T1_FINDING_NEXT_GATE:
-            self.t1_nav_to_channel_midpoint()
-        elif self.state == State.T3_LOOP_EXPLORE_ROTATING:
-            self.t3_rotate()
-        elif self.state == State.T3_LOOP_EXPLORE_FINDING:
-            self.t3_find_loop()
-    
-    def t3_rotate(self):
-        if self.rotate_call is not None:
+        if self.docking_timeout_secs > self.get_parameter('timeouts.t3_code_search').value:
+            self.get_logger().info('Timed out of code search')
+            self.t3_dock()
+            return
+        if self.get_parameter('t3_skip_line_up').value:
+            self.t3_dock()
             return
 
-        req = Rotate.Request()
-        req.goal.z = math.pi / 2
+        msg = DockCodesCameraPos.Request()
 
-        self.rotate_call = self.rotate_client.call_async(req)
-        self.rotate_call.add_done_callback(self.rotate_callback)
+        self.code_pos_req = self.code_pos_client.call_async(msg)        
+        self.code_pos_req.add_done_callback(self.t3_code_pos_callback)
     
-    def rotate_callback(self, future):
+    def t3_code_pos_callback(self, future):
         result = future.result()
-        self.get_logger().info(f'response: {result}')
 
-        self.rotate_call = None
+        self.code_pos_req = None
 
-        if self.state == State.T3_LOOP_EXPLORE_ROTATING:
-            self.state = State.T3_LOOP_EXPLORE_FINDING
-        elif self.state == State.T3_LOOP_ORIENTING:
-            self.t3_initial_forward_nav()
+        self.get_logger().info(f'result: {result}')
+
+        if len(result.red) == 0:
+            self.get_logger().info(f'No dock code positions sent')
+            return
+        
+        targetX = -1
+        othersX = 0
+        othersCount = 0
+
+        if result.red[0] != -1 and result.red[1] != -1:
+            mid = (result.red[0] + result.red[1]) // 2
+            if self.t3_target_color == 'red':
+                targetX = mid
+            else:
+                othersX += mid
+                othersCount += 1
+        
+        if result.blue[0] != -1 and result.blue[1] != -1:
+            mid = (result.blue[0] + result.blue[1]) // 2
+            if self.t3_target_color == 'blue':
+                targetX = mid
+            else:
+                othersX += mid
+                othersCount += 1
+        
+        if result.green[0] != -1 and result.green[1] != -1:
+            mid = (result.green[0] + result.green[1]) // 2
+            if self.t3_target_color == 'green':
+                targetX = mid
+            else:
+                othersX += mid
+                othersCount += 1
+        
+        if othersCount > 0:
+            othersX //= othersCount
+        
+        if self.state == State.T3_CENTERING and targetX == -1:
+            self.get_logger().info('Centering but code not found.')
+            return
+        
+        if targetX > -1:
+            self.t3_center_translate(targetX, result.image_width)
+            return
+        
+        if othersCount == 0:
+            self.get_logger().info('No code found in search.')
+            return
+        
+        self.t3_search_translate(othersX, result.image_width)
     
-    def t3_initial_forward_nav(self):
-        self.state = State.T3_GATE_EXPLORE_NAVIGATION
-        pose = Pose()
-        pose.position.x = self.get_parameter('t3_gate_explore_initial_nav_distance').value
-        self.pose_pub.publish(pose)
+    def t3_center_translate(self, targetX, image_width):
+        msg = Point()
+
+        self.state = State.T3_CENTERING
+
+        movement_vals = self.get_parameter('t3_centering_movement_values').value
+
+        loc = targetX / image_width
+
+        for i, tranch in enumerate(self.get_parameter('t3_centering_movement_tranches').value):
+            if not loc < tranch: continue
+
+            if movement_vals[i] == 0.0:
+                self.t3_dock()
+                return
+            
+            self.get_logger().info(f'translating: {movement_vals[i]}')
+            msg.y = movement_vals[i]
+            break
+        else:
+            self.get_logger().info(f'translating: {movement_vals[-1]}')
+            msg.y = movement_vals[-1]
+
+        self.trans_pub.publish(msg)
     
-    def t1_nav_to_channel_midpoint(self):
+    def t3_search_translate(self, othersX, image_width):
+        msg = Point()
+
+        self.state = State.T3_SEARCH_TRANSLATING
+
+        if othersX < image_width * .5:
+            msg.y = self.get_parameter('t3_search_movement_value').value
+        else:
+            msg.y = -self.get_parameter('t3_search_movement_value').value
+
+        self.trans_pub.publish(msg)
+    
+    def t3_dock(self):
+        self.state = State.T3_DOCKING
+        self.docking_timeout_secs = 0
+
+        msg = ApproachTarget.Goal()
+        msg.approach_dist = self.get_parameter('t3_approach_dist').value
+        msg.scan_width = self.get_parameter('t3_approach_scan_width').value
+        msg.timeout = float(self.get_parameter('timeouts.t3_approach').value)
+
+        self.approach_req = self.approach_client.send_goal_async(msg)
+        self.approach_req.add_done_callback(self.t3_approach_response_callback)
+    
+    def t3_approach_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.approach_result = goal_handle.get_result_async()
+        self.approach_result.add_done_callback(self.t3_approach_result_callback)
+    
+    def t3_approach_result_callback(self, future):
+        self.approach_req = None
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        self.state = State.START
+
+    def t2_auto_enter(self):
+        self.state = State.T2_ENTERING
+        self.trans_pub.publish(Point(
+            x=self.get_parameter('t2_trans_x').value,
+            y=self.get_parameter('t2_trans_y').value
+        ))
+    
+    def t1_find_next_gate(self):
 
         if self.robot_pose is None:
             return
         if self.channel_call is not None:
+            return
+        
+        if self.timeout_secs > self.get_parameter('timeouts.t1_find_next_gate').value:
+            self.get_logger().info('Hit Timeout')
+            self.state = State.T1_GATE_NAVIGATING
+            self.trans_pub.publish(Point(x=self.get_parameter('timeout_responses.t1_find_next_gate_trans').value))
             return
         
         req = Channel.Request()
@@ -450,7 +647,6 @@ class FinalsNode(Node):
         if result.left == null_point or result.right == null_point:
             self.get_logger().info('No Gate Found')
             return
-        
         channel = (
             point_to_pose_stamped(result.left),
             point_to_pose_stamped(result.right)
@@ -461,10 +657,11 @@ class FinalsNode(Node):
         path = Path()
         path.poses.append(mid)
 
-        self.state = State.T1_NAVIGATING
-        self.t1_channels_completed += 1
+        self.state = State.T1_GATE_NAVIGATING
+        self.channel_call = None
+        self.channels_completed += 1
         self.path_pub.publish(path)
-    
+
 
 def main(args=None):
     rclpy.init(args=args)
