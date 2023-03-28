@@ -32,10 +32,19 @@ autonomy_finals:
     t3_approach_dist: 0.5
     t3_approach_scan_width: 0.1
 
+    t4_gate_max_buoy_dist: 25.0
+    t4_loop_max_buoy_dist: 25.0
+    t4_gate_extra_forward_nav: 18.0
+    t4_final_extra_forward_nav: 5.0
+    t4_looping_radius: 4.0
+
     timeouts:
       t1_find_next_gate: 5
       t3_code_search: 20
       t3_approach: 10
+      t4_gate: 10
+      t4_loop: 10
     
     timeout_responses:
       t1_find_next_gate_trans: 10.0
+      t4_gate_trans: 8.0

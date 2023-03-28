@@ -8,6 +8,8 @@ from virtuoso_msgs.action import TaskWaypointNav, ApproachTarget
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
+from ...utils.math import distance_pose_stamped
+from ...utils.looping_buoy.looping_buoy import LoopingBuoy
 import time
 
 class FinalsNode(Node):
@@ -45,18 +47,27 @@ class FinalsNode(Node):
             ('t3_approach_dist', 0.0),
             ('t3_approach_scan_width', 0.0),
 
+            ('t4_gate_max_buoy_dist', 0.0),
+            ('t4_loop_max_buoy_dist', 0.0),
+            ('t4_gate_extra_forward_nav', 0.0),
+            ('t4_final_extra_forward_nav', 0.0),
+            ('t4_looping_radius', 0.0),
+
             ('timeouts.t1_find_next_gate', 0),
             ('timeouts.t3_code_search', 0),
             ('timeouts.t3_approach', 0),
+            ('timeouts.t4_gate', 0),
+            ('timeouts.t4_loop', 0),
 
-            ('timeout_responses.t1_find_next_gate_trans', 0.0)
+            ('timeout_responses.t1_find_next_gate_trans', 0.0),
+            ('timeout_responses.t4_gate_trans', 0.0)
         ])
 
         self.t3_target_color = self.get_parameter('t3_target_color').value
 
         self.task_nums = self.get_parameter('task_nums').value
 
-        self.curr_task = 2 # TEMP -1
+        self.curr_task = 3 # TEMP -1
 
         self.nav_client = ActionClient(self, TaskWaypointNav, 'task_waypoint_nav')
         self.nav_req = None
@@ -84,9 +95,11 @@ class FinalsNode(Node):
         self.timeout_secs = 0
         self.docking_timeout_secs = 0
 
-        self.state = State.T3_CODE_SEARCH # TEMP State.START
+        self.state = State.T4_FINDING_GATE # TEMP State.START
 
         self.channels_completed = 0
+
+        self.t4_gate_midpoint = None
 
         self.robot_pose:PoseStamped = None
 
@@ -114,6 +127,12 @@ class FinalsNode(Node):
             self.state = State.T3_CODE_SEARCH
         elif self.state == State.T3_CENTERING:
             self.state = State.T3_CODE_SEARCH
+        elif self.state == State.T4_NAVIGATING_TO_GATE_MIDPOINT:
+            self.t4_nav_forward()
+        elif self.state == State.T4_EXTRA_FORWARD_NAV:
+            self.t4_find_loop_buoy()
+        elif self.state == State.T4_LOOPING:
+            self.t4_final_nav_forward() 
     
     def t1_nav_extra(self):
         self.state = State.T1_EXTRA_FORWARD_NAVIGATING
@@ -137,8 +156,10 @@ class FinalsNode(Node):
             self.t1_find_next_gate()
         elif self.state == State.T3_CODE_SEARCH:
             self.t3_code_search()
-        elif self.state == State.T3_DOCKING:
-            pass
+        elif self.state == State.T4_FINDING_GATE:
+            self.t4_find_gate()
+        elif self.state == State.T4_CHECKING_FOR_LOOP_BUOY:
+            self.t4_find_loop_buoy()
     
     def start_next_task(self):
         if self.curr_task + 1 == len(self.task_nums):
@@ -190,6 +211,122 @@ class FinalsNode(Node):
                 self.state = State.T3_CODE_SEARCH
             else:
                 self.state = State.START
+        elif self.task_nums[self.curr_task] == 4:
+            if self.get_parameter('t4_auto').value:
+                self.state = State.T4_FINDING_GATE
+            else:
+                self.state = State.START
+    
+    def t4_nav_forward(self):
+        self.state = State.T4_EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('t4_gate_extra_forward_nav').value))
+    
+    def t4_final_nav_forward(self):
+        self.state = State.T4_FINAL_EXTRA_FORWARD_NAV
+        self.trans_pub.publish(Point(x=self.get_parameter('t4_final_extra_forward_nav').value))
+    
+    def t4_find_gate(self):
+        if self.channel_call is not None:
+            return
+        
+        if self.timeout_secs > self.get_parameter('timeouts.t4_gate').value:
+            self.get_logger().info('Timed out of finding gate')
+            self.state = State.T4_NAVIGATING_TO_GATE_MIDPOINT
+            self.trans_pub.publish(Point(x=self.get_parameter('timeout_responses.t4_gate_trans').value))
+            return
+
+        req = Channel.Request()
+        req.left_color = 'red'
+        req.right_color = 'green'
+        req.use_lidar = True
+        req.use_camera = False
+        req.max_dist_from_usv = self.get_parameter('t4_gate_max_buoy_dist').value
+
+        self.channel_call = self.channel_client.call_async(req)
+        self.channel_call.add_done_callback(self.t4_channel_response)
+    
+    def t4_channel_response(self, future):
+        result:Channel.Response = future.result()
+        self.get_logger().info(f'channel response: {result}')
+
+        null_point = Point(x=0.0,y=0.0,z=0.0)
+
+        self.channel_call = None
+        
+        if result.left == null_point or result.right == null_point:
+            self.get_logger().info('No Gate Found')
+            return
+
+        channel = (
+            point_to_pose_stamped(result.left),
+            point_to_pose_stamped(result.right)
+        )
+
+        mid = ChannelNavigation.find_midpoint(channel[0], channel[1], self.robot_pose)
+
+        path = Path()
+        path.poses.append(mid)
+
+        self.state = State.T4_NAVIGATING_TO_GATE_MIDPOINT
+        self.t4_gate_midpoint = mid
+        self.channel_call = None
+        self.path_pub.publish(path)
+    
+    def t4_find_loop_buoy(self):
+        if self.channel_call is not None:
+            return
+
+        if self.timeout_secs > self.get_parameter('timeouts.t4_loop').value:
+            self.get_logger().info('Timed out of finding gate')
+
+        req = Channel.Request()
+        req.left_color = 'blue'
+        req.right_color = 'blue'
+        req.use_lidar = True
+        req.use_camera = False
+        req.max_dist_from_usv = self.get_parameter('t4_loop_max_buoy_dist').value
+
+        self.get_logger().info('sending channel request')
+        self.channel_call = self.channel_client.call_async(req)
+        self.channel_call.add_done_callback(self.t4_loop_buoy_response)
+    
+    def t4_loop_buoy_response(self, future):
+        result:Channel.Response = future.result()
+        self.get_logger().info(f'channel response: {result}')
+
+        null_point = Point(x=0.0,y=0.0,z=0.0)
+
+        self.channel_call = None
+
+        left_ps = point_to_pose_stamped(result.left)
+        right_ps = point_to_pose_stamped(result.right)
+        
+        if ((result.left == null_point) 
+            and (result.right == null_point)):
+            self.get_logger().info('No loop buoy found')
+            return
+        
+        if result.left == null_point:
+            pose = right_ps
+        elif result.right == null_point:
+            pose = left_ps
+        elif (distance_pose_stamped(left_ps, self.robot_pose)
+            < distance_pose_stamped(right_ps, self.robot_pose)):
+            pose = left_ps
+        else:
+            pose = right_ps
+        
+        self.get_logger().info(f'pose: {pose}')
+        
+        path = LoopingBuoy.find_path_around_buoy(self.robot_pose, pose,
+            looping_radius=self.get_parameter('t4_looping_radius').value)
+        
+        self.t4_gate_midpoint.pose.orientation = path.poses[-1].pose.orientation
+        path.poses.append(self.t4_gate_midpoint)
+
+        self.state = State.T4_LOOPING
+        self.channel_call = None
+        self.path_pub.publish(path)
     
     def t3_code_search(self):
         if self.code_pos_req is not None:
@@ -197,6 +334,9 @@ class FinalsNode(Node):
         
         if self.timeout_secs > self.get_parameter('timeouts.t3_code_search').value:
             self.state = State.T3_DOCKING
+            return
+        if self.get_parameter('t3_skip_line_up').value:
+            self.t3_dock()
             return
 
         msg = DockCodesCameraPos.Request()
