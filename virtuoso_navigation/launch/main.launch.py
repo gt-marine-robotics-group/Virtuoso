@@ -66,6 +66,10 @@ def generate_launch_description():
             executable='rotate',
             parameters=[rotate_param_file]
         ),
+        Node(
+            package='virtuoso_navigation',
+            executable='approach_target'
+        ),
 
         # Currently, state estimation only using odom frame for localization, so no difference between 
         # odom and map frame. Transformation being used for the costmaps.

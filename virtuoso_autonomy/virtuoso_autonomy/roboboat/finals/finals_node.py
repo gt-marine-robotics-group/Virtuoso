@@ -4,7 +4,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Point, PoseStamped
 from nav_msgs.msg import Path, Odometry
 from virtuoso_msgs.srv import Channel, DockCodesCameraPos
-from virtuoso_msgs.action import TaskWaypointNav
+from virtuoso_msgs.action import TaskWaypointNav, ApproachTarget
 from .finals_states import State
 from ...utils.channel_nav.channel_nav import ChannelNavigation
 from ...utils.geometry_conversions import point_to_pose_stamped
@@ -42,9 +42,12 @@ class FinalsNode(Node):
             ('t3_centering_movement_tranches', []),
             ('t3_centering_movement_values', []),
             ('t3_search_movement_value', 0.0),
+            ('t3_approach_dist', 0.0),
+            ('t3_approach_scan_width', 0.0),
 
             ('timeouts.t1_find_next_gate', 0),
             ('timeouts.t3_code_search', 0),
+            ('timeouts.t3_approach', 0),
 
             ('timeout_responses.t1_find_next_gate_trans', 0.0)
         ])
@@ -73,6 +76,10 @@ class FinalsNode(Node):
         self.code_pos_client = self.create_client(DockCodesCameraPos, 
             f'{self.get_parameter("t3_camera").value}/find_dock_placard_offsets')
         self.code_pos_req = None
+
+        self.approach_client = ActionClient(self, ApproachTarget, 'approach_target')
+        self.approach_req = None
+        self.approach_result = None
 
         self.timeout_secs = 0
         self.docking_timeout_secs = 0
@@ -291,7 +298,32 @@ class FinalsNode(Node):
         self.trans_pub.publish(msg)
     
     def t3_dock(self):
+        self.state = State.T3_DOCKING
         self.docking_timeout_secs = 0
+
+        msg = ApproachTarget.Goal()
+        msg.approach_dist = self.get_parameter('t3_approach_dist').value
+        msg.scan_width = self.get_parameter('t3_approach_scan_width').value
+        msg.timeout = float(self.get_parameter('timeouts.t3_approach').value)
+
+        self.approach_req = self.approach_client.send_goal_async(msg)
+        self.approach_req.add_done_callback(self.t3_approach_response_callback)
+    
+    def t3_approach_response_callback(self, future):
+        goal_handle = future.result()
+        if not goal_handle.accepted:
+            self.get_logger().info('Goal rejected :(')
+            return
+
+        self.get_logger().info('Goal accepted :)')
+
+        self.approach_result = goal_handle.get_result_async()
+        self.approach_result.add_done_callback(self.t3_approach_result_callback)
+    
+    def t3_approach_result_callback(self, future):
+        result = future.result().result
+        self.get_logger().info(f'Result: {result}')
+        self.state = State.START
 
     def t2_auto_enter(self):
         self.state = State.T2_ENTERING
