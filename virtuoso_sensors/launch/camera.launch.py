@@ -23,24 +23,11 @@ def generate_launch_description():
 
     ld.append(usv_arg)
 
-    ld.append(
-        Node(
-            package='virtuoso_sensors',
-            executable='camera_republish'
-        ),
-    )
-
     if usv_config_str == 'robotx':
         ld.append(
             Node(
                 package='usb_cam',
                 executable='usb_cam_node_exe',
-            ),
-        )
-        ld.append(
-            Node(
-                package='virtuoso_sensors',
-                executable='camera_republish'
             ),
         )
         ld.append(
