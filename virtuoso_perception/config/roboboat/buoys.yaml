@@ -4,7 +4,7 @@ perception_buoy_lidar:
     always_run: False
     buoy_max_side_length: 1.0
     tall_buoy_min_z: 0.2
-    buoy_loc_noise: 1.0
+    buoy_loc_noise: 1.2
   
 perception_buoy_filter:
   ros__parameters:

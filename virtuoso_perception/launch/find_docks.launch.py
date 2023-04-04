@@ -44,27 +44,6 @@ def generate_launch_description():
     ld.append(usv_arg)
     ld.append(voxel_grid_node_param)
 
-    # ld.append(
-    #     IncludeLaunchDescription(
-    #         PythonLaunchDescriptionSource(
-    #             os.path.join(pkg_share, 'launch/processing.launch.py')
-    #         ),
-    #         launch_arguments={'usv': usv_config}.items()
-    #     )
-    # )
-
-    ld.append(
-        Node(
-            package='voxel_grid_nodes',
-            executable='voxel_grid_node_exe',
-            parameters=[LaunchConfiguration('voxel_grid_node_param_file')],
-            remappings=[
-                ('points_in', '/perception/lidar/points_shore_filtered'),
-                ('points_downsampled', '/perception/voxels')
-            ]
-        )
-    )
-
     for base_topic in camera_data['camera_config']['bow_camera_base_topics']:
         ld.append(
             Node(
@@ -78,38 +57,6 @@ def generate_launch_description():
                 ]
             )
         )
-        # ld.append(
-        #     Node(
-        #         package='virtuoso_perception',
-        #         executable='find_dock_posts',
-        #         name=f'find_dock_posts_{base_topic[base_topic.rfind("/") + 1:]}',
-        #         parameters=[
-        #             {'camera_base_topic': base_topic},
-        #             dock_posts_param_file,
-        #             camera_processing_param_file
-        #         ]
-        #     )
-        # )
-
-    # ld.append(
-    #     Node(
-    #         package='virtuoso_perception',
-    #         executable='dock_stereo',
-    #         parameters=[
-    #             {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
-    #             {'frames': camera_data['camera_config']['bow_camera_frames']}, 
-    #             stereo_param_file
-    #         ]
-    #     )
-    # )
-
-    # ld.append(
-    #     Node(
-    #         package='virtuoso_perception',
-    #         executable='find_dock_entrances',
-    #         parameters=[dock_param_file]
-    #     )
-    # )
 
     return LaunchDescription(ld)
     

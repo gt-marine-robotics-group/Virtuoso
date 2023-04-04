@@ -76,9 +76,9 @@ class FinalsNode(Node):
 
         self.task_nums = self.get_parameter('task_nums').value
 
-        self.curr_task = -1 # TEMP -1
+        self.curr_task = 0 # TEMP -1
 
-        self.state = State.START # TEMP State.START
+        self.state = State.T1_FINDING_NEXT_GATE # TEMP State.START
 
         self.nav_client = ActionClient(self, TaskWaypointNav, 'task_waypoint_nav')
         self.nav_req = None
@@ -147,6 +147,7 @@ class FinalsNode(Node):
         elif self.state == State.T3_CENTERING:
             self.state = State.T3_CODE_SEARCH
         elif self.state == State.T4_NAVIGATING_TO_GATE_MIDPOINT:
+            time.sleep(2.0)
             self.t4_nav_forward()
         elif self.state == State.T4_EXTRA_FORWARD_NAV:
             self.state = State.T4_CHECKING_FOR_LOOP_BUOY
@@ -647,7 +648,6 @@ class FinalsNode(Node):
         if result.left == null_point or result.right == null_point:
             self.get_logger().info('No Gate Found')
             return
-
         channel = (
             point_to_pose_stamped(result.left),
             point_to_pose_stamped(result.right)

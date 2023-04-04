@@ -32,12 +32,6 @@ def generate_launch_description():
         )
         ld.append(
             Node(
-                package='virtuoso_sensors',
-                executable='camera_republish'
-            ),
-        )
-        ld.append(
-            Node(
                 package='tf2_ros',
                 executable='static_transform_publisher',
                 name='leftcam_to_baselink',

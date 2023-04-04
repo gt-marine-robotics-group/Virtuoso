@@ -34,7 +34,8 @@ class ApproachTargetNode(Node):
 
         self.timeout = 0
     
-    def nav_success_callback(self):
+    def nav_success_callback(self, msg):
+        self.get_logger().info('approach finished 1 trans')
         self.translating = False
     
     def lidar_callback(self, msg:PointCloud2):
@@ -64,6 +65,7 @@ class ApproachTargetNode(Node):
                 continue
 
             dist = self.find_dist_to_target(goal_handle.request.scan_width)
+            self.get_logger().info(f'dist: {dist}')
 
             if dist == -1:
                 time.sleep(0.1)

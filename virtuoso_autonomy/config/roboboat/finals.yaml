@@ -16,7 +16,7 @@ autonomy_finals:
     t7_auto: False
     t8_auto: False
 
-    t1_extra_forward_nav: 3.0
+    t1_extra_forward_nav: 8.0
     t1_final_extra_forward_nav: 2.0
     t1_gate_buoy_max_dist: 25.0
 
@@ -25,16 +25,16 @@ autonomy_finals:
 
     t3_target_color: 'blue'
     t3_camera: 'front_left_camera'
-    t3_skip_line_up: False
+    t3_skip_line_up: True
     t3_centering_movement_tranches: [.2, .4, .48, .52, .6, .8]
     t3_centering_movement_values: [5.0, 4.0, 1.0, 0.0, -1.0, -4.0, -5.0]
     t3_search_movement_value: 5.0
-    t3_approach_dist: 0.5
+    t3_approach_dist: 1.0
     t3_approach_scan_width: 0.1
 
     t4_gate_max_buoy_dist: 25.0
     t4_loop_max_buoy_dist: 25.0
-    t4_gate_extra_forward_nav: 18.0
+    t4_gate_extra_forward_nav: 13.0
     t4_final_extra_forward_nav: 5.0
     t4_looping_radius: 4.0
 
@@ -43,14 +43,14 @@ autonomy_finals:
     t6_back_up_dist: 1.9
 
     timeouts:
-      t1_find_next_gate: 5
+      t1_find_next_gate: 20
       t3_code_search: 20
-      t3_approach: 10
+      t3_approach: 20
       t4_gate: 10
       t4_loop: 10
-      t6_approach: 10
-      t6_rotate: 10
-      t6_back_up: 5
+      t6_approach: 30
+      t6_rotate: 20
+      t6_back_up: 20
     
     timeout_responses:
       t1_find_next_gate_trans: 10.0

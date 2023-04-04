@@ -64,7 +64,7 @@ class ChannelNavigation:
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        if abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw) and math.pi*2 - abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw):
+        if abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw) and  math.pi*2 - abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw):
             ang += math.pi
         
         quat = tf_transformations.quaternion_from_euler(0, 0, ang)
