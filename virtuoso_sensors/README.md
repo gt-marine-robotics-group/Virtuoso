@@ -8,8 +8,9 @@
   - [Start Sequence](#start-sequence)
   - [Troubleshooting](#troubleshooting)
 - [Virtuoso Nodes](#virtuoso-nodes)
+  - [camera_info_node.py](#camera\_info\_nodepy)
   - [lidar_republish.py](#lidar\_republishpy)
-  - [camera_republish.py](#camera\_republishpy)
+  - [laser_to_pcd_node.py](#laser\_to\_pcd\_nodepy)
   - [f9p_gps_republish.py](#f9p\_gps\_republishpy)
   - [gx3_republish.py](#gx3\_republishpy)
 - [External Published Topics](#external-published-topics)
@@ -17,10 +18,10 @@
   - [microstrain.yaml](#microstrainyaml)
 
 ## LIDAR
-Supports velodyne VLP-16 LIDAR.
+Supports velodyne VLP-16 LIDAR (RobotX 2022) and Hokuyo Lidars (Roboboat 2023).
 
 ## Camera
-Supports any camera that can communicate through USB.
+Supports any camera that can communicate through USB. Currently using PlayStation Eyes.
 
 ## GPS
 Supports ZED-F9P-00B-002 GPS.
@@ -46,11 +47,14 @@ If you are getting an error relating to "cannot connect to /dev/ttyACM1", try us
 
 ## Virtuoso Nodes
 
-### lidar_republish.py
-Republishes the incoming LIDAR data in the correct frame.
+### camera_info_node.py
+Publishes the appropriate [CameraInfo](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html) for each camera. Camera information found in the `camera_config.yaml` file in the config directory of `virtuoso_perception`.
 
-### camera_republish.py
-Republishes the incoming camera data in the correct frame.
+### lidar_republish.py
+Republishes the incoming Lidar data in the `wamv/lidar_wamv_link` frame. Additionally adds an intensity field to the data (set to 0 for each point) because AutowareAuto requires an intensity field for its PointCloud processing.
+
+### laser_to_pcd_node.py
+Subscribes to a a [LaserScan](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/LaserScan.html) topic and republishes the data as a [PointCloud](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html). Uses functions in `laser_geometry.py` to do the conversion.
 
 ### f9p_gps_republish.py
 Republishes the incoming GPS data in the correct frame.
@@ -62,13 +66,17 @@ Republishes the incoming IMU data in the correct frame.
 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
-| usv/lidar_points | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Used by processing. |
-| usv/camera_image | [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html) | camera_link | Used by processing. |
-| usv/gpx/fix | [sensor_msgs/NavSatFix](https://docs.ros2.org/foxy/api/sensor_msgs/msg/NavSatFix.html) | ubx | Used by localization. |
-| usv/imu | [sensor_msgs/Imu](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Imu.html) | imu_link | Used by localization. |
+| prefix/points | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Used by perception. |
+| prefix/image_raw | [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html) | Frames specified in `camera_config.yaml` in `virtuoso_perception`. | Used by perception. |
+| prefix/camera_info | [sensor_msgs/CameraInfo](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/CameraInfo.html) | Frames specified in `camera_config.yaml` in `virtuoso_perception`. | Used by perception. |
+| prefix/gpx/fix | [sensor_msgs/NavSatFix](https://docs.ros2.org/foxy/api/sensor_msgs/msg/NavSatFix.html) | ubx | Used by localization. |
+| prefix/imu | [sensor_msgs/Imu](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/Imu.html) | imu_link | Used by localization. |
 
 ## Parameters
 
-### microstrain.yaml
+### microstrain.yml
 Unfortunately, no documentation found online.
+
+### urg.yml
+No documentation specifically for parameters found online, but should be intuitive. Make sure `publish_intensity` is `True` as AutowareAuto requires an intensity field.
 
