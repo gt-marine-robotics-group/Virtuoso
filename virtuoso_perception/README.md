@@ -255,3 +255,30 @@ Only used for RobotX.
 | perception_find_dock_entrances | debug | bool | If true, debug messages will be published. |
 
 ### dock_codes.yaml
+
+Only used for RoboBoat.
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| For multiple nodes (left and right camera). | debug | bool | If true, debug messages will be published. |
+| For multiple nodes (left and right camera). | max_cluster_height | int | Max cluster height in pixels (for Density filter). |
+| For multiple nodes (left and right camera). | min_cluster_height | int | Min cluster height in pixels (for Density filter). |
+| For multiple nodes (left and right camera). | max_cluster_width | int | Max cluster width in pixels (for Density filter). |
+| For multiple nodes (left and right camera). | min_cluster_width | int | Min cluster width in pixels (for Density filter). |
+| For multiple nodes (left and right camera). | epsilon | float | DBSCAN clustering epsilon. |
+| For multiple nodes (left and right camera). | min_pts | int | DBSCAN clustering min_pts. |
+| For multiple nodes (left and right camera). | filter_bounds.red.lower1 | int[3] | First lower bound for the red hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.red.upper1 | int[3] | First upper bound for the red hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.red.lower2 | int[3] | Second lower bound for the red hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.red.upper2 | int[3] | Second upper bound for the red hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.green.lower | int[3] | Lower bound for the green hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.green.upper | int[3] | Upper bound for the green hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.blue.lower | int[3] | Lower bounds for the blue hsv filter. |
+| For multiple nodes (left and right camera). | code_bounds.blue.upper | int[3] | Upper bound for the blue hsv filter. |
+| For multiple nodes (left and right camera). | code_px_color_sample_size | int | Proportion of pixels within a cluster to sample to determine the code's color. |
+| For multiple nodes (left and right camera). | placard_bounds.lower | int[3] | Lower bounds for the placard hsv filter. |
+| For multiple nodes (left and right camera). | placard_bounds.upper | int[3] | Upper bound for the placard hsv filter. |
+| For multiple nodes (left and right camera). | placard_color_search_range | int | Max distance away from border of each contour to search for the placard background. |
+| For multiple nodes (left and right camera). | min_placard_prop_between_codes | float | Max proportion of placard background surrounding a cluster. |
+| For multiple nodes (left and right camera). | use_resize | bool | If true, resize the image before clustering. |
+| For multiple nodes (left and right camera). | use_noise_filter | bool | If true, apply a noise filter before clustering. |
