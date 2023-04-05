@@ -10,13 +10,16 @@
   - [lidar_processing/shore_filter_node.py](#lidar\_processingshore\_filter\_nodepy)
   - [camera_processing/resize_node.py](#camera\_processingresize\_nodepy)
   - [camera_processing/noise_filter_node.py](#camera\_processingnoise\_filter\_nodepy)
-  - [buoys/find_buoys_node.py](#buoysfind\_buoys\_nodepy)
-  - [buoys/buoy_filter_node.py](#buoysbuoy\_filter\_nodepy)
+  - [buoys/buoy_lidar_node.py](#buoysbuoy\_lidar\_nodepy)
+  - [buoys/buoy_cam_filter_node.py](#buoysbuoy\_cam\_filter\_nodepy)
   - [buoys/channel_node.py](#buoyschannel\_nodepy)
   - [code/scan_code_node.py](#codescan\_code\_nodepy)
   - [dock/find_dock_codes_node.py](#dockfind\_dock\_codes\_nodepy)
   - [dock/find_dock_entrances_node.py](#dockfind\_dock\_entrances\_nodepy)
   - [dock/find_dock_posts_node.py](#dockfind\_dock\_posts\_nodepy)
+- [Other Algorithms of Note](#other-algorithms-of-node)
+  - [Density Filter](#clusteringdensity\_filterpy)
+  - [Color Filter](#utilsColorRangepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
@@ -57,11 +60,11 @@ This node removes noise from an image. Because our environment tends to be quite
 ### camera_processing/resize_node.py
 This node resizes the incoming image so as to make image computations further down the stack less computationally expensive. Note that this node's service is not typically called, but instead the class is used in a different node in order to avoid sending unnecessarily sending images over the network.
 
-### buoys/find_buoys_node.py
+### buoys/buoy_lidar_node.py
 This node uses the euclidean clusters to determine the location of buoys (Lidar). Buoys are assigned a value corresponding to their height. Buoys with a value >= 1 are considered "tall" buoys.
 
-### buoys/buoy_filter_node.py
-This node takes processed image data and filters out objects that are not one of the buoy types specified. It returns the contours of these buoys.
+### buoys/buoy_cam_filter_node.py
+This node takes processed image data and filters out objects that are not one of the buoy types specified. First a color filter is applied. Then, two clustering algorithms can be used to identify the buoys. The first is CV2's find_contours function. The second is a DBSCAN-like algorithm which we have found more success with (check the Other Algorithms of Note section). It returns the contours of these buoys.
 
 ### buoys/channel_node.py
 This node, when requested, will identify a channel made from two buoys using either lidar or stereo vision or both (as requested). If no buoys are found, the service will return two null points. If only one buoy is found, the service will return two identical points. If two buoys are found, the service will return two distinct points.
@@ -77,6 +80,14 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 
 ### dock/find_dock_posts_node.py
 This node finds the location of the dock posts using stereo vision (for Roboboat currently). The left-most dock has a green marker, there are two white markers around the center dock, and the right-most dock has a red marker. Currently being phased out for a more robust solution.
+
+## Other Algorithms of Note
+
+### clustering/density_filter.py
+Inspirted by the DBSCAN clustering algorithm typically used for machine learning applications, this algorithm finds clusters of pixels by a similar process. Any grayscaled-pixels which have a value greater than 10 are treated as points on a 2d-plane. We treat the distance between the midpoints of two adjacent pixels in the image as 1. From this "graph" (really just a black and white image where the white pixels are our points), we create clusters using two parameters: epsilon and min_pts. For a point to be added to a cluster permanently, it must have at least min_pts points surrounding it no further than epsilon units away. Once these clusters have been created, clusters that are too large or too small for us to consider the object desired can be filtered out by length and width.
+
+### utils/ColorFilter.py
+Colors for objects of choice, such as specifically colored buoys or dock codes can be assigned a range of colors. These color ranges are specified as HSV colors rather than RGB or some other color formatting. We HSV colors because it is easier to tune our color filter manually. Ideally, we would find a way to automate the tuning of our color filter. Yes, this file should not be camel cased.
 
 ## External Subscribed Topics
 
