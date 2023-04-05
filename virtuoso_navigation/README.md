@@ -9,6 +9,7 @@
   - [rotate_node.py](#rotate\_nodepy)
   - [approach_target_node.py](#approach\_target\_nodepy)
   - [waypoint_player_node.py](#waypoint\_player\_nodepy)
+  - [multi_tasks_waypoint_player_node.py](#multi\_tasks\_waypoint\_player\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
@@ -48,6 +49,9 @@ Check the `virtuoso_localization` documentation on the `waypoint_saver_node.py` 
 
 When finished with all waypoints, the player will publish a success message.
 
+### multi_tasks_waypoint_player_node.py
+Check the `virtuoso_localization` documentation on the `multi_tasks_waypoint_saver_node.py` to see how multi-task waypoints are saved. The node takes a request specifying which task's waypoints the USV should navigate through. The waypoints are saved in a `points_{file_num}.yaml` file inside of `~/mrg/semis_waypoints`. If no file_num is specified as a paramter when the node is launched, the node will use the most recent waypoints file (i.e. the one with the highest number). The node will then find the waypoints for the requested task in the file and navigate through them, similar to how the `waypoint_player_node` does. Upon success, the action returns.
+
 ## External Subscribed Topics
 
 | Topic | Message Type | Frame | Purpose |
@@ -78,6 +82,7 @@ When finished with all waypoints, the player will publish a success message.
 | Action | Action Type | Frame | Purpose |
 |---------|--------------|-------|---------|
 | approach_target | [virtuoso_msgs/ApproachTarget](/virtuoso_msgs/action/ApproachTarget.action) | N/A | USV approaches the object in front of it to a requested number of meters. |
+| task_waypoint_nav | [virtuoso_msgs/TaskWaypointNav](/virtuoso_msgs/action/TaskWaypointNav.action) | N/A | USV navigates to the waypoints for the requested task. |
 
 ## Parameters
 
