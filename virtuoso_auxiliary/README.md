@@ -45,7 +45,7 @@ The bit string contains 20 characters (20 bytes) and is encoded in the following
 
 | Action | Action Type | Frame | Purpose |
 |---------|--------------|-------|---------|
-| shoot_balls | [virtuoso_msgs/ShotBalls](/virtuoso_msgs/action/ShootBalls.action) | N/A | Shoots the balls in a manner specified in `ball_shooter.yaml`. |
+| shoot_balls | [virtuoso_msgs/ShootBalls](/virtuoso_msgs/action/ShootBalls.action) | N/A | Shoots the balls in a manner specified in `ball_shooter.yaml`. |
 
 ## External Communication
 There are no outputs from the auxiliary system that are subscribed to by other parts of Virtuoso or micro-ros. Instead, all outputs are sent to the Arduino Due directly via serial.
