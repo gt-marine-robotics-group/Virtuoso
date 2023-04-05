@@ -13,6 +13,7 @@
 - [External Services](#external-services)
 - [Parameters](#parameters)
   - [nav2.yaml](#nav2yaml)
+  - [waypoints.yaml](#waypointsyaml)
 
 ## Nav2
 
@@ -30,7 +31,7 @@ This node takes in a point in the base_link frame the USV needs to translate to.
 This node upon request publishes a path with a single waypoint (the current pose) to the controller. The controller will then attempt to hold that pose.
 
 ### rotate_node.py
-This node upon request rotates the USV by a requested number of radians. When finished rotating, the node will publish a success message.
+This node upon request rotates the USV by a requested number of radians.
 
 ### waypoint_player_node.py
 Check the `virtuoso_localization` documentation on the `waypoint_saver_node.py` to see how waypoints are saved. The player will look inside the `~/mrg/waypoints_raw` directory for the `points_{file_num}.yaml` file containing the the waypoints to follow, where `file_num` is a parameter for the node. If not `file_num` is provided, it will simply find the most recent waypoints file (i.e. the one with the highest number). The pseudo-code below explains how the player navigates through each waypoint:
@@ -70,3 +71,10 @@ When finished with all waypoints, the player will publish a success message.
 ### nav2.yaml
 Parameters for tuning Nav2. A full configuration guide can be found [here](https://navigation.ros.org/configuration/index.html). 
 
+### waypoints.yaml
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| navigation_waypoints | use_nav2 | bool | If true, Nav2 will work as specified above. If false, the waypoint node will not use Nav2 for path planning but will instead create straight line paths; nav2 will also not be launched. |
+| navigation_waypoints | only_translate | bool | If true, they waypoint node will send a command to translate to the controller whenever it sends the controller a path. |
+| navigation_waypoints | goal_dist_tolerance | float | The distance from the goal necessary for the waypoint node to decide that it has reached the waypoint. |
