@@ -16,6 +16,7 @@
   - [code/scan_code_node.py](#codescan\_code\_nodepy)
   - [dock/find_dock_codes_node.py](#dockfind\_dock\_codes\_nodepy)
   - [dock/find_dock_entrances_node.py](#dockfind\_dock\_entrances\_nodepy)
+  - [dock/find_dock_posts_node.py](#dockfind\_dock\_posts\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
@@ -40,7 +41,7 @@ This node applies a ground filter to the incoming PointCloud. Points that are no
 This node finds clusters from the voxel grid created by Nav2. These clusters can then be interpreted as objects like buoys or docks.
 
 ### Voxel Grid
-This node takes in the voxel grid created by Nav2 and creates voxels of those voxels. These are used to help identify the entrances to docks as, if tuned correctly, there can be about 1 voxel per entry point.
+This node takes in the voxel grid created by Nav2 and creates voxels of those voxels. These are used to help identify the entrances to docks as, if tuned correctly, there can be about 1 voxel per entry point. Currently being phased out for a more robust solution to docking.
 
 ## Virtuoso Perception Nodes
 
@@ -51,10 +52,10 @@ This node filters any points within a certain distance of the LIDAR. These point
 This node filters any points less a certain x-values and outside a certain range along the y-axis. This is not necessarily a "shore filter" as it was intending to be, but will filter anything outside of our desired field of view.
 
 ### camera_processing/noise_filter_node.py
-This node removes noise from an image. Because our environment tends to be quite sparse (water with fairly distinct objects on them like buoys), we prefer "over-filtering" noise from an image than not removing enough. Losing small details from incoming image data is not a big deal.
+This node removes noise from an image. Because our environment tends to be quite sparse (water with fairly distinct objects on them like buoys), we prefer "over-filtering" noise from an image than not removing enough. Losing small details from incoming image data is not a big deal. Note that this node's service is not typically called, but instead the class is used in a different node in order to avoid sending unnecessarily sending images over the network.
 
 ### camera_processing/resize_node.py
-This node resizes the incoming image so as to make image computations further down the stack less computationally expensive.
+This node resizes the incoming image so as to make image computations further down the stack less computationally expensive. Note that this node's service is not typically called, but instead the class is used in a different node in order to avoid sending unnecessarily sending images over the network.
 
 ### buoys/find_buoys_node.py
 This node uses the euclidean clusters to determine the location of buoys (Lidar). Buoys are assigned a value corresponding to their height. Buoys with a value >= 1 are considered "tall" buoys.
@@ -63,22 +64,24 @@ This node uses the euclidean clusters to determine the location of buoys (Lidar)
 This node takes processed image data and filters out objects that are not one of the buoy types specified. It returns the contours of these buoys.
 
 ### buoys/channel_node.py
-This node, when requested, will activate the image processing for the front 2 cameras on the USV and return 2 null points. Any requests then sent while there is procesed image data received will be analyzed to determine where the next gate is.
+This node, when requested, will identify a channel made from two buoys using either lidar or stereo vision or both (as requested). If no buoys are found, the service will return two null points. If only one buoy is found, the service will return two identical points. If two buoys are found, the service will return two distinct points.
 
 ### code/scan_code_node.py
 This node uses processed image data to scan the code shown. The node continuously applies red, green, and blue filters to the incoming images to determine when each color is being shown.
 
 ### dock/find_dock_codes_node.py
-This node identifies the relative positions of each of the 3 docks based on the code of each (e.g. blue, red, green docks). The node applies red, green, and blue filters to the incoming images to determine the order of the docks
+This node identifies the relative positions of each of the 3 docks based on the code of each (e.g. blue, red, green docks). The node applies red, green, and blue filters to identify clusters of each color. It then checks that each color cluster is surrounded by the placard (identified with a color range). Depending on the service called, the node will either return the pixel offsets of each placard from the center of the image, the contours of each code found, or the number of codes of a certain color found.
 
 ### dock/find_dock_entrances_node.py
-This node finds the entrances of each dock using the voxels created by Autoware Auto's voxel grid node. The node first identifies the entrance directly in front by finding the two closest voxels which are not next to each other (e.g. on the same dock). It then estimates where the two other entrances could be by creating a line through the entrance in front. When the USV translates to the target dock, it validates the exact location of the entrance.
+This node finds the entrances of each dock using the voxels created by Autoware Auto's voxel grid node. The node first identifies the entrance directly in front by finding the two closest voxels which are not next to each other (e.g. on the same dock). It then estimates where the two other entrances could be by creating a line through the entrance in front. When the USV translates to the target dock, it validates the exact location of the entrance. Currently being phased out for a more robust solution.
+
+### dock/find_dock_posts_node.py
+This node finds the location of the dock posts using stereo vision (for Roboboat currently). The left-most dock has a green marker, there are two white markers around the center dock, and the right-most dock has a red marker. Currently being phased out for a more robust solution.
 
 ## External Subscribed Topics
 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
-| /local_costmap/voxel_grid | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | map | Used by euclidean clustering node to find buoys. Used by the voxel grid node to create voxels for identifying dock entrances. |
 | usv/lidar_points | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Used by the ground filter. |
 | usv/image_raw | [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html) | camera_link | Used by downscale_node. |
 | /perception/get_code | [std_msgs/Int8](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Int8.html) | N/A | Requests that code scanning begins. |
@@ -89,13 +92,16 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
 | /perception/code | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Array of 3 integers representing the color sequence identified. 0 = red, 1 = green, 2 = blue. |
-| /perception/dock_code_offsets | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Array of 3 integers representing the offset of each dock's code from the center of the camera along the y-axis. |
 | /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | 2 Points representing the 2 endpoints of the entrance ahead. |
 
 ## External Services
+
 | Service | Service Type | Frame | Purpose |
 |---------|--------------|-------|---------|
 | channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | map | Finds the next channel. |
+| {cam}/count_dock_codes | [virtuoso_msgs/CountDockCodes](/virtuoso_msgs/srv/CountDockCodes.srv) | N/A | Counts the number of codes for a specific color (red, green, or blue). |
+| {cam}/find_dock_placard_offsets | [virtuoso_msgs/DockCodesCameraPos](/virtuoso_msgs/src/DockCodesCameraPos.srv) | {cam}_link | Finds the placard offsets of each dock by finding the codes on each placard. |
+| {cam}/dock_code_contours | [virtuoso_msgs/ImageBuoyFilter](/virtuoso_msgs/srv/ImageBuoyFilter) | {cam}_link | Finds the contours of each dock code. Returns them in the same way as the buoy filter, so same service type is used. Currently being phased out.
 
 ## Parameters
 
