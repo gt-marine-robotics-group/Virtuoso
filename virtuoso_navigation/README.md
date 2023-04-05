@@ -7,10 +7,12 @@
   - [translate_node.py](#translate\_nodepy)
   - [station_keeping_node.py](#station\_keeping\_nodepy)
   - [rotate_node.py](#rotate\_nodepy)
+  - [approach_target_node.py](#approach\_target\_nodepy)
   - [waypoint_player_node.py](#waypoint\_player\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
+- [External Actions](#external-actions)
 - [Parameters](#parameters)
   - [nav2.yaml](#nav2yaml)
   - [waypoints.yaml](#waypointsyaml)
@@ -33,6 +35,9 @@ This node upon request publishes a path with a single waypoint (the current pose
 
 ### rotate_node.py
 This node upon request rotates the USV by a requested number of radians.
+
+### approach_target_node.py
+Using the lidar data from perception, on a request, the node will navigate the USV to the requested distance from the object in front of it. Additionally, width of the lidar scan can be specified in the request along with a timeout.
 
 ### waypoint_player_node.py
 Check the `virtuoso_localization` documentation on the `waypoint_saver_node.py` to see how waypoints are saved. The player will look inside the `~/mrg/waypoints_raw` directory for the `points_{file_num}.yaml` file containing the the waypoints to follow, where `file_num` is a parameter for the node. If `file_num` is not provided, it will simply find the most recent waypoints file (i.e. the one with the highest number). The pseudo-code below explains how the player navigates through each waypoint:
@@ -67,6 +72,12 @@ When finished with all waypoints, the player will publish a success message.
 | Service | Service Type | Frame | Purpose |
 |---------|--------------|-------|---------|
 | rotate | [virtuoso_msgs/Rotate](/virtuoso_msgs/srv/Rotate.srv) | base_link | Rotates the USV a certain number of radians. |
+
+## External Actions
+
+| Action | Action Type | Frame | Purpose |
+|---------|--------------|-------|---------|
+| approach_target | [virtuoso_msgs/ApproachTarget](/virtuoso_msgs/action/ApproachTarget.action) | N/A | USV approaches the object in front of it to a requested number of meters. |
 
 ## Parameters
 
