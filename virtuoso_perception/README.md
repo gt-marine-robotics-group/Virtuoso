@@ -27,15 +27,18 @@
 - [External Services](#external-services)
 - [Parameters](#parameters)
   - [camera_config.yaml](#camera\_configyaml)
+  - [lidar_config.yaml](#lidar\_configyaml)
   - [ray_ground_classifier.yaml](#ray\_ground\_classifieryaml)
+  - [voxel_grid.yaml](#voxel\_gridyaml)
   - [lidar_processing.yaml](#lidar\_processingyaml)
   - [camera_processing.yaml](#camera\_processingyaml)
   - [euclidean_clustering.yaml](#euclidean\_clusteringyaml)
-  - [voxel_grid.yaml](#voxel\_gridyaml)
   - [buoys.yaml](#buoysyaml)
   - [stereo.yaml](#stereoyaml)
   - [code.yaml](#codeyaml)
   - [dock.yaml](#dockyaml)
+  - [dock_codes.yaml](#dock\_codesyaml)
+  - [dock_posts.yaml](#dock\_postsyaml)
 
 ## Autoware Auto Nodes
 
@@ -134,6 +137,14 @@ Colors for objects of choice, such as specifically colored buoys or dock codes c
 | For multiple nodes | bow_camera_base_topics | string[] | Base topics for cameras on the bow of the USV. Used by stereo nodes. |
 | For multiple nodes | bow_camera_frames | string[] | Frames of cameras on bow of the USV. Used by stereo nodes. |
 
+### lidar_config.yaml
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| For multiple nodes | all_lidar_types | string[] | Types of lidar used; indices should match with other parameters. |
+| For multiple nodes | all_lidar_base_topics | string[] | Base topics for all lidars. Will be used to determine publishers and subscribers for Lidars. |
+| For multiple nodes | all_lidar_transforms | float\[]\[3] | X, Y, and Z translation from base_link to each Lidar. |
+| For multiple nodes | all_lidar_frames | string[] | Frames of each Lidar. |
+
 ### ray_ground_classifier.yaml
 Key parameter here is sensor_height_m, as this will defintely change between USVs. Unfortunately, no documentation for the parameters found online.
 
@@ -224,6 +235,8 @@ Only used for RobotX.
 | perception_scan_code | code_loc_noise | float | Any rectangles with an origin within this distance of the previous rectaingles will be considered a match (for determining if a current color is being displayed).
 
 ### dock.yaml
+
+Only used for RobotX.
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
