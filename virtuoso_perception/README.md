@@ -31,7 +31,7 @@
   - [lidar_processing.yaml](#lidar\_processingyaml)
   - [camera_processing.yaml](#camera\_processingyaml)
   - [euclidean_clustering.yaml](#euclidean\_clusteringyaml)
-  - [voxel_grid_node.yaml](#voxel\_grid\_nodeyaml)
+  - [voxel_grid.yaml](#voxel\_gridyaml)
   - [buoys.yaml](#buoysyaml)
   - [stereo.yaml](#stereoyaml)
   - [code.yaml](#codeyaml)
@@ -140,7 +140,7 @@ Key parameter here is sensor_height_m, as this will defintely change between USV
 ### euclidean_clustering.yaml
 Unfortunately, no documentation for the parameters found online.
 
-### voxel_grid_node.yaml
+### voxel_grid.yaml
 Unfortunately, no documentation for the parameters found online.
 
 ### lidar_processing.yaml
@@ -203,8 +203,12 @@ Unfortunately, no documentation for the parameters found online.
 |------|-----------|------|-------------|
 | perception_buoy_stereo | debug | bool | If true, debug messages will be published. |
 | perception_buoy_stereo | multiprocessing | bool | If true, each pair of contours will have its location in 3d space found in separate processes rather than sequentially. If true while debug is true, certain debug topics will not be published to. |
+| perception_dock_stereo | debug | bool | If true, debug messages will be published. |
+| perception_dock_stereo | multiprocessing | bool | If true, each pair of contours will have its location in 3d space found in separate processes rather than sequentially. If true while debug is true, certain debug topics will not be published to. |
 
 ### code.yaml
+
+Only used for RobotX.
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
