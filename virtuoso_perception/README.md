@@ -147,10 +147,10 @@ Unfortunately, no documentation for the parameters found online.
 ## camera_processing.yaml
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| noise_filter | debug | bool | If true, debug messages will be published. |
-| noise_filter | denoising_params | int[4] | [h, hColor, templateWindowSize, searchWindowSize] for cv2.fastNlMeansDenoisingColored. |
-| resize | debug | bool | If true, debug messages will be published. |
-| resize | resize_factor | int | Factor by which to resize (e.g. 2 will create an image 1/4 the original area). |
+| perception_noise_filter | debug | bool | If true, debug messages will be published. |
+| perception_noise_filter | denoising_params | int[4] | [h, hColor, templateWindowSize, searchWindowSize] for cv2.fastNlMeansDenoisingColored. |
+| perception_downscale | debug | bool | If true, debug messages will be published. |
+| perception_downscale | resize_factor | int | Factor by which to resize (e.g. 2 will create an image 1/4 the original area). |
 
 ### buoys.yaml
 
