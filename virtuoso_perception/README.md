@@ -17,7 +17,7 @@
   - [dock/find_dock_codes_node.py](#dockfind\_dock\_codes\_nodepy)
   - [dock/find_dock_entrances_node.py](#dockfind\_dock\_entrances\_nodepy)
   - [dock/find_dock_posts_node.py](#dockfind\_dock\_posts\_nodepy)
-- [Other Algorithms of Note](#other-algorithms-of-node)
+- [Other Algorithms of Note](#other-algorithms-of-note)
   - [Density Filter](#clusteringdensity\_filterpy)
   - [Color Filter](#utilsColorRangepy)
 - [External Subscribed Topics](#external-subscribed-topics)
