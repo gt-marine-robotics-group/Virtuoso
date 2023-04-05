@@ -204,6 +204,8 @@ Unfortunately, no documentation for the parameters found online.
 | perception_buoy_cam_filter | min_cluster_height | int | Min cluster height in pixels (for Density filter). |
 | perception_buoy_cam_filter | max_cluster_width | int | Max cluster width in pixels (for Density filter). |
 | perception_buoy_cam_filter | min_cluster_width | int | Min cluster width in pixels (for Density filter). |
+| perception_buoy_cam_filter | epsilon | float | DBSCAN clustering epsilon. |
+| perception_buoy_cam_filter | min_pts | int | DBSCAN clustering min_pts. |
 | perception_buoy_cam_filter | buoy_border_px | int | When determining the color of a buoy, ignore any pixels "x" pixels from a border (for Cv2 contours). |
 | perception_buoy_cam_filter | buoy_px_color_sample_size | int | Proportion of pixels within a cluster to sample to determine the buoy's color (for both clustering methods). |
 | perception_buoy_cam_filter | use_resize | bool | If true, resize the image before clustering. |
@@ -251,3 +253,5 @@ Only used for RobotX.
 | perception_find_dock_codes | blue.upper | int[3] | Upper bound for the blue hsv filter. |
 | perception_find_dock_codes | code_axis_range | float | Maximum difference in dock code locations along x-axis. |
 | perception_find_dock_entrances | debug | bool | If true, debug messages will be published. |
+
+### dock_codes.yaml
