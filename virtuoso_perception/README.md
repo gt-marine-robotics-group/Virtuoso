@@ -17,6 +17,8 @@
   - [dock/find_dock_codes_node.py](#dockfind\_dock\_codes\_nodepy)
   - [dock/find_dock_entrances_node.py](#dockfind\_dock\_entrances\_nodepy)
   - [dock/find_dock_posts_node.py](#dockfind\_dock\_posts\_nodepy)
+  - [stereo/buoy_stereo_node.py](#stereobuoy\_stereo\_nodepy)
+  - [stereo/dock_stereo_node.py](#stereodock\_stereo\_nodepy)
 - [Other Algorithms of Note](#other-algorithms-of-note)
   - [Density Filter](#clusteringdensity\_filterpy)
   - [Color Filter](#utilsColorRangepy)
@@ -80,6 +82,12 @@ This node finds the entrances of each dock using the voxels created by Autoware 
 
 ### dock/find_dock_posts_node.py
 This node finds the location of the dock posts using stereo vision (for Roboboat currently). The left-most dock has a green marker, there are two white markers around the center dock, and the right-most dock has a red marker. Currently being phased out for a more robust solution.
+
+### stereo/buoy_stereo_node.py
+This node first identifies the buoys in each camera by calling the service found in `buoy_cam_filter_node` for each camera. Then, it pairs clusters on the left camera with clusters on the right camera. Using the midpoint of each cluster, it then uses trigonometry to find the x and y location of the object relative to the left camera. We are able to do this by knowing the location of both cameras relative to each other and the focal lengths of the cameras. While results have been stellar in simulation and in the lab, results have been mixed on the water. Thus, we will probably be phasing our basic stereo vision implementation and instead purchase an outdoor stereo camera.
+
+### stereo/dock_stereo_node.py
+This node first identifies the codes of the dock by calling the service in the `find_dock_codes_node` which returns the contours of each code (this is not an external service listed below). Then, similar to buoy stereo, it matches midpoints and does trigonometry to determine to position of the two farthest codes. We can then use these two poses to orient the USV with the dock. Results have been mixed even in simulation, so we will be phasing this out in favor of an outdoor stereo camera.
 
 ## Other Algorithms of Note
 
