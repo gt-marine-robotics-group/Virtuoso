@@ -38,6 +38,7 @@ Check the `virtuoso_localization` documentation on the `waypoint_saver_node.py` 
   - convert current gps waypoint to the map frame, no need to change orientation from the file
   - send a path to the `waypoints_node` containing the map frame waypoint
   - when `waypoints_node` sends a success message, repeat for the next gps waypoint
+
 When finished with all waypoints, the player will publish a success message.
 
 ## External Subscribed Topics
