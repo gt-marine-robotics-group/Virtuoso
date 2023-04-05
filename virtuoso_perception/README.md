@@ -157,37 +157,46 @@ Unfortunately, no documentation for the parameters found online.
 |------|-----------|------|-------------|
 | For multiple nodes | debug | bool | If true, debug messages will be published. |
 | For multiple nodes | denoising_params | int[4] | [h, hColor, templateWindowSize, searchWindowSize] for cv2.fastNlMeansDenoisingColored. |
-| For multiple nodes | debug | bool | If true, debug messages will be published. |
 | For multiple nodes | resize_factor | int | Factor by which to resize (e.g. 2 will create an image 1/4 the original area). |
 
 ### buoys.yaml
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| perception_find_buoys | buoy_max_side_length | float | Any clusters with a length larger than this value will not be treated as a buoy. |
-| perception_find_buoys | tall_buoy_min_z | float | Any buoys located with a top (of this buoy) above this value will be classified as a tall buoy. Note that this is the top relative to the lidar_link, not the base_link. |
-| perception_find_buoys | buoy_loc_noise | float | Any clusters within this distance of each other will be treated as the same buoy. |
-| perception_buoy_filter| debug | bool | If true, debug messages will be published. |
-| perception_buoy_filter | filter_bounds.red.lower1 | int[3] | First lower bound for the red hsv filter. |
-| perception_buoy_filter | filter_bounds.red.upper1 | int[3] | First upper bound for the red hsv filter. |
-| perception_buoy_filter | filter_bounds.red.lower2 | int[3] | Second lower bound for the red hsv filter. |
-| perception_buoy_filter | filter_bounds.red.upper2 | int[3] | Second upper bound for the red hsv filter. |
-| perception_buoy_filter | filter_bounds.green.lower | int[3] | Lower bound for the green hsv filter. |
-| perception_buoy_filter | filter_bounds.green.upper | int[3] | Upper bound for the green hsv filter. |
-| perception_buoy_filter | filter_bounds.black.lower | int[3] | Lower bounds for the black hsv filter. |
-| perception_buoy_filter | filter_bounds.black.upper | int[3] | Upper bound for the black hsv filter. |
-| perception_buoy_filter | filter_bounds.yellow.lower | int[3] | Lower bound for the yellow hsv filter. |
-| perception_buoy_filter | filter_bounds.yellow.upper | int[3] | Upper bound for the yellow hsv filter. |
-| perception_buoy_filter | label_bounds.red.lower1 | int[3] | First lower bound for the red hsv classifier. |
-| perception_buoy_filter | label_bounds.red.upper1 | int[3] | First upper bound for the red hsv classifier. |
-| perception_buoy_filter | label_bounds.red.lower2 | int[3] | Second lower bound for the red hsv classifier. |
-| perception_buoy_filter | label_bounds.red.upper2 | int[3] | Second upper bound for the red hsv classifier. |
-| perception_buoy_filter | label_bounds.green.lower | int[3] | Lower bound for the green hsv classifier. |
-| perception_buoy_filter | label_bounds.green.upper | int[3] | Upper bound for the green hsv classifier. |
-| perception_buoy_filter | label_bounds.black.lower | int[3] | Lower bounds for the black hsv classifier. |
-| perception_buoy_filter | label_bounds.black.upper | int[3] | Upper bounds for the black hsv classifier. |
-| perception_buoy_filter | label_bounds.yellow.lower | int[3] | Lower bounds for the yellow hsv classifier. |
-| perception_buoy_filter | label_bounds.yellow.upper | int[3] | Upper bounds for the yellow hsv classifier. |
+| perception_buoy_lidar | always_run | bool | If true, the node will publish the buoys it finds every time it gets new bounding boxes from Autoware Auto. If false, a service must be called for it to search for buoys. |
+| perception_buoy_lidar | buoy_max_side_length | float | Any clusters with a length larger than this value will not be treated as a buoy. |
+| perception_buoy_lidar | tall_buoy_min_z | float | Any buoys located with a top (of this buoy) above this value will be classified as a tall buoy. Note that this is the top relative to the lidar_link, not the base_link. |
+| perception_buoy_lidar | buoy_loc_noise | float | Any clusters within this distance of each other will be treated as the same buoy. |
+| perception_buoy_cam_filter| debug | bool | If true, debug messages will be published. |
+| perception_buoy_cam_filter | filter_bounds.red.lower1 | int[3] | First lower bound for the red hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.red.upper1 | int[3] | First upper bound for the red hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.red.lower2 | int[3] | Second lower bound for the red hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.red.upper2 | int[3] | Second upper bound for the red hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.green.lower | int[3] | Lower bound for the green hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.green.upper | int[3] | Upper bound for the green hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.black.lower | int[3] | Lower bounds for the black hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.black.upper | int[3] | Upper bound for the black hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.yellow.lower | int[3] | Lower bound for the yellow hsv filter. |
+| perception_buoy_cam_filter | filter_bounds.yellow.upper | int[3] | Upper bound for the yellow hsv filter. |
+| perception_buoy_cam_filter | label_bounds.red.lower1 | int[3] | First lower bound for the red hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.red.upper1 | int[3] | First upper bound for the red hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.red.lower2 | int[3] | Second lower bound for the red hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.red.upper2 | int[3] | Second upper bound for the red hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.green.lower | int[3] | Lower bound for the green hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.green.upper | int[3] | Upper bound for the green hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.black.lower | int[3] | Lower bounds for the black hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.black.upper | int[3] | Upper bounds for the black hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.yellow.lower | int[3] | Lower bounds for the yellow hsv classifier. |
+| perception_buoy_cam_filter | label_bounds.yellow.upper | int[3] | Upper bounds for the yellow hsv classifier. |
+| perception_buoy_cam_filter | clustering_method | string | Either cluster buoys using "DENSITY" or "CV2_CONTOURS". |
+| perception_buoy_cam_filter | max_cluster_height | int | Max cluster height in pixels (for Density filter). |
+| perception_buoy_cam_filter | min_cluster_height | int | Min cluster height in pixels (for Density filter). |
+| perception_buoy_cam_filter | max_cluster_width | int | Max cluster width in pixels (for Density filter). |
+| perception_buoy_cam_filter | min_cluster_width | int | Min cluster width in pixels (for Density filter). |
+| perception_buoy_cam_filter | buoy_border_px | int | When determining the color of a buoy, ignore any pixels "x" pixels from a border (for Cv2 contours). |
+| perception_buoy_cam_filter | buoy_px_color_sample_size | int | Proportion of pixels within a cluster to sample to determine the buoy's color (for both clustering methods). |
+| perception_buoy_cam_filter | use_resize | bool | If true, resize the image before clustering. |
+| perception_buoy_cam_filter | use_noise_filter | bool | If true, apply a noise filter before clustering. |
 
 ### stereo.yaml
 | Node | Parameter | Type | Description |
