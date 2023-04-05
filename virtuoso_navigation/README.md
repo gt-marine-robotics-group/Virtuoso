@@ -7,6 +7,7 @@
   - [translate_node.py](#translate\_nodepy)
   - [station_keeping_node.py](#station\_keeping\_nodepy)
   - [rotate_node.py](#rotate\_nodepy)
+  - [waypoint_player_node.py](#waypoint\_player\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
@@ -15,21 +16,29 @@
 
 ## Nav2
 
-Nav2 is an open-source package which is used by our navigation server for global path planning. Nav2 takes in odometry from the localization server and point clouds from the processing server, and it creates a global costmap. When we send it a goal in the map frame, it will generate a sequence of waypoints which the USV will follow. This path is passed to our controller server. Further documentation can be found on the [Nav2 Github](https://github.com/ros-planning/navigation2). 
+Nav2 is an open-source package which is used by our navigation server for global path planning. Nav2 takes in odometry from the localization server and point clouds from the perception server, and it creates a global costmap. When we send it a goal in the map frame, it will generate a sequence of waypoints which the USV will follow. This path is passed to our controller server. Further documentation can be found on the [Nav2 Github](https://github.com/ros-planning/navigation2). 
 
 ## Virtuoso Navigation Nodes
 
 ### waypoints_node.py
-This node takes in a sequence of waypoints in the map frame the USV needs to navigate to. Every time the USV arrives at a waypoint, it will generate a path to the next waypoint through Nav2. 
+This node takes in a sequence of waypoints in the map frame the USV needs to navigate to. Every time the USV arrives at a waypoint, it will generate a path to the next waypoint through Nav2. When finised with all waypoints, the node will publish a success message.
 
 ### translate_node.py
-This node takes in a point in the base_link frame the USV needs to translate to. The point is transformed to the map frame and then passed into the waypoints_node as a single waypoint.
+This node takes in a point in the base_link frame the USV needs to translate to. The point is transformed to the map frame and then passed into the `waypoints_node` as a single waypoint. When translation has finished, the node will publish a success message.
 
 ### station_keeping_node.py
 This node upon request publishes a path with a single waypoint (the current pose) to the controller. The controller will then attempt to hold that pose.
 
 ### rotate_node.py
-This node upon request rotates the USV by a requested number of radians.
+This node upon request rotates the USV by a requested number of radians. When finished rotating, the node will publish a success message.
+
+### waypoint_player_node.py
+Check the `virtuoso_localization` documentation on the `waypoint_saver_node.py` to see how waypoints are saved. The player will look inside the `~/mrg/waypoints_raw` directory for the `points_{file_num}.yaml` file containing the the waypoints to follow, where `file_num` is a parameter for the node. If not `file_num` is provided, it will simply find the most recent waypoints file (i.e. the one with the highest number). The pseudo-code below explains how the player navigates through each waypoint:
+- while not finished with all gps waypoints:
+  - convert current gps waypoint to the map frame, no need to change orientation from the file
+  - send a path to the `waypoints_node` containing the map frame waypoint
+  - when `waypoints_node` sends a success message, repeat for the next gps waypoint
+When finished with all waypoints, the player will publish a success message.
 
 ## External Subscribed Topics
 
