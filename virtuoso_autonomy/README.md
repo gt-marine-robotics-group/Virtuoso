@@ -19,6 +19,7 @@
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Service Requests](#external-service-requests)
+- [External Action Requests](#external-action-requests)
 - [Parameters](#parameters)
   - [docking.yaml](#dockingyaml)
   - [gymkhana.yaml](#gymkhanayaml)
@@ -140,13 +141,11 @@ Handles the finals run of RoboBoat. USV procedure:
 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
-| /localization/odometry | [nav_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | Used by enter_exit_node, gymkhana_node, and safety_check_node. |
-| /buoys/bounding_boxes | [autoware_auto_perception_msgs/BoundingBoxArray](https://gitlab.com/autowarefoundation/autoware.auto/autoware_auto_msgs/-/blob/master/autoware_auto_perception_msgs/msg/BoundingBoxArray.idl) | map | Used by enter_exit_node, gymkhana_node, and safety_check_node. |
-| /navigation/success | [geometry_msgs/PoseStamped](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html) | map | Used by enter_exit_node, gymkhana_node, and safety_check_node. |
-| /navigation/translate_success | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Used by docking_node. |
-| /perception/dock_code_offsets | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Used by docking_node. |
-| /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | Used by docking_node. |
-| /perception/code | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Used by scan_code_node. |
+| /localization/odometry | [nav_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | See `virtuoso_localization`. |
+| /navigation/success | [geometry_msgs/PoseStamped](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/PoseStamped.html) | map | See `virtuoso_navigation`. |
+| /navigation/translate_success | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | See `virtuoso_navigation`. |
+| /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | See `virtuoso_perception`. |
+| /perception/code | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | See `virtuoso_perception`. |
 
 ## External Published Topics
 
@@ -162,6 +161,16 @@ Handles the finals run of RoboBoat. USV procedure:
 |---------|--------------|-------|---------|
 | channel | [virtuoso_msgs/Channel](/virtuoso_msgs/srv/Channel.srv) | map | Finds the next channel. |
 | rotate | [virtuoso_msgs/Rotate](/virtuoso_msgs/srv/Rotate.srv) | base_link | Rotates the USV by a certain number of radians. |
+| shoot_water | [virtuoso_msgs/ShootWater](/virtuoso_msgs/srv/ShootWater.srv) | N/A | See `virtuoso_auxiliary`.
+| {cam}/find_dock_placard_offsets | [virtuoso_msgs/DockCodesCameraPos](/virtuoso_msgs/srv/DockCodesCameraPos.srv) | {cam}_link | See `virtuoso_perception`. |
+
+## External Action Requests
+
+| Action | Action Type | Frame | Purpose |
+|---------|--------------|-------|---------|
+| task_waypoint_nav | [virtuoso_msgs/TaskWaypointNav](/virtuoso_msgs/action/TaskWaypointNav.action) | N/A | See `virtuoso_navigation`. |
+| approach_target | [virtuoso_msgs/ApproachTarget](/virtuoso_msgs/action/ApproachTarget.action) | N/A | See `virtuoso_navigation`. |
+| shoot_balls | [virtuoso_msgs/ShootBalls](/virtuoso_msgs/action/ShootBalls.action) | N/A | See `virtuoso_auxiliary`. |
 
 ## Parameters
 
