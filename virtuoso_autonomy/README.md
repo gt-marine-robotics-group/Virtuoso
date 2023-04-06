@@ -24,6 +24,10 @@
   - [docking.yaml](#dockingyaml)
   - [gymkhana.yaml](#gymkhanayaml)
   - [channel_nav.yaml](#channel\_navyaml)
+  - [safety_check.yaml](#safety\_checkyaml)
+  - [loop.yaml](#loopyaml)
+  - [water_shooter.yaml](#water\_shooteryaml)
+  - [semis.yaml](#semisyaml)
 
 ## Launching Tasks
 
@@ -176,12 +180,20 @@ Handles the finals run of RoboBoat. USV procedure:
 
 ### docking.yaml
 
+Parameters different for RobotX. RobotX docking has not been updated yet and will not work.
+
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| autonomy_docking | target_dock_color | string | Color of the target dock. Can be "red", "blue", or "green". |
-| autonomy_docking | dock_approach_distance | float | Distance to be from dock before translating to target dock. |
+| autonomy_docking | target_color | string | The color of the dock the USV should dock at. |
+| autonomy_docking | camera | string | The name of the camera to use for docking (prefix of certain service calls). |
+| autonomy_docking | centering_movement_tranches | float[] | Tranches for translational movement depending on where the code is relative to the center of the camera being used. Movement for each tranch specified in `centering_movement_values`. |
+| autonomy_docking | centering_movement_values | float[] | Number of meters to translate depending on which tranche the code is in. |
+| autonomy_docking | search_movement_value | float | Number of meters to translate in search of the code when it is not seen by the camera. |
+| autonomy_docking | docking_entry_value | float | Number of meters to translate forward when entering the dock. Note: for finals run we did not use a hard-coded translate forward value but instead used the `approach_target` action. |
 
 ### gymkhana.yaml
+
+Currently only for RobotX.
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
@@ -189,9 +201,58 @@ Handles the finals run of RoboBoat. USV procedure:
 
 ### channel_nav.yaml
 
+Currently only for RoboBoat.
+
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
 | autonomy_channel_nav | num_channels | int | Number of channels to navigate through before stopping. |
 | autonomy_channel_nav | gate_buoy_max_dist | float | The number of meters a buoy for a next gate can be from the USV. |
+| autonomy_channel_nav | extra_forward_nav | float | The number of meters to navigate forward after reaching the midpoint of a gate. |
 | autonomy_channel_nav | rotation_theta | float | The amount of radians to turn by when searching for a gate. |
 
+### safety_check.yaml
+
+Currently only for RoboBoat.
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| autonomy_safety_check | gate_buoy_max_dist | float | The number of meters a buoy for a next gate can be from the USV. |
+| autonomy_safety_check | extra_forward_nav | float | The number of meters to navigate forward after reaching the midpoint of a gate. |
+| autonomy_safety_check | use_lidar | bool | Whether to use the lidar for identifying buoys. |
+| autonomy_safety_check | use_camera | bool | Whether to use the cameras for identifying buoys. |
+
+### loop.yaml
+
+Currently only for RoboBoat.
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| autonomy_loop | gate_use_lidar | bool | Whether to use the lidar for finding the gate buoys. |
+| autonomy_loop | gate_use_camera | bool | Whether to use the camera for finding the gate buoys. |
+| autonomy_loop | gate_max_buoy_dist | float | The number of meters a buoy for the gate can be from the USV. |
+| autonomy_loop | gate_extra_forward_nav | float | The number of meters to navigate forward after reaching the midpoint of the gate. |
+| autonomy_loop | loop_use_lidar | bool | Whether to use the lidar for finding the loop buoy. |
+| autonomy_loop | loop_use_camera | bool | Whether to use the cameras for finding the loop buoy. |
+| autonomy_loop | loop_max_buoy_dist | float | The number of meters the loop buoy can be from the USV. |
+| autonomy_loop | looping_radius | float | The number of meters to keep away from the loop buoy during the looping. |
+
+### water_shooter.yaml
+
+Currently only for RoboBoat.
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| autonomy_water_shooter | shoot_seconds | float | The number of seconds to shoot water. |
+
+### semis.yaml
+
+Currently only for RoboBoat.
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| autonomy_semis | task_nums | int[] | The tasks to attempt and the order in which to attempt them. (e.g. [1, 4, 2] will attempt tasks 1, 2, and 4 in the order specified in the array). |
+| autonomy_semis | docking_num | int | The task number corresponding to docking. |
+| autonomy_semis | ball_shooter_num | int | The task number corresponding to ball shooting. |
+| autonomy_semis | water_shooter_num | int | The task number corresponding to water shooting. |
+| autonomy_semis | docking_secs | int | The number of seconds to station keep at the dock. |
+| autonomy_semis | water_secs | float | The number of seconds to shoot water. |
