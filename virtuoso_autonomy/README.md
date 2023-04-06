@@ -9,6 +9,13 @@
   - [robotx/safety_check_node.py](#robotxsafety\_check\_nodepy)
   - [robotx/scan_code_node.py](#robotxscan\_code\_nodepy)
   - [roboboat/channel_nav_node.py](#roboboatchannel\_nav\_nodepy)
+  - [roboboat/safety_check_node.py](#roboboatsafety\_check\_nodepy)
+  - [roboboat/loop_node.py](#roboboatloop\_nodepy)
+  - [roboboat/docking_node.py](#roboboatdocking\_nodepy)
+  - [roboboat/ball_shooter_node.py](#roboboatball\_shooter\_nodepy)
+  - [roboboat/water_shooter_node.py](#roboboatwater\_shooter\_nodepy)
+  - [roboboat/semis_node.py](#roboboatsemis\_nodepy)
+  - [roboboat/finals_node.py](#roboboatfinals\_nodepy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Service Requests](#external-service-requests)
@@ -23,7 +30,7 @@ Each task has 2 launch files. To launch a task, first launch the `[usv][task_nam
 
 ## Virtuoso Nodes
 
-Each node has a similar sturcture. There is a `[task_name]_states.py` file which contains the current state of the USV in the task. There is a `[task_name].py` file which handles the logic for executing a task given the current state and inputted data. Finally, there is a `[task_name]_node.py` file which handles the transfer of data from topics to `[task_name].py` and the transfer of data from `[task_name].py` to other topics.
+Each node has a similar sturcture. There is a `[task_name]_states.py` file which contains the current state of the USV in the task. There is a `[task_name].py` file which handles the logic for executing a task given the current state and inputted data. Finally, there is a `[task_name]_node.py` file which handles the transfer of data from topics to `[task_name].py` and the transfer of data from `[task_name].py` to other topics. If there is only a `[task_name]_node.py` file, then the logic is also there.
 
 ### robotx/docking_node.py
 
@@ -64,12 +71,70 @@ Handles the Scan the Code task. USV procedure:
 2. Request code scan
 
 ### roboboat/channel_nav_node.py
-
 Handles the Channel Navigation task. USV procedure:
+
 1. Enable station keeping
 2. Search for next gate
 3. Navigate to next gate
-4. Repeat steps 2 and 3 until navigated through all gates (customizable)
+4. Translate forward an arbitrary, customizable distance
+5. Repeat steps 2-4 until navigated through all gates (customizable)
+
+### roboboat/safety_check_node.py
+Handles the first task for RoboBoat. USV procedure:
+
+1. Enable station keeping
+2. Search for next gate
+3. Navigate to next gate
+4. Translate forward an arbitrary, customizable distance
+5. Repeat steps 2-4 until navigated through two gates
+
+### roboboat/loop_node.py
+Handles the Northwest Passage task of RoboBoat (task 4). USV procedure:
+
+1. Enable station keeping
+2. search for entrance gate
+3. Navigate to entrance gate and record waypoint
+4. Translate forward an arbitrary, customizable distance
+5. Search for loop buoy
+6. If no loop buoy found, navigate 10 meters forward and go to step 5
+7. Find three waypoints around the buoy for the USV to follow
+8. Add the three waypoints and the gate midpoint waypoint to the path
+9. After completing the path, navigate an arbitrary, customizable distance (to go through the gate)
+
+### roboboat/docking_node.py
+Handles the docking task of RoboBoat (task 3). USV procedure:
+
+1. Enable station keeping
+2. Translate left or right until in front of correct dock
+3. Translate forward until within an arbitrary distance of the dock
+
+### roboboat/ball_shooter_node.py
+Handles the ball shooting task of RoboBoat (task 6). USV procedure:
+
+1. Wait for the waypoint player to navigate to a preset waypoint
+2. Request for the ball shooter to shoot
+
+### roboboat/water_shooter_node.py
+Handles the water shooting task of RoboBoat (task 7). USV procedure:
+
+1. Wait for the waypoint player to navigate to a preset waypoint
+2. Request for the water shooter to shoot
+
+### roboboat/semis_node.py
+Handles the semifinal run of RoboBoat. USV procedure:
+
+0. Collect waypoints for navigating the entire course, stored as part of distinct tasks (see `virtuoso_localiztion` documentation on the `multi_tasks_waypoint_saver_node.py`)
+1. Start the next task and request for the waypoint player to navigate to all waypoints for the current task
+2. When task navigation completes, check if task has some additional functionality (docking for x seconds, shooting balls, or shooting water), and perform additional functionality if present
+3. Return to step 1 unless already completed all tasks
+
+### roboboat/finals_node.py
+Handles the finals run of RoboBoat. USV procedure:
+
+0. Estimate waypoints for the start of each task using Mission Planner
+1. Start the next task and request for waypoint player to navigate to all waypoints for current task
+2. Run the task using perception
+3. Upon task autonomous completion (or timeout), return to step 1
 
 ## External Subscribed Topics
 
