@@ -28,6 +28,7 @@
   - [loop.yaml](#loopyaml)
   - [water_shooter.yaml](#water\_shooteryaml)
   - [semis.yaml](#semisyaml)
+  - [finals.yaml](#finalsyaml)
 
 ## Launching Tasks
 
@@ -256,3 +257,52 @@ Currently only for RoboBoat.
 | autonomy_semis | water_shooter_num | int | The task number corresponding to water shooting. |
 | autonomy_semis | docking_secs | int | The number of seconds to station keep at the dock. |
 | autonomy_semis | water_secs | float | The number of seconds to shoot water. |
+
+### finals.yaml
+
+Currently only for RoboBoat.
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| autonomy_finals | task_nums | int[] | The tasks to attempt and the order in which to attempt them. (e.g. [1, 4, 2] will attempt tasks 1, 2, and 4 in the order specified in the array). |
+| autonomy_finals | docking_secs | int | The number of seconds to station keep at the dock. | 
+| autonomy_finals | water_secs | int | The number of seconds to shoot water. |
+| autonomy_finals | t1_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t2_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t3_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t4_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t5_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t6_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t7_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t8_auto | bool | Performs the task autonomously if true, else go to the waypoints for the next task. |
+| autonomy_finals | t1_extra_forward_nav | float | The number of meters to navigate forward after reaching the midpoint of the gate. |
+| autonomy_finals | t1_final_extra_forward_nav | float | The number of meters to navigate forward after reaching the final gate midpoint. |
+| autonomy_finals | t1_gate_buoy_max_dist | float | The number of meters a buoy for the gate can be from the USV. |
+| autonomy_finals | t2_trans_x | float | Number of meters to translate in the x direction to attempt task 2. |
+| autonomy_finals | t2_trans_y | float | Number of meters to translate in the y direction to attempt task 2. |
+| autonomy_finals | t3_target_color | string | The color of the dock the USV should dock at. |
+| autonomy_finals | t3_camera | string | The camera to use for finding the correct dock. |
+| autonomy_finals | t3_skip_line_up | bool | If true, skip lining up the USV in front of the correct dock and instead begin entering the dock. |
+| autonomy_finals | t3_centering_movement_tranches | float[] | Tranches for translational movement depending on where the code is relative to the center of the camera being used. Movement for each tranch specified in `t3_centering_movement_values`. |
+| autonomy_finals | t3_centering_movement_values | float[] | Number of meters to translate depending on which tranche the code is in. |
+| autonomy_finals | t3_search_movement_value | float[] | Number of meters to translate in search of the code when it is not seen by the camera. | 
+| autonomy_finals | t3_approach_dist | float | Number of meters to be away from the dock during docking. |
+| autonomy_finals | t3_approach_scan_width | float | Width of the lidar scan to use for determining how far the dock is from the USV. |
+| autonomy_finals | t4_gate_max_buoy_dist | float | The number of meters a buoy for the gate can be from the USV. | 
+| autonomy_finals | t4_loop_max_buoy_dist | float | The number of meters the loop buoy can be from the USV. |
+| autonomy_finals | t4_gate_extra_forward_nav | float | The number of meters to navigate forward after reaching the gate midpoint. |
+| autonomy_finals | t4_final_extra_forward_nav | float | The number of meters to navigate forward after reaching the gate midpoint on exit. |
+| autonomy_finals | t4_looping_radius | float | The number of meters to keep away from the loop buoy during the looping. |
+| autonomy_finals | t6_approach_dist | float | The number of meters to be away from the ball shooting target before reversing. |
+| autonomy_finals | t6_approach_scan_width | float | The width of the lidar scan to use for determining how far the target is from the USV. | 
+| autonomy_finals | t6_back_up_dist | float | The number of meters to back up before firing the balls. |
+| autonomy_finals | timeouts.t1_find_next_gate | int | Number of seconds before finding the next gate on task 1 times out. |
+| autonomy_finals | timeouts.t3_code_search | int | Number of seconds before the code search for docking times out. |
+| autonomy_finals | timeouts.t3_approach | int | Number of seconds before docking approach times out. |
+| autonomy_finals | timeouts.t4_gate | int | Number of seconds before finding the entrance gate for buoy loop times out. |
+| autonomy_finals | timeouts.t4_loop | int | Number of seconds before finding the loop buoy times out. |
+| autonomy_finals | timeouts.t6_approach | int | Number of seconds before approach for task 6 times out. |
+| autonomy_finals | timeouts.t6_rotate | int | Number of seconds before rotating 180 degrees for shooting times out. |
+| autonomy_finals | timeouts.t6_back_up | int | Number of seconds before backing up for ball shooting times out. |
+| auotnomy_finals | timeout_responses.t1_find_next_gate_trans | float | Number of meters to navigate forward if t1_find_next_gate times out. |
+| autonomy_finals | timeout_responses.t4_gate_trans | float | Number of meters to navigate forward if t4_gate times out. |
