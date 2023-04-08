@@ -31,6 +31,19 @@ Supports ZED-F9P-00B-002 GPS.
 ## IMU
 Supports 3DM-GX3 -25 IMU.
 
+### Calibration
+
+Use the Iron Calibration under MIP monitor (https://www.microstrain.com/software) to calibrate the IMU. Ideally, the vehicle should be completely assembled, with all batteries present and the vehicle powered on. 
+
+1. Disconnect the IMU from the vehicle and attach it to your computer. Ideally, you should keep your computer as far away from the IMU as possible to keep the magnetic field of your computer from interfering with the calibration. 
+2. Next, ensure your IMU shows up in the device list and select it. You should be able to view the current calibration. 
+3. Click on the red record button to begin recording. 
+4. Spin the vehicle in a 360 circle at a moderate pace. You should see magnetic field readings appear in a perfect circle on your screen, ideally. 
+5. Switch to the spherical fit tab and write the calibration to the device. 
+6. Disconnect and reconnect to the device and ensure your calibration was written. 
+7. If you wish to be absolutely sure, rerun the calibration sequence and ensure that your next calibration is somewhat close to your first calibration. The "z" offset of your calibration may differ significantly, this will not affect the calibration. 
+8. Reconnect the device to the computer.
+
 ### Start Sequence
 The IMU requires a sequence to correctly start.
 
@@ -39,10 +52,13 @@ The IMU requires a sequence to correctly start.
 - Do not pass a first_start launch argument for any future IMU launches
 
 ### Troubleshooting
-A good way to reset the IMU is to use [sensorconnect microstrain](https://www.microstrain.com/software/sensorconnect) to reboot the device or stop it from streaming. However, do not use this software to calibrate the magnetometer. This software calibrates the IMU backwards.
+A good way to reset the IMU is to use [sensorconnect microstrain](https://www.microstrain.com/software/sensorconnect) to reboot the device or stop it from streaming. However, do not use this software to calibrate the magnetometer. This software calibrates the IMU backwards. The legacy inertial products support software is required.
 
 Instead, use the Iron Calibration under MIP monitor (https://www.microstrain.com/software) to calibrate the IMU.
 
+If you switch to a different physical IMU unit, even of the same model, you may have to change the port name. List the files present in /dev/serial/by-id. One should obviously be a microstrain device. Use this file name as the port name in /config/microstrain.yml. 
+
+Outdated:
 If you are getting an error relating to "cannot connect to /dev/ttyACM1", try using a different number instead of 1 (start at 0). Typically, microROS will be using port 0 and the IMU will be using port 1. However, if microros is not being used then the IMU should use port 0.
 
 ## Virtuoso Nodes
