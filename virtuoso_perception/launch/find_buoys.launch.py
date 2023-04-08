@@ -36,7 +36,7 @@ def generate_launch_description():
         buoys_data = yaml.safe_load(stream)
     
     buoy_filter_params = []
-    for key, value in buoys_data['perception_buoy_filter']['ros__parameters'].items():
+    for key, value in buoys_data['perception_buoy_cam_filter']['ros__parameters'].items():
         buoy_filter_params.append({key: value})
 
     camera_processing_param_file = (pkg_share, '/config/', usv_config,

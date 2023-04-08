@@ -30,21 +30,6 @@ def generate_launch_description():
 
     urg_params_file = (pkg_share, '/config/urg.yml')
 
-    # return LaunchDescription([
-    #     usv_arg,
-
-        # Node(
-        #     package='urg_node',
-        #     executable='urg_node_driver',
-        #     parameters=[urg_params_file]
-        # ),
-        # Node(
-        #     package='virtuoso_sensors',
-        #     executable='laser_to_pcd'
-        # )
-
-    # ])
-
     ld = list()
 
     ld.append(usv_arg)

@@ -17,7 +17,7 @@ from ..camera_processing.resize import Resize
 class BuoyFilterNode(Node):
 
     def __init__(self):
-        super().__init__('perception_buoy_filter')
+        super().__init__('perception_buoy_cam_filter')
 
         self.declare_parameters(namespace='', parameters=[
             ('debug', False),

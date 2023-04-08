@@ -10,8 +10,8 @@
   - [Localization](/virtuoso_localization/README.md)
   - [Navigation](/virtuoso_navigation/README.md)
   - [Perception](/virtuoso_perception/README.md)
-  - [Processing](/virtuoso_processing/README.md)
   - [Sensors](/virtuoso_sensors/README.md)
+  - [Auxiliary](/virtuoso_auxiliary/README.md)
 - RobotX
   - [Safety Check](/documentation/robotx/safety_check.md)
   - [Enter and Exit](/documentation/robotx/enter_exit.md)
