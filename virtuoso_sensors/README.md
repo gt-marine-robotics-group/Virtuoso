@@ -33,7 +33,16 @@ Supports 3DM-GX3 -25 IMU.
 
 ### Calibration
 
-Use the Iron Calibration under MIP monitor (https://www.microstrain.com/software) to calibrate the IMU. Ideally, the vehicle should be completely assembled, with all batteries present and the vehicle powered on. Disconnect the IMU from the vehicle and attach it to your computer. Ideally, you should keep your computer as far away from the IMU as possible to keep the magnetic field of your computer from interfering with the calibration. Next, ensure your IMU shows up in the device list and select it. You should be able to view the current calibration. Click on the red record button to begin recording. Spin the vehicle in a 360 circle at a moderate pace. You should see magnetic field readings appear in a perfect circle on your screen, ideally. Switch to the spherical fit tab and write the calibration to the device. Disconnect and reconnect to the device and ensure your calibration was written. If you wish to be absolutely sure, rerun the calibration sequence and ensure that your next calibration is somewhat close to your first calibration. The "z" offset of your calibration may differ significantly, this will not affect the calibration. Reconnect the device to the computer.
+Use the Iron Calibration under MIP monitor (https://www.microstrain.com/software) to calibrate the IMU. Ideally, the vehicle should be completely assembled, with all batteries present and the vehicle powered on. 
+
+1. Disconnect the IMU from the vehicle and attach it to your computer. Ideally, you should keep your computer as far away from the IMU as possible to keep the magnetic field of your computer from interfering with the calibration. 
+2. Next, ensure your IMU shows up in the device list and select it. You should be able to view the current calibration. 
+3. Click on the red record button to begin recording. 
+4. Spin the vehicle in a 360 circle at a moderate pace. You should see magnetic field readings appear in a perfect circle on your screen, ideally. 
+5. Switch to the spherical fit tab and write the calibration to the device. 
+6. Disconnect and reconnect to the device and ensure your calibration was written. 
+7. If you wish to be absolutely sure, rerun the calibration sequence and ensure that your next calibration is somewhat close to your first calibration. The "z" offset of your calibration may differ significantly, this will not affect the calibration. 
+8. Reconnect the device to the computer.
 
 ### Start Sequence
 The IMU requires a sequence to correctly start.
