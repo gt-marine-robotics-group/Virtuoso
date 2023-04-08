@@ -33,7 +33,7 @@ The last-meter PID controller takes in vehicle velocity, position, and attitude 
 
 ### motor_cmd_generator_node.py
 
-The control mixer is what sends individual thruster commands based on target X and Y force as well as torque. The rear thruster commands are scaled down in magnitude to not induce excessive torque with Y force commands. In addition, the commands to all thrusters are scaled so that the maximum magnitude is 1.0, but the ratios of all thruster commands are kept.
+The control mixer is what sends individual thruster commands based on target X and Y force as well as torque. The rear thruster commands are scaled down in magnitude to not induce excessive torque with Y force commands. In addition, the commands to all thrusters are scaled so that the maximum magnitude is 1.0, but the ratios of all thruster commands are kept. Can choose between the X and H drive configurations. In the X drive configuration, the side motors will output to 0. 
 
 ## External Subscribed Topics
 
@@ -41,6 +41,8 @@ The control mixer is what sends individual thruster commands based on target X a
 |-------|--------------|-------|---------|
 | /localization/odometry | [sensor_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | Used by choose_pid_node, basic_pid_node, cmd_vel_generator_node, and velocity_pid_node. |
 | /navigation/plan | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Used by choose_pid_node. |
+| /controller/is_translation | [std_msgs/Bool](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Bool.html) | N/A | If true, vehicle holds its final orientation while moving instead of pointing in the direction of travel. Affects choose_pid and cmd_vel_generator|
+
 
 ## External Published Topics
 
@@ -52,14 +54,27 @@ The control mixer is what sends individual thruster commands based on target X a
 
 ### pidgains.yaml
 
+Note that the PID gain parameters are currently multiplied by the baked-in PID gains in the PID nodes to get the actual PID gains used. So a 0.5 in the config file would result in half the built-in gain.
+
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| controller_basic_PID | basic_kp | float | Proportional factor of PID. |
-| controller_basic_PID | basic_kd | float | Derivate factor of PID. |
-| controller_basic_PID | basic_ki | float | Integral factor of PID. |
-| controller_basic_PID | basic_rotate_kp | float | Proportional factor of PID. |
-| controller_basic_PID | basic_rotate_kd | float | Derivative factor of PID. |
-| controller_basic_PID | basic_rotate_ki | float | Integral factor of PID. |
-| controller_velocity_PID | velocity_k_drag | float | Feed-forward drag gain factor of PID. |
-| controller_velocity_PID | velocity_k_error | float | Velocity error gain factor of PID. |
-| controller_velocity_PID | velocity_ki | float | Integral factor of PID. |
+| controller_basic_PID | basic_kp_x | float | Proportional factor of basic PID in the vehicle x direction. |
+| controller_basic_PID | basic_kd_x | float | Derivate factor of basic PID in the vehicle x direction. |
+| controller_basic_PID | basic_ki_x | float | Integral factor of basic PID in the vehicle x direction. |
+| controller_basic_PID | basic_kp_y | float | Proportional factor of basic PID in the vehicle y direction. |
+| controller_basic_PID | basic_kd_y | float | Derivate factor of basic PID in the vehicle y direction. |
+| controller_basic_PID | basic_ki_y | float | Integral factor of PID in the vehicle y direction. |
+| controller_basic_PID | basic_rotate_kp | float | Proportional gain factor of basic PID in rotation. |
+| controller_basic_PID | basic_rotate_kd | float | Derivative gain factor of basic PID in rotation. |
+| controller_basic_PID | basic_rotate_ki | float | Integral gain factor of basic PID in rotation. |
+| controller_velocity_PID | velocity_k_drag_x | float | Feed-forward drag gain factor of velocity PID in the vehicle x direction. |
+| controller_velocity_PID | velocity_k_error_x | float | Velocity error gain factor of velocity PID in the vehicle x direction. |
+| controller_velocity_PID | velocity_ki_x | float | Integral factor of velocity PID in the vehicle x direction. |
+| controller_velocity_PID | velocity_k_drag_y | float | Feed-forward drag gain factor of velocity PID in the vehicle y direction. |
+| controller_velocity_PID | velocity_k_error_y | float | Velocity error gain factor of velocity PID in the vehicle y direction. |
+| controller_velocity_PID | velocity_ki_y | float | Integral gain factor of velocity PID in the vehicle y direction. |
+
+### cmd_generator.yaml
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| controller_motor_cmd_generator | motor_config | string | Name of the motor configuration. Current allowable values "X" or "H". |
