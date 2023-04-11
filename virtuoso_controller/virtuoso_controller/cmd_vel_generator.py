@@ -83,16 +83,16 @@ class CmdVelGenerator:
         #angle between the vehicle's +x and the target velocity
         vel_angle = numpy.arctan2(vel_parallel[0], vel_parallel[1])
         
-        vel_parallel_speed = 2.0
+        vel_parallel_speed = 3.0
         #slow down if we're getting close to the target
         if (dist_to_target < 6.0):
-            vel_parallel_speed = dist_to_target/3.0
+            vel_parallel_speed = dist_to_target/2.0
         #enforce a minimimum velocity though
         if (vel_parallel_speed < 0.3):
             vel_parallel_speed = 0.3
         
         #If we're far away from the path, reduce the parallel velocity
-        vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*min_pose_distance/3.0
+        vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*min_pose_distance/4.0
         
         if (vel_parallel_speed < 0.3):
             vel_parallel_speed = 0.3
@@ -142,10 +142,10 @@ class CmdVelGenerator:
         vel_towards = [vel_towards2[0], vel_towards2[1], vel_towards2[2], vel_towards2[3]]       
         
         #the closer to the path, the smaller the speed towards
-        speed_towards = min_pose_distance/2.0
+        speed_towards = min_pose_distance/1.0
         #enforce maximum and minimum speeds towards
-        if (speed_towards > 2.0):
-            speed_towards = 2.0
+        if (speed_towards > 3.0):
+            speed_towards = 3.0
         if (speed_towards < 0.05):
             speed_towards = 0.05
         
@@ -164,14 +164,16 @@ class CmdVelGenerator:
         vel_to_command.linear.y = vel_parallel[1] + vel_towards[1]
         
         #calculate angle between the current vehicle +x axis and the target velocity
-        vel_angle = numpy.arctan2(vel_to_command.linear.x, vel_to_command.linear.y)
+        vel_angle = numpy.arctan2(vel_to_command.linear.y, vel_to_command.linear.x)
         
         #if we're trying to point at the target velocity, we want to reduce the magnitude of the target velocity
         #so the vehicle has time and control authority to turn towards the target velocity
         if (not self.hold_final_orient):
+            reduction_factor = min(0.9,abs(vel_angle)/numpy.pi*2)
+       
             vel_to_command.linear.x = (vel_to_command.linear.x 
-                - vel_to_command.linear.x*abs(vel_angle)/numpy.pi/2)
+                - vel_to_command.linear.x*reduction_factor)
             vel_to_command.linear.y = (vel_to_command.linear.y 
-                - vel_to_command.linear.y*abs(vel_angle)/numpy.pi/2)
+                - vel_to_command.linear.y*reduction_factor)
         
         return vel_to_command

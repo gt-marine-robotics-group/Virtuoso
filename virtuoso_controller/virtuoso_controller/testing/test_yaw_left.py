@@ -18,9 +18,9 @@ class TestYawLeft(Node):
         self.velForceX = Float32()
         self.velForceX.data = 0.0
         self.velForceY = Float32()
-        self.velForceY.data = 1.0
+        self.velForceY.data = 0.0
         self.velTorque = Float32()
-        self.velTorque.data = 0.0
+        self.velTorque.data = 1.0
 
         self.navigateToPoint_pub = self.create_publisher(Bool, '/navigation/navigateToPoint', 10)
         self.basicTargetForceX_pub = self.create_publisher(Float32, 'controller/basic_pid/targetForceX', 10)
