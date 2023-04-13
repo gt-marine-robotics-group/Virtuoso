@@ -33,7 +33,7 @@ class CmdVelGenerator:
         min_pose_distance = 100000.0
         closest_pose = 0
         
-        #pick out the closest pose and the pose after that pose
+        #pick out the closest pose
         for i in range(0,len(self.nav2_path.poses)):
 
             next_pose_distance = (
@@ -44,6 +44,64 @@ class CmdVelGenerator:
             if (next_pose_distance < min_pose_distance):
                 closest_pose = i
                 min_pose_distance = next_pose_distance
+                
+        #if the closest pose is the last pose, decrement by 1. If this is omitted, the vehicle should just beeline straight for the last pose while ignoring the path.
+        if(closest_pose == len(self.nav2_path.poses) - 1 and len(self.nav2_path.poses) > 1):
+            closest_pose = closest_pose - 1
+        
+        #if the closest pose is in front of us, we want to use the line segment between the closest pose and the pose before it, not the closest pose and the pose after it
+        #if the closest pose is not the current position and it is not the first pose in the path
+        if((self.nav2_path.poses[closest_pose].pose.position.x != self_x and self.nav2_path.poses[closest_pose].pose.position.y != self_y) and closest_pose != 0):
+            #vector from the closest pose to the pose after it
+            next_to_second = [0.0,0.0,0.0]
+            next_to_second[0] = self.nav2_path.poses[closest_pose+1].pose.position.x - self.nav2_path.poses[closest_pose].pose.position.x
+            next_to_second[1] = self.nav2_path.poses[closest_pose+1].pose.position.y - self.nav2_path.poses[closest_pose].pose.position.y
+            
+            #vector from the pose after the closest pose to the vehicle
+            next_to_veh = [0.0,0.0,0.0]
+            next_to_veh[0] = self_x - self.nav2_path.poses[closest_pose].pose.position.x
+            next_to_veh[1] = self_y - self.nav2_path.poses[closest_pose].pose.position.y
+            
+            #dot product of the two vectors
+            nssv_dot = numpy.dot(next_to_second, next_to_veh)
+            
+            #angle between the vector from the closest point to the point after that and the vector between the first point and the vehicle
+            nssv_angle = numpy.arccos(nssv_dot/numpy.linalg.norm(next_to_second)/numpy.linalg.norm(next_to_veh))
+            
+            next_to_veh = [0.0,0.0,0.0]
+            next_to_veh[0] = self_x - self.nav2_path.poses[closest_pose].pose.position.x
+            next_to_veh[1] = self_y - self.nav2_path.poses[closest_pose].pose.position.y
+            
+        
+            
+            #if the angle is over 90 degrees, we know that we are behind the closest pose so we should decrement in order to use the line segment between the closest pose and the pose in back of it.
+            
+            if (abs(nssv_angle) >= numpy.pi/2 and numpy.linalg.norm(next_to_veh) > 1.0):
+                closest_pose = closest_pose - 1
+         
+        #We now need to check if we've already passed the current line segment we're on (the segment from the "closest pose" to the pose after it). If so, then we know that portion of the path is no longer relevant to us, so we increment. We do this until we find a segment that we're either "behind" or "in the middle of"
+        in_front_of_second_pose = True
+        while(in_front_of_second_pose):
+            next_to_second = [0.0,0.0,0.0]
+            next_to_second[0] = self.nav2_path.poses[closest_pose+1].pose.position.x - self.nav2_path.poses[closest_pose].pose.position.x
+            next_to_second[1] = self.nav2_path.poses[closest_pose+1].pose.position.y - self.nav2_path.poses[closest_pose].pose.position.y    
+                    
+            sec_to_veh = [0.0,0.0,0.0]
+            sec_to_veh[0] = self_x - self.nav2_path.poses[closest_pose+1].pose.position.x
+            sec_to_veh[1] = self_y - self.nav2_path.poses[closest_pose+1].pose.position.y                
+                
+            #dot product of the two vectors
+            nssv_dot = numpy.dot(next_to_second, sec_to_veh)
+            
+            #angle between the vector from the closest point to the point after that and the vector between the second point and the vehicle
+            nssv_angle = numpy.arccos(nssv_dot/numpy.linalg.norm(next_to_second)/numpy.linalg.norm(sec_to_veh))                   
+            
+            if (abs(nssv_angle) < numpy.pi/2):
+                closest_pose = closest_pose + 1
+                if(closest_pose == len(self.nav2_path.poses) - 1):
+                    in_front_of_second_pose = False
+            else:
+                in_front_of_second_pose = False
                         
         next_x = self.nav2_path.poses[closest_pose].pose.position.x
         next_y = self.nav2_path.poses[closest_pose].pose.position.y
@@ -92,13 +150,16 @@ class CmdVelGenerator:
             vel_parallel_speed = 0.3
         
         #If we're far away from the path, reduce the parallel velocity
-        vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*min_pose_distance/4.0
+        reduction_factor_par = min(1.0,min_pose_distance/4.0)
+        vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*reduction_factor_par
         
         if (vel_parallel_speed < 0.3):
             vel_parallel_speed = 0.3
         
+        vel_parallel_mag = 0.0
         
-        vel_parallel_mag = vel_parallel_speed/((vel_parallel[0])**2 + (vel_parallel[1])**2)**(1/2)
+        if(numpy.linalg.norm(vel_parallel) > 0.0):
+            vel_parallel_mag = vel_parallel_speed/((vel_parallel[0])**2 + (vel_parallel[1])**2)**(1/2)
         
         #now actually apply the calculated magnitude of the parallel velocity to its components
         vel_parallel[0] = vel_parallel[0]*vel_parallel_mag
@@ -151,8 +212,11 @@ class CmdVelGenerator:
         
         if (speed_towards < 0.05):
             speed_towards = 0.05
-                    
-        vel_towards_mag = speed_towards/((vel_towards[0])**2 + (vel_towards[1])**2)**(1/2)
+            
+        vel_towards_mag = 0.0
+        
+        if(numpy.linalg.norm(vel_towards) > 0.0):            
+            vel_towards_mag = speed_towards/((vel_towards[0])**2 + (vel_towards[1])**2)**(1/2)
         
         #apply the speed to the velocity components
         vel_towards[0] = vel_towards[0]*vel_towards_mag

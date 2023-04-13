@@ -59,7 +59,20 @@ class TestCircle(Node):
              p2.pose.orientation = self.robot_pose.pose.orientation
              p2.header.frame_id = 'map'
              path.poses.append(p2)
+	
+        p2 = PoseStamped()
+        p2.pose.position.x = path.poses[-1].pose.position.x + 20
+        p2.pose.position.y = path.poses[-1].pose.position.y + 0
+        p2.pose.orientation = self.robot_pose.pose.orientation
+        p2.header.frame_id = 'map'
+        path.poses.append(p2)	
 
+        p2 = PoseStamped()
+        p2.pose.position.x = path.poses[-1].pose.position.x + 10
+        p2.pose.position.y = path.poses[-1].pose.position.y + 10
+        p2.pose.orientation = self.robot_pose.pose.orientation
+        p2.header.frame_id = 'map'
+        path.poses.append(p2)	
 
         self.get_logger().info('PUBLISHING PATH')
         self.pub.publish(path)
