@@ -11,6 +11,11 @@
 - [External Published Topics](#external-published-topics)
 - [Parameters](#parameters)
   - [pidgains.yaml](#pidgainsyaml)
+- [Tuning the Controller](#tuning-the-controller)
+  - [Motor Command Generator](#motor-command-generator)
+  - [Basic PID](#basic-pid)
+  - [Velocity PID and Command Velocity Generator](#velocity-pid-and-command-velocity-generator)
+  - [A Note on How the Vehicle Knows it's Passed a Point](#a-note-on-how-the-vehicle-knows-its-passed-a-point)
 
 ## Virtuoso Nodes
 
