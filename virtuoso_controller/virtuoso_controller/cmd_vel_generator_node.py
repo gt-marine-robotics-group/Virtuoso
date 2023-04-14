@@ -17,6 +17,8 @@ class CmdVelGeneratorNode(Node):
         self.generator = CmdVelGenerator()
         self.generator.node = self
         
+        self.old_path = Path()
+        
         self.path_subscriber = self.create_subscription(
             Path,
             '/navigation/plan',
@@ -36,14 +38,24 @@ class CmdVelGeneratorNode(Node):
 
         self.timer = self.create_timer(0.1, self.timer_callback)
         
+        
     def hold_final_orient_callback(self, msg:Bool):
         self.generator.hold_final_orient = msg.data
         
     def path_callback(self, msg:Path):
+    
+        #if(len(msg) == len(self.old_path)):
+        #    for i in range(0,len(msg)):
+        #        if(msg.poses[i].pose)
+        
+        if(self.old_path == msg):
+            return
+        
         self.generator.destination = msg.poses[-1].pose
         self.generator.nav2_path = msg
         self.generator.received_path = True
         self.generator.completedPoses = numpy.zeros(len(msg.poses))
+        self.old_path = msg
 
        
     def timer_callback(self):

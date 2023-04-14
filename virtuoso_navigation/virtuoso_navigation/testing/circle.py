@@ -21,6 +21,8 @@ class TestCircle(Node):
 
         self.path_sent = False
         self.robot_pose = None
+        
+        self.path = Path()
 
         self.declare_parameter('dist', 10.0)
 
@@ -38,6 +40,7 @@ class TestCircle(Node):
         self.is_translation_pub.publish(is_translation)
 
         if self.robot_pose is None or self.path_sent:
+            self.pub.publish(self.path)
             return
 
         self.path_sent = True
@@ -73,6 +76,7 @@ class TestCircle(Node):
         p2.pose.orientation = self.robot_pose.pose.orientation
         p2.header.frame_id = 'map'
        # path.poses.append(p2)	
+        self.path = path
 
         self.get_logger().info('PUBLISHING PATH')
         self.pub.publish(path)
