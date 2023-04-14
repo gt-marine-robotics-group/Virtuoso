@@ -33,6 +33,12 @@ class ChoosePIDNode(Node):
             self.cmd_vel_callback,
             10)  
             
+        self.path_complete_subscriber = self.create_subscription(
+            Bool,
+            '/controller/path_complete',
+            self.path_complete_callback,
+            10)  
+                        
         self.hold_final_orientation_sub = self.create_subscription(
             Bool, '/controller/is_translation', self.hold_final_orient_callback, 10)
 
@@ -47,6 +53,9 @@ class ChoosePIDNode(Node):
         
     def cmd_vel_callback(self, msg:Twist):
         self.choose_pid.cmd_vel = msg
+    
+    def path_complete_callback(self, msg:Bool):
+        self.choose_pid.path_complete = msg.data
         
     def hold_final_orient_callback(self, msg:Bool):
         self.choose_pid.hold_final_orient = msg.data

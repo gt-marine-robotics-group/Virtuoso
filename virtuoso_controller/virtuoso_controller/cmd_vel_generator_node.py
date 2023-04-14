@@ -32,6 +32,7 @@ class CmdVelGeneratorNode(Node):
             Bool, '/controller/is_translation', self.hold_final_orient_callback, 10) 
             
         self.cmd_vel_publisher = self.create_publisher(Twist, '/controller/cmd_vel', 10)
+        self.path_complete_publisher = self.create_publisher(Bool, '/controller/path_complete', 10)
 
         self.timer = self.create_timer(0.1, self.timer_callback)
         
@@ -49,6 +50,11 @@ class CmdVelGeneratorNode(Node):
         cmd = self.generator.run()
         if cmd is None:
             return
+        pathComplete = Bool()       
+        pathComplete.data = False 
+        if(self.generator.completedPoses[-1] == 2):
+            pathComplete.data = True
+        self.path_complete_publisher.publish(pathComplete)
         
         self.cmd_vel_publisher.publish(cmd)
   

@@ -52,7 +52,7 @@ class TestCircle(Node):
         
         N = 6
         
-        for i in range(1,N):
+        for i in range(1,N*2+1):
              p2 = PoseStamped()
              p2.pose.position.x = self.robot_pose.pose.position.x + (self.get_parameter('dist').value * np.sin(np.pi/N*i))
              p2.pose.position.y = self.robot_pose.pose.position.y + (self.get_parameter('dist').value * np.cos(np.pi/N*i))  - self.get_parameter('dist').value
@@ -65,14 +65,14 @@ class TestCircle(Node):
         p2.pose.position.y = path.poses[-1].pose.position.y + 0
         p2.pose.orientation = self.robot_pose.pose.orientation
         p2.header.frame_id = 'map'
-        path.poses.append(p2)	
+       # path.poses.append(p2)	
 
         p2 = PoseStamped()
         p2.pose.position.x = path.poses[-1].pose.position.x + 10
         p2.pose.position.y = path.poses[-1].pose.position.y + 10
         p2.pose.orientation = self.robot_pose.pose.orientation
         p2.header.frame_id = 'map'
-        path.poses.append(p2)	
+       # path.poses.append(p2)	
 
         self.get_logger().info('PUBLISHING PATH')
         self.pub.publish(path)

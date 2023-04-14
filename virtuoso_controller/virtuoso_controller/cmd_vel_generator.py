@@ -158,13 +158,48 @@ class CmdVelGenerator:
         vel_angle = numpy.arctan2(vel_parallel[0], vel_parallel[1])
         
         vel_parallel_speed = 3.0
+
+        sec_to_tar = [0.0,0.0,0.0]
+        if(second_x != next_x and second_y != next_y):
+            sec_to_tar[0] = self.nav2_path.poses[closest_pose+1].pose.position.x - self.nav2_path.poses[-1].pose.position.x
+            sec_to_tar[1] = self.nav2_path.poses[closest_pose+1].pose.position.y - self.nav2_path.poses[-1].pose.position.y   
+        else:
+            sec_to_tar[0] = self.nav2_path.poses[closest_pose].pose.position.x - self.nav2_path.poses[-1].pose.position.x
+            sec_to_tar[1] = self.nav2_path.poses[closest_pose].pose.position.y - self.nav2_path.poses[-1].pose.position.y               
         #slow down if we're getting close to the target
-        if (dist_to_target < 6.0):
-            vel_parallel_speed = dist_to_target/2.0
+        if (dist_to_target < 6.0 and numpy.linalg.norm(sec_to_tar) <= dist_to_target):
+            vel_parallel_speed = dist_to_target/2.5
+
+            
+        #slowdown for turns
+        if(closest_pose <= len(self.nav2_path.poses) -1 -2):
+            next_to_second = [0.0,0.0,0.0]
+            next_to_second[0] = self.nav2_path.poses[closest_pose+1].pose.position.x - self.nav2_path.poses[closest_pose].pose.position.x
+            next_to_second[1] = self.nav2_path.poses[closest_pose+1].pose.position.y - self.nav2_path.poses[closest_pose].pose.position.y    
+                    
+            sec_to_third = [0.0,0.0,0.0]
+            sec_to_third[0] = self.nav2_path.poses[closest_pose+2].pose.position.x - self.nav2_path.poses[closest_pose+1].pose.position.x
+            sec_to_third[1] = self.nav2_path.poses[closest_pose+2].pose.position.y - self.nav2_path.poses[closest_pose+1].pose.position.y                
+                
+            #dot product of the two vectors
+            nsst_dot = numpy.dot(next_to_second, sec_to_third)
+            
+            #angle between the vector from the closest point to the point after that and the vector between the second point and the vehicle
+            nsst_angle = numpy.arccos(nsst_dot/numpy.linalg.norm(next_to_second)/numpy.linalg.norm(sec_to_third))                
+            
+            sec_to_veh = [0.0,0.0,0.0]
+            sec_to_veh[0] = self_x - self.nav2_path.poses[closest_pose+1].pose.position.x
+            sec_to_veh[1] = self_y - self.nav2_path.poses[closest_pose+1].pose.position.y        
+            
+            if(abs(nsst_angle) >= numpy.pi/7 and numpy.linalg.norm(sec_to_veh) < 3.0):
+                reduction_factor_turn = min(1.0, nsst_angle*2/numpy.pi)
+                #self.node.get_logger().info(str(reduction_factor_turn))
+                vel_parallel_speed = vel_parallel_speed - reduction_factor_turn*vel_parallel_speed*0.7
+                
         #enforce a minimimum velocity though
         if (vel_parallel_speed < 0.3):
-            vel_parallel_speed = 0.3
-        
+            vel_parallel_speed = 0.3                
+            
         #If we're far away from the path, reduce the parallel velocity
         reduction_factor_par = min(1.0,min_pose_distance/4.0)
         vel_parallel_speed = vel_parallel_speed - vel_parallel_speed*reduction_factor_par
@@ -213,7 +248,7 @@ class CmdVelGenerator:
         
         #velocity in the map frame towards the path
         vel_towards = [float(closest_x - self_x), float(closest_y - self_y), 0.0, 0.0]
-        self.node.get_logger().info(str(vel_towards))
+        #self.node.get_logger().info(str(vel_towards))
         #transform this velocity to the base_link frame
         vel_towards = tf_transformations.quaternion_multiply(q_inv, vel_towards)
         vel_towards2 = tf_transformations.quaternion_multiply(vel_towards, q)      
