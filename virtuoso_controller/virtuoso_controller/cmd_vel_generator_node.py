@@ -5,6 +5,7 @@ from std_msgs.msg import Bool
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist
 from .cmd_vel_generator import CmdVelGenerator
+import numpy
 
 #outputs a cmd_vel in the base_link frame to follow a path
 
@@ -14,6 +15,7 @@ class CmdVelGeneratorNode(Node):
         super().__init__('controller_cmd_vel_generator')
 
         self.generator = CmdVelGenerator()
+        self.generator.node = self
         
         self.path_subscriber = self.create_subscription(
             Path,
@@ -40,6 +42,8 @@ class CmdVelGeneratorNode(Node):
         self.generator.destination = msg.poses[-1].pose
         self.generator.nav2_path = msg
         self.generator.received_path = True
+        self.generator.completedPoses = numpy.zeros(len(msg.poses))
+
        
     def timer_callback(self):
         cmd = self.generator.run()

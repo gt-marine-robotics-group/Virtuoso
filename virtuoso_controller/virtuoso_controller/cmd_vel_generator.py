@@ -16,12 +16,14 @@ class CmdVelGenerator:
         self.second_waypoint = Pose()
         self.nav2_path = Path()
         self.hold_final_orient = False
+        self.completedPoses = numpy.zeros(2)
+        self.node = None
     
     def run(self):
 
         if not self.received_path:
             return None
-
+        #self.node.get_logger().info(str(self.completedPoses))
         dest_x = self.destination.position.x
         dest_y = self.destination.position.y
 
@@ -33,17 +35,28 @@ class CmdVelGenerator:
         min_pose_distance = 100000.0
         closest_pose = 0
         
-        #pick out the closest pose
+        #pick out the next pose
         for i in range(0,len(self.nav2_path.poses)):
-
-            next_pose_distance = (
-                (self.nav2_path.poses[i].pose.position.x - self_x)**2 + 
-                (self.nav2_path.poses[i].pose.position.y - self_y)**2
-            )**(1/2)
-
-            if (next_pose_distance < min_pose_distance):
+            #pick out the next pose in the array that has not been completed
+            if(self.completedPoses[i] == 0 or self.completedPoses[i] == 1):
                 closest_pose = i
-                min_pose_distance = next_pose_distance
+                self.completedPoses[i] = 1
+                break
+            if(i == len(self.nav2_path.poses)-1):
+                closest_pose = i
+        
+        #the path should deliver us to the pose after the "closest_pose". If we are close to that next pose, then we consider the closest pose's segment to be done.
+        sec_to_veh = [0.0,0.0,0.0]
+        if(closest_pose != len(self.nav2_path.poses) -1):
+            sec_to_veh[0] = self_x - self.nav2_path.poses[closest_pose+1].pose.position.x
+            sec_to_veh[1] = self_y - self.nav2_path.poses[closest_pose+1].pose.position.y       
+        else:
+            sec_to_veh[0] = self_x - self.nav2_path.poses[closest_pose].pose.position.x
+            sec_to_veh[1] = self_y - self.nav2_path.poses[closest_pose].pose.position.y                   
+        
+        #mark the closest pose as done if it has delivered us to the next pose
+        if(numpy.linalg.norm(sec_to_veh) < 1.0):
+            self.completedPoses[closest_pose] = 2
                 
         #if the closest pose is the last pose, decrement by 1. If this is omitted, the vehicle should just beeline straight for the last pose while ignoring the path.
         if(closest_pose == len(self.nav2_path.poses) - 1 and len(self.nav2_path.poses) > 1):
@@ -79,7 +92,7 @@ class CmdVelGenerator:
             if (abs(nssv_angle) >= numpy.pi/2 and numpy.linalg.norm(next_to_veh) > 1.0):
                 closest_pose = closest_pose - 1
          
-        #We now need to check if we've already passed the current line segment we're on (the segment from the "closest pose" to the pose after it). If so, then we know that portion of the path is no longer relevant to us, so we increment. We do this until we find a segment that we're either "behind" or "in the middle of"
+        #We now need to check if we've already passed the current line segment we're on (the segment from the "closest pose" to the pose after it). If so, then we know that portion of the path is no longer relevant to us, so we increment and mark the previous pose's segment as done. We do this until we find a segment that we're either "behind" or "in the middle of"
         in_front_of_second_pose = True
         while(in_front_of_second_pose):
             next_to_second = [0.0,0.0,0.0]
@@ -97,11 +110,14 @@ class CmdVelGenerator:
             nssv_angle = numpy.arccos(nssv_dot/numpy.linalg.norm(next_to_second)/numpy.linalg.norm(sec_to_veh))                   
             
             if (abs(nssv_angle) < numpy.pi/2):
+                self.completedPoses[closest_pose] = 2
                 closest_pose = closest_pose + 1
                 if(closest_pose == len(self.nav2_path.poses) - 1):
                     in_front_of_second_pose = False
             else:
                 in_front_of_second_pose = False
+        
+        #self.node.get_logger().info(str(closest_pose))
                         
         next_x = self.nav2_path.poses[closest_pose].pose.position.x
         next_y = self.nav2_path.poses[closest_pose].pose.position.y
@@ -187,7 +203,7 @@ class CmdVelGenerator:
         elif (second_x != next_x and second_y == next_y):
             closest_y = second_y
             closest_x = self_x
-        elif (second_x == next_x and second_y != next_x):
+        elif (second_x == next_x and second_y != next_y):
             closest_x = second_x
             closest_y = self_y
         #if the closest pose and the second closest pose are the same point, then the closest point is just that point
@@ -197,6 +213,7 @@ class CmdVelGenerator:
         
         #velocity in the map frame towards the path
         vel_towards = [float(closest_x - self_x), float(closest_y - self_y), 0.0, 0.0]
+        self.node.get_logger().info(str(vel_towards))
         #transform this velocity to the base_link frame
         vel_towards = tf_transformations.quaternion_multiply(q_inv, vel_towards)
         vel_towards2 = tf_transformations.quaternion_multiply(vel_towards, q)      
