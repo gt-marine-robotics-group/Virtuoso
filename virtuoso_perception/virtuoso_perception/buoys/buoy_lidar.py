@@ -1,5 +1,5 @@
 import math
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
+from virtuoso_msgs.msg import BoundingBoxArray
 
 class FindBuoys:
 

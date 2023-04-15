@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
@@ -6,7 +8,7 @@ from std_msgs.msg import Int8
 from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
 from rclpy.time import Time
-from .find_dock_entrances import FindDockEntrances
+from virtuoso_perception.dock.find_dock_entrances import FindDockEntrances
 from virtuoso_perception.utils.pointcloud import read_points, create_cloud_xyz32
 from virtuoso_perception.utils.geometry_msgs import do_transform_point
 

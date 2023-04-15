@@ -1,6 +1,4 @@
 from rclpy.client import Client
-from sensor_msgs.msg import Image, CameraInfo
-from virtuoso_msgs.srv import ImageNoiseFilter, ImageResize
 from typing import List
 
 class ImageSrvChain:

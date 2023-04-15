@@ -48,7 +48,7 @@ def generate_launch_description():
         ld.append(
             Node(
                 package='virtuoso_perception',
-                executable='find_dock_codes',
+                executable='find_dock_codes_node.py',
                 name=f'find_dock_codes_{base_topic[base_topic.rfind("/") + 1:]}',
                 parameters=[
                     {'camera_base_topic': base_topic},

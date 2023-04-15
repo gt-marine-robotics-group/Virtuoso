@@ -1,41 +1,37 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>virtuoso_perception</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="manueljoseph113@gmail.com">mroglan</maintainer>
-  <license>TODO: License declaration</license>
+	<name>virtuoso_perception</name>
+	<version>0.0.0</version>
+	<description>TODO: Package description</description>
+	<maintainer email="manueljoseph113@gmail.com">mroglan</maintainer>
+	<license>TODO: License declaration</license>
 
-  <!-- ROS2 packages -->
-  <exec_depend>rclpy</exec_depend>
-  <exec_depend>launch</exec_depend>
-  <exec_depend>launch_ros</exec_depend>
-  <exec_depend>ament_index_python</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
-  <exec_depend>cv_bridge</exec_depend>
+	<buildtool_depend>ament_cmake</buildtool_depend>
+	<buildtool_depend>ament_cmake_python</buildtool_depend>
 
-  <!-- Python packages -->
-  <exec_depend>python3-numpy</exec_depend>
-  <exec_depend>python3-opencv</exec_depend>
-  <exec_depend>python3-skimage</exec_depend>
+	<!-- ROS2 packages -->
+	<depend>rclcpp</depend>
+	<depend>rclpy</depend>
+	<exec_depend>launch</exec_depend>
+	<exec_depend>launch_ros</exec_depend>
+	<exec_depend>ament_index_python</exec_depend>
+	<exec_depend>geometry_msgs</exec_depend>
+	<exec_depend>sensor_msgs</exec_depend>
+	<exec_depend>std_msgs</exec_depend>
+	<exec_depend>nav_msgs</exec_depend>
+	<exec_depend>tf2_ros</exec_depend>
+	<exec_depend>cv_bridge</exec_depend>
 
-  <!-- AutowareAuto packages -->
-  <exec_depend>autoware_auto_perception_msgs</exec_depend>
-  <exec_depend>euclidean_cluster_nodes</exec_depend>
-  <exec_depend>ray_ground_classifier_nodes</exec_depend>
-  <exec_depend>voxel_grid_nodes</exec_depend>
+	<!-- Python packages -->
+	<exec_depend>python3-numpy</exec_depend>
+	<exec_depend>python3-opencv</exec_depend>
+	<exec_depend>python3-skimage</exec_depend>
 
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
+	<test_depend>ament_lint_auto</test_depend>
+	<test_depend>ament_lint_common</test_depend>
 
-  <export>
-    <build_type>ament_python</build_type>
-  </export>
+	<export>
+		<build_type>ament_cmake</build_type>
+	</export>
 </package>

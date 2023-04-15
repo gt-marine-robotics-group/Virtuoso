@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
-from std_msgs.msg import Bool
-from .buoy_lidar import FindBuoys
+from virtuoso_msgs.msg import BoundingBoxArray
 from virtuoso_msgs.srv import LidarBuoy
+from std_msgs.msg import Bool
+from virtuoso_perception.buoys.buoy_lidar import FindBuoys
 
 class BuoyLidarNode(Node):
 

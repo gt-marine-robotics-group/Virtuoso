@@ -1,14 +1,15 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from .dock_stereo import DockStereo
-from virtuoso_msgs.msg import Contours
-from sensor_msgs.msg import CameraInfo, PointCloud2, Image
+from virtuoso_perception.stereo.dock_stereo import DockStereo
+from virtuoso_msgs.srv import ImageDockStereo, ImageBuoyFilter
+from sensor_msgs.msg import PointCloud2, Image
 from geometry_msgs.msg import TransformStamped
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
-from .utils import tf_transform_to_cv2_transform
-from virtuoso_msgs.srv import ImageDockStereo, ImageBuoyFilter
+from virtuoso_perception.stereo.utils import tf_transform_to_cv2_transform
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 import time

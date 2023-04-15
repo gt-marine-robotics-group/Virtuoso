@@ -1,15 +1,16 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 import time
-from virtuoso_msgs.srv import Channel
 from geometry_msgs.msg import Point
 from nav_msgs.msg import Odometry
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 from rclpy.time import Time
 from std_msgs.msg import Bool
-from .channel import FindChannel
-from virtuoso_msgs.srv import ImageBuoyStereo, LidarBuoy
+from virtuoso_perception.buoys.channel import FindChannel
+from virtuoso_msgs.srv import ImageBuoyStereo, LidarBuoy, Channel
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 

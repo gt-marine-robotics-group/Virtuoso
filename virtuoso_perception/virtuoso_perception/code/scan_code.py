@@ -1,9 +1,9 @@
 from collections import deque
 import numpy as np
 import cv2
-from ..utils.ColorFilter import ColorFilter
-from ..utils.code_identification import find_contours
-from ..utils.math import distance
+from virtuoso_perception.utils.ColorFilter import ColorFilter
+from virtuoso_perception.utils.code_identification import find_contours
+from virtuoso_perception.utils.math import distance
 from rclpy.node import Node
 
 class ScanCode:

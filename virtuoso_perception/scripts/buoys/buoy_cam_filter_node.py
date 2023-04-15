@@ -1,18 +1,14 @@
+#!/usr/bin/env python3
+
 import rclpy
-from rclpy.client import Client
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from ..utils.code_identification import find_contours
-from ..utils.color_range import ColorRange
-from ..utils.image_srv_chain import ImageSrvChain
-from .buoy_cam_filter import BuoyFilter
-from virtuoso_msgs.srv import ImageNoiseFilter, ImageResize, ImageBuoyFilter
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
-import time
-from ..camera_processing.noise_filter import NoiseFilter
-from ..camera_processing.resize import Resize
+from virtuoso_perception.utils.color_range import ColorRange
+from virtuoso_perception.buoys.buoy_cam_filter import BuoyFilter
+from virtuoso_msgs.srv import ImageBuoyFilter
+from virtuoso_perception.camera_processing.noise_filter import NoiseFilter
+from virtuoso_perception.camera_processing.resize import Resize
 
 class BuoyFilterNode(Node):
 

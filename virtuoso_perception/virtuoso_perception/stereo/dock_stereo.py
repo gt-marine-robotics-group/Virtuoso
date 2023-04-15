@@ -2,7 +2,7 @@ from .stereo import Stereo
 from virtuoso_msgs.msg import Contours
 from geometry_msgs.msg import Point
 from sensor_msgs.msg import PointCloud2
-from ..utils.pointcloud import create_cloud_xyz32
+from virtuoso_perception.utils.pointcloud import create_cloud_xyz32
 from .utils import unflatten_contours, img_points_to_physical_xy
 from typing import List
 import numpy as np

@@ -1,5 +1,5 @@
 from .clustering import Clustering
-from ..utils.color_range import ColorRange
+from virtuoso_perception.utils.color_range import ColorRange
 import cv2
 import numpy as np
 from cv_bridge import CvBridge

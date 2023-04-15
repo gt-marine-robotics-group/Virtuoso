@@ -1,11 +1,13 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
+from virtuoso_msgs.msg import BoundingBoxArray
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
-from ..utils.ColorFilter import ColorFilter
+from virtuoso_perception.utils.ColorFilter import ColorFilter
 
 class DetectedBuoy:
 

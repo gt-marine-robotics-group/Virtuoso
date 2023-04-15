@@ -1,13 +1,10 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionServer
 from sensor_msgs.msg import Image, CameraInfo
-from std_msgs.msg import Bool
-from cv_bridge import CvBridge
-import numpy as np
-import cv2
 from virtuoso_msgs.srv import ImageResize
-from .resize import Resize
+from virtuoso_perception.camera_processing.resize import Resize
 
 class ResizeNode(Node):
 

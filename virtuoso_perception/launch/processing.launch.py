@@ -49,35 +49,35 @@ def generate_launch_description():
     ld.append(usv_arg)
     ld.append(ray_ground_classifier_param)
 
-    ld.append(
-        DeclareLaunchArgument(
-            'euclidean_clustering_params_file',
-            default_value=euclidean_clustering_params_file
-        ),
-    )
+    # ld.append(
+    #     DeclareLaunchArgument(
+    #         'euclidean_clustering_params_file',
+    #         default_value=euclidean_clustering_params_file
+    #     ),
+    # )
 
-    ld.append(
-        Node(
-            package='euclidean_cluster_nodes',
-            executable='euclidean_cluster_node_exe',
-            parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
-            remappings=[('/points_in', '/perception/lidar/points_shore_filtered')]
-        )
-    )
+    # ld.append(
+    #     Node(
+    #         package='euclidean_cluster_nodes',
+    #         executable='euclidean_cluster_node_exe',
+    #         parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
+    #         remappings=[('/points_in', '/perception/lidar/points_shore_filtered')]
+    #     )
+    # )
 
-    ld.append(
-        Node(
-            package='ray_ground_classifier_nodes',
-            executable='ray_ground_classifier_cloud_node_exe',
-            parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
-            remappings=[('points_in', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
-        )
-    )
+    # ld.append(
+    #     Node(
+    #         package='ray_ground_classifier_nodes',
+    #         executable='ray_ground_classifier_cloud_node_exe',
+    #         parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
+    #         remappings=[('points_in', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
+    #     )
+    # )
 
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='self_filter',
+            executable='self_filter_node.py',
             parameters=[lidar_processing_param_file]
         )
     )
@@ -85,33 +85,9 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='shore_filter',
+            executable='shore_filter_node.py',
             parameters=[lidar_processing_param_file]
         )
     )
-
-    # for topic in camera_data['camera_config']['bow_camera_base_topics']:
-    #     ld.append(
-    #         Node(
-    #             package='virtuoso_perception',
-    #             executable='resize',
-    #             name=f'perception_resize_{topic[topic.rfind("/") + 1:]}',
-    #             parameters=[
-    #                 {'base_topic': topic},
-    #                 camera_processing_param_file
-    #             ]
-    #         )
-    #     )
-    #     ld.append(
-    #         Node(
-    #             package='virtuoso_perception',
-    #             executable='noise_filter',
-    #             name=f'perception_noise_filter_{topic[topic.rfind("/") + 1:]}',
-    #             parameters=[
-    #                 {'base_topic': topic},
-    #                 camera_processing_param_file
-    #             ]
-    #         )
-    #     )
 
     return LaunchDescription(ld)

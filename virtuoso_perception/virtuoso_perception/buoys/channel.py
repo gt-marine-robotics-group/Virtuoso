@@ -1,6 +1,5 @@
 from geometry_msgs.msg import TransformStamped, Point, PointStamped
-from autoware_auto_perception_msgs.msg import BoundingBoxArray, BoundingBox
-from virtuoso_msgs.msg import BuoyArray, Buoy
+from virtuoso_msgs.msg import BoundingBoxArray, BoundingBox, BuoyArray, Buoy
 from virtuoso_msgs.srv import Channel
 from nav_msgs.msg import Odometry
 from typing import List

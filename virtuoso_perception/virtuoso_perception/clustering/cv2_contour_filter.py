@@ -1,9 +1,9 @@
 from .clustering import Clustering
-from ..utils.color_range import ColorRange
+from virtuoso_perception.utils.color_range import ColorRange
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
-from ..utils.code_identification import find_contours
+from virtuoso_perception.utils.code_identification import find_contours
 import random
 from scipy import stats
 
