@@ -43,18 +43,18 @@ class BuoyFilterNode(Node):
 
             ('buoy_border_px', 0),
 
-            ('max_cluster_height', 0.0),
-            ('min_cluster_height', 0.0),
-            ('max_cluster_width', 0.0),
-            ('min_cluster_width', 0.0),
+            ('max_cluster_height', 0),
+            ('min_cluster_height', 0),
+            ('max_cluster_width', 0),
+            ('min_cluster_width', 0),
             ('epsilon', 0),
             ('min_pts', 0),
 
-            ('buoy_px_color_sample_size', 0),
+            ('buoy_px_color_sample_size', 0.0),
 
             ('clustering_method', 'DENSITY'),
 
-            ('denoising_params', []),
+            ('denoising_params', [0]),
             ('resize_factor', 1),
 
             ('use_resize', False),

@@ -25,8 +25,8 @@ class BuoyStereoNode(Node):
         self.cb_group_3 = MutuallyExclusiveCallbackGroup()
 
         self.declare_parameters(namespace='', parameters=[
-            ('base_topics', []),
-            ('frames', []), 
+            ('base_topics', ['']),
+            ('frames', ['']), 
             ('debug', False),
             ('multiprocessing', True)
         ])

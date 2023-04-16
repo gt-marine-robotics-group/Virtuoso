@@ -77,6 +77,13 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
+            executable='euclidean_clustering'
+        )
+    )
+
+    ld.append(
+        Node(
+            package='virtuoso_perception',
             executable='self_filter_node.py',
             parameters=[lidar_processing_param_file]
         )

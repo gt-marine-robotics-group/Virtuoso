@@ -37,7 +37,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ImageResize.srv"
   "srv/ImageBuoyFilter.srv"
   "srv/ImageBuoyStereo.srv"
-  # "srv/LidarBuoy.srv"
+  "srv/LidarBuoy.srv"
   "srv/DockCodesCameraPos.srv"
   "srv/CountDockCodes.srv"
   "srv/ImageDockStereo.srv"
@@ -45,7 +45,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/ShootBalls.action"
   "action/TaskWaypointNav.action"
   "action/ApproachTarget.action"
-  # DEPENDENCIES geometry_msgs std_msgs sensor_msgs autoware_auto_perception_msgs
   DEPENDENCIES geometry_msgs std_msgs sensor_msgs 
  )
 
