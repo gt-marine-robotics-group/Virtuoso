@@ -13,6 +13,8 @@ find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED)
 
@@ -23,7 +25,7 @@ set(PCL_INCLUDE_DIRS /usr/local/include/pcl-1.8)  #指定pcl1.8路径
 include_directories(${PCL_INCLUDE_DIRS})
 
 add_executable(euclidean_clustering src/euclidean_clustering_node.cpp)
-ament_target_dependencies(euclidean_clustering rclcpp sensor_msgs pcl_conversions PCL)
+ament_target_dependencies(euclidean_clustering rclcpp sensor_msgs geometry_msgs visualization_msgs pcl_conversions PCL)
 target_link_libraries(euclidean_clustering ${PCL_LIBRARIES})
 
 
