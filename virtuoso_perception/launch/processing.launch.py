@@ -85,7 +85,8 @@ def generate_launch_description():
         Node(
             package='virtuoso_perception',
             executable='self_filter_node.py',
-            parameters=[lidar_processing_param_file]
+            parameters=[lidar_processing_param_file],
+            remappings=[('/points_nonground', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
         )
     )
     
