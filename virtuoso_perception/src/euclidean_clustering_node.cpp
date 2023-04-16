@@ -9,6 +9,7 @@
 #include <pcl/ModelCoefficients.h>
 #include <pcl/common/centroid.h>
 #include <pcl/common/transforms.h>
+#include <pcl/search/kdtree.h>
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
@@ -30,71 +31,122 @@ class EuclideanClusteringNode : public rclcpp::Node {
         pcl::VoxelGrid<pcl::PointXYZ> vg;
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
         vg.setInputCloud(temp_cloud);
-        vg.setLeafSize(0.02f, 0.02f, 0.02f);
+        vg.setLeafSize(0.01f, 0.01f, 0.01f);
         vg.filter(*cloud_filtered);
 
         RCLCPP_INFO(this->get_logger(), "Number of filtered points: %ld", cloud_filtered->size());
 
-        pcl::SACSegmentation<pcl::PointXYZ> seg;
-        pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
-        pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZ>());
-        pcl::PCDWriter writer;
-        seg.setOptimizeCoefficients(true);
-        seg.setModelType(pcl::SACMODEL_PLANE);
-        seg.setMethodType(pcl::SAC_RANSAC);
-        seg.setMaxIterations(100);
-        seg.setDistanceThreshold(0.01);
-
-        RCLCPP_INFO(this->get_logger(), "Set up segmentation stuff.");
-
-        int nr_points = static_cast<int>(cloud_filtered->size());
-        int i = 1;
-        while (cloud_filtered->size() > 0.3 * nr_points) {
-            seg.setInputCloud(cloud_filtered);
-            seg.segment(*inliers, *coefficients);
-            if (inliers->indices.size() == 0) {
-                RCLCPP_INFO(this->get_logger(), "Could not estimate a planar model for the given dataset.");
-                break;
-            }
-
-            pcl::ExtractIndices<pcl::PointXYZ> extract;
-            extract.setInputCloud(cloud_filtered);
-            extract.setIndices(inliers);
-            extract.setNegative(false);
-
-            extract.filter(*cloud_plane);
-            RCLCPP_INFO(this->get_logger(), "Pointcloud representing the planar component: %ld data points",
-                cloud_plane->size());
-            
-            Eigen::Matrix<float, 4, 1> centroid;
-            pcl::compute3DCentroid(*cloud_plane, centroid);
-            RCLCPP_INFO(this->get_logger(), "Centroid: (%f, %f, %f)", centroid[0], centroid[1], centroid[2]);
-
-            sensor_msgs::msg::PointCloud2 pub_msg;
-            cloud_filtered.reset(new pcl::PointCloud<pcl::PointXYZ>);
-            pcl::toROSMsg(*cloud_plane.get(), pub_msg);
-            pub_msg.header.frame_id = "wamv/lidar_wamv_link";
-            if (i == 1) {
-                m_points1_pub->publish(pub_msg);
-            } else if (i == 2) {
-                m_points2_pub->publish(pub_msg);
-            }
-            
-            extract.setNegative(true);
-            extract.filter(*cloud_f);
-            *cloud_filtered = *cloud_f;
-
-            ++i;
+        if (cloud_filtered->size() == temp_cloud->size()) {
+            RCLCPP_INFO(this->get_logger(), "Voxel filter failed... returning");
+            return;
         }
 
+        // pcl::SACSegmentation<pcl::PointXYZ> seg;
+        // pcl::PointIndices::Ptr inliers(new pcl::PointIndices);
+        // pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients);
+        // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane(new pcl::PointCloud<pcl::PointXYZ>());
+        // pcl::PCDWriter writer;
+        // seg.setOptimizeCoefficients(true);
+        // seg.setModelType(pcl::SACMODEL_PLANE);
+        // seg.setMethodType(pcl::SAC_RANSAC);
+        // seg.setMaxIterations(100);
+        // seg.setDistanceThreshold(0.01);
+
+        // RCLCPP_INFO(this->get_logger(), "Set up segmentation stuff.");
+
+        // int nr_points = static_cast<int>(cloud_filtered->size());
+        // int i = 1;
+        // while (cloud_filtered->size() > 0.3 * nr_points) {
+        //     seg.setInputCloud(cloud_filtered);
+        //     seg.segment(*inliers, *coefficients);
+        //     if (inliers->indices.size() == 0) {
+        //         RCLCPP_INFO(this->get_logger(), "Could not estimate a planar model for the given dataset.");
+        //         break;
+        //     }
+
+        //     pcl::ExtractIndices<pcl::PointXYZ> extract;
+        //     extract.setInputCloud(cloud_filtered);
+        //     extract.setIndices(inliers);
+        //     extract.setNegative(false);
+
+        //     extract.filter(*cloud_plane);
+        //     RCLCPP_INFO(this->get_logger(), "Pointcloud representing the planar component: %ld data points",
+        //         cloud_plane->size());
+            
+        //     Eigen::Matrix<float, 4, 1> centroid;
+        //     pcl::compute3DCentroid(*cloud_plane, centroid);
+        //     RCLCPP_INFO(this->get_logger(), "Centroid: (%f, %f, %f)", centroid[0], centroid[1], centroid[2]);
+
+        //     sensor_msgs::msg::PointCloud2 pub_msg;
+        //     cloud_filtered.reset(new pcl::PointCloud<pcl::PointXYZ>);
+        //     pcl::toROSMsg(*cloud_plane.get(), pub_msg);
+        //     pub_msg.header.frame_id = "wamv/lidar_wamv_link";
+        //     if (i == 1) {
+        //         m_points1_pub->publish(pub_msg);
+        //     } else if (i == 2) {
+        //         m_points2_pub->publish(pub_msg);
+        //     }
+            
+        //     extract.setNegative(true);
+        //     extract.filter(*cloud_f);
+        //     *cloud_filtered = *cloud_f;
+        //     RCLCPP_INFO(this->get_logger(), "Current cloud filtered size: %ld", cloud_filtered->size());
+
+        //     ++i;
+        // }
+
         RCLCPP_INFO(this->get_logger(), "Done looping");
+        RCLCPP_INFO(this->get_logger(), "Cloud filtered size: %ld", cloud_filtered->size());
+
+        pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+        tree->setInputCloud(cloud_filtered);
+
+        std::vector<pcl::PointIndices> cluster_indices;
+        pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
+        ec.setClusterTolerance(0.5);
+        ec.setMinClusterSize(2);
+        ec.setMaxClusterSize(25000);
+        ec.setSearchMethod(tree);
+        ec.setInputCloud(cloud_filtered);
+        ec.extract(cluster_indices);
+
+        RCLCPP_INFO(this->get_logger(), "EC Indices: %zu", cluster_indices.size());
+
+        int j = 1;
+        for (const auto& cluster : cluster_indices) {
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZ>);
+
+            for (const auto idx : cluster.indices) {
+                cloud_cluster->push_back((*cloud_filtered)[idx]);
+            }
+
+            cloud_cluster->width = cloud_cluster->size();
+            cloud_cluster->height = 1;
+            cloud_cluster->is_dense = true;
+
+            RCLCPP_INFO(this->get_logger(), "Point cloud for cluster: %ld points", cloud_cluster->size());
+
+            sensor_msgs::msg::PointCloud2 pub_msg;
+            pcl::toROSMsg(*cloud_cluster.get(), pub_msg);
+            pub_msg.header.frame_id = "wamv/lidar_wamv_link";
+            RCLCPP_INFO(this->get_logger(), "ROS PCL Size: %zu", pub_msg.data.size());
+            if (j == 1) {
+                m_cluster1_pub->publish(pub_msg);
+            } else if (j == 2) {
+                m_cluster2_pub->publish(pub_msg);
+            }
+
+            ++j;
+        }
     }
 
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_points_sub;
 
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_points1_pub;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_points2_pub;
+
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cluster1_pub;
+    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cluster2_pub;
 
     public:
         EuclideanClusteringNode() : Node("perception_euclidean_clustering") {
@@ -106,6 +158,12 @@ class EuclideanClusteringNode : public rclcpp::Node {
             );
             m_points2_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
                 "/planar2", 10
+            );
+            m_cluster1_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+                "/cluster1", 10
+            );
+            m_cluster2_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
+                "/cluster2", 10
             );
         }
 };
