@@ -4,7 +4,6 @@
 #include <pcl/point_types.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
-#include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/ModelCoefficients.h>
 #include <pcl/common/centroid.h>
@@ -16,6 +15,8 @@
 #include "geometry_msgs/msg/point.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "visualization_msgs/msg/marker.hpp"
+#include "virtuoso_msgs/msg/bounding_box.hpp"
+#include "virtuoso_msgs/msg/bounding_box_array.hpp"
 
 struct ClusterBounds {
     float x_min = 0.0;
@@ -80,6 +81,9 @@ class EuclideanClusteringNode : public rclcpp::Node {
         visualization_msgs::msg::MarkerArray markers;
         markers.markers.resize(cluster_indices.size());
 
+        virtuoso_msgs::msg::BoundingBoxArray boxes;
+        boxes.boxes.resize(cluster_indices.size());
+
         int j = 1;
         for (const auto& cluster : cluster_indices) {
             pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZ>);
@@ -142,24 +146,36 @@ class EuclideanClusteringNode : public rclcpp::Node {
             
             // Bottom of the cube
             add_point_to_marker(marker, bounds.x_min, bounds.y_min, bounds.z_min);
-            add_point_to_marker(marker, bounds.x_max, bounds.y_min, bounds.z_min);
-            add_point_to_marker(marker, bounds.x_max, bounds.y_max, bounds.z_min);
+            // add_point_to_marker(marker, bounds.x_max, bounds.y_min, bounds.z_min);
+            // add_point_to_marker(marker, bounds.x_max, bounds.y_max, bounds.z_min);
             add_point_to_marker(marker, bounds.x_min, bounds.y_max, bounds.z_min);
 
             // Top of the cube
             add_point_to_marker(marker, bounds.x_min, bounds.y_max, bounds.z_max);
             add_point_to_marker(marker, bounds.x_min, bounds.y_min, bounds.z_max);
-            add_point_to_marker(marker, bounds.x_max, bounds.y_min, bounds.z_max);
-            add_point_to_marker(marker, bounds.x_max, bounds.y_max, bounds.z_max);
+            // add_point_to_marker(marker, bounds.x_max, bounds.y_min, bounds.z_max);
+            // add_point_to_marker(marker, bounds.x_max, bounds.y_max, bounds.z_max);
 
-            markers.markers[j - 1] = marker;
+            markers.markers[j-1] = marker;
 
             RCLCPP_INFO(this->get_logger(), "Marker length: %zu", marker.points.size());
+
+            virtuoso_msgs::msg::BoundingBox box;
+            
+            add_centroid_to_bounding_box(box, *cloud_cluster);
+
+            add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_min, bounds.z_min);
+            add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_max, bounds.z_min);
+            add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_max, bounds.z_max);
+            add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_min, bounds.z_max);
+
+            boxes.boxes[j-1] = box;
 
             ++j;
         }
 
         m_clusters_viz_pub->publish(markers);
+        m_boxes_pub->publish(boxes);
     }
 
     void add_point_to_marker(visualization_msgs::msg::Marker& marker, float x, float y, float z) const {
@@ -170,26 +186,37 @@ class EuclideanClusteringNode : public rclcpp::Node {
         marker.points.push_back(point);
     }
 
-    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_points_sub;
+    void add_centroid_to_bounding_box(virtuoso_msgs::msg::BoundingBox& box, 
+        const pcl::PointCloud<pcl::PointXYZ>& cloud) const {
+        Eigen::Matrix<float, 4, 1> centroid;
+        pcl::compute3DCentroid(cloud, centroid);
+        box.centroid.x = centroid[0];
+        box.centroid.y = centroid[1];
+        box.centroid.z = centroid[2];
+    }
 
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_points1_pub;
-    rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_points2_pub;
+    void add_point_to_bounding_box_corners(virtuoso_msgs::msg::BoundingBox& box,
+        float x, float y, float z) const {
+        geometry_msgs::msg::Point32 point;
+        point.x = x;
+        point.y = y;
+        point.z = z;
+        box.corners.push_back(point);
+    }
+
+    rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr m_points_sub;
 
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cluster1_pub;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr m_cluster2_pub;
 
     rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr m_clusters_viz_pub;
 
+    rclcpp::Publisher<virtuoso_msgs::msg::BoundingBoxArray>::SharedPtr m_boxes_pub;
+
     public:
         EuclideanClusteringNode() : Node("perception_euclidean_clustering") {
             m_points_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
                 "/perception/lidar/points_shore_filtered", 10, std::bind(&EuclideanClusteringNode::points_callback, this, std::placeholders::_1)
-            );
-            m_points1_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
-                "/planar1", 10
-            );
-            m_points2_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
-                "/planar2", 10
             );
             m_cluster1_pub = this->create_publisher<sensor_msgs::msg::PointCloud2>(
                 "/cluster1", 10
@@ -199,6 +226,9 @@ class EuclideanClusteringNode : public rclcpp::Node {
             );
             m_clusters_viz_pub = this->create_publisher<visualization_msgs::msg::MarkerArray>(
                 "/perception/clusters_viz", 10
+            );
+            m_boxes_pub = this->create_publisher<virtuoso_msgs::msg::BoundingBoxArray>(
+                "/perception/lidar/bounding_boxes", 10
             );
         }
 };
