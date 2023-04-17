@@ -5,8 +5,8 @@ lidar_config:
     'hokuyo'
   ]
   all_lidar_base_topics: [
-    'wamv/sensors/lidars/lidar_wamv'
+    'wamv/sensors/lidars/lidar_wamv_sensor'
   ]
   all_lidar_frames: [
-    'wamv/lidar_wamv_link'
+    'wamv/wamv/base_link/lidar_wamv_sensor'
   ]
