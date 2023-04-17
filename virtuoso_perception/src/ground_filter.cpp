@@ -19,7 +19,7 @@ class GroundFilterNode : public rclcpp::Node {
         pcl::PointIndices::Ptr ground_indices(new pcl::PointIndices());
         pcl::ExtractIndices<pcl::PointXYZ> extract;
         for (int i = 0; i < static_cast<int>(cloud->size()); ++i) {
-            if ((*cloud)[i].z < -1.1) {
+            if ((*cloud)[i].z < -1 * this->get_parameter("sensor_height").as_double()) {
                 ground_indices->indices.push_back(i);
             }
         }
@@ -40,6 +40,9 @@ class GroundFilterNode : public rclcpp::Node {
 
     public:
         GroundFilterNode() : Node("perception_ground_filter") {
+
+            this->declare_parameter("sensor_height", 0.0);
+
             m_points_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
                 "input", 10, std::bind(&GroundFilterNode::points_sub_callback, this, std::placeholders::_1)
             );

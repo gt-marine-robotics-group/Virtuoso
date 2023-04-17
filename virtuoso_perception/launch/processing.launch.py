@@ -30,14 +30,7 @@ def generate_launch_description():
     euclidean_clustering_params_file = (pkg_share, '/config/', usv_config, 
         '/euclidean_clustering.yaml')
 
-    ray_ground_classifier_param_file = (pkg_share, 
-        '/config/', usv_config, '/ray_ground_classifier.yaml')
-
-    ray_ground_classifier_param = DeclareLaunchArgument(
-        'ray_ground_classifier_param_file',
-        default_value=ray_ground_classifier_param_file,
-        description='Path to config file for Ray Ground Classifier'
-    )
+    ground_filter_param_file = (pkg_share, '/config/', usv_config, '/ground_filter.yaml')
 
     lidar_processing_param_file = (pkg_share, '/config/', 
         usv_config, '/lidar_processing.yaml')
@@ -47,12 +40,12 @@ def generate_launch_description():
     ld = list()
 
     ld.append(usv_arg)
-    ld.append(ray_ground_classifier_param)
 
     ld.append(
         Node(
             package='virtuoso_perception',
             executable='ground_filter',
+            parameters=[ground_filter_param_file],
             remappings=[('input', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points') ]
         )
     )
@@ -60,7 +53,8 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='euclidean_clustering'
+            executable='euclidean_clustering',
+            parameters=[euclidean_clustering_params_file]
         )
     )
 
