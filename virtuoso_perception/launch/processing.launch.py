@@ -49,30 +49,13 @@ def generate_launch_description():
     ld.append(usv_arg)
     ld.append(ray_ground_classifier_param)
 
-    # ld.append(
-    #     DeclareLaunchArgument(
-    #         'euclidean_clustering_params_file',
-    #         default_value=euclidean_clustering_params_file
-    #     ),
-    # )
-
-    # ld.append(
-    #     Node(
-    #         package='euclidean_cluster_nodes',
-    #         executable='euclidean_cluster_node_exe',
-    #         parameters=[LaunchConfiguration('euclidean_clustering_params_file')],
-    #         remappings=[('/points_in', '/perception/lidar/points_shore_filtered')]
-    #     )
-    # )
-
-    # ld.append(
-    #     Node(
-    #         package='ray_ground_classifier_nodes',
-    #         executable='ray_ground_classifier_cloud_node_exe',
-    #         parameters=[LaunchConfiguration('ray_ground_classifier_param_file')],
-    #         remappings=[('points_in', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
-    #     )
-    # )
+    ld.append(
+        Node(
+            package='virtuoso_perception',
+            executable='ground_filter',
+            remappings=[('input', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points') ]
+        )
+    )
 
     ld.append(
         Node(
@@ -86,7 +69,6 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='self_filter_node.py',
             parameters=[lidar_processing_param_file],
-            remappings=[('/points_nonground', lidar_data['lidar_config']['all_lidar_base_topics'][0] + '/points')]
         )
     )
     

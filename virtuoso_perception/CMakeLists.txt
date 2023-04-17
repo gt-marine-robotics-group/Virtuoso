@@ -29,9 +29,14 @@ add_executable(euclidean_clustering src/euclidean_clustering_node.cpp)
 ament_target_dependencies(euclidean_clustering rclcpp sensor_msgs geometry_msgs visualization_msgs virtuoso_msgs pcl_conversions PCL)
 target_link_libraries(euclidean_clustering ${PCL_LIBRARIES})
 
+add_executable(ground_filter src/ground_filter.cpp)
+ament_target_dependencies(ground_filter rclcpp sensor_msgs pcl_conversions PCL)
+target_link_libraries(ground_filter ${PCL_LIBRARIES})
+
 
 install(TARGETS
   euclidean_clustering
+  ground_filter
   DESTINATION lib/${PROJECT_NAME}
 )
 
