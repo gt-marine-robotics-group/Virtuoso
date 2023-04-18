@@ -12,7 +12,7 @@ class BuoyLidarNode(Node):
     def __init__(self):
         super().__init__('perception_buoy_lidar')
 
-        self.boxes_sub = self.create_subscription(BoundingBoxArray, 'lidar_bounding_boxes', 
+        self.boxes_sub = self.create_subscription(BoundingBoxArray, '/perception/lidar/bounding_boxes', 
             self.lidar_bounding_boxes_callback, 10)
         
         self.declare_parameters(namespace='', parameters=[
