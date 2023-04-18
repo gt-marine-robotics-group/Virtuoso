@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Float64
 from .motor_cmd_generator import MotorCmdGenerator
 
 class MotorCmdGeneratorNode(Node):
@@ -48,31 +48,31 @@ class MotorCmdGeneratorNode(Node):
             self.vel_y_callback,
             10)  
 
-        self.left_front_pub_angle = self.create_publisher(Float32, 
-            '/wamv/thrusters/left_front_thrust_angle', 10)
-        self.right_front_pub_angle = self.create_publisher(Float32, 
-            '/wamv/thrusters/right_front_thrust_angle', 10)
-        self.left_rear_pub_angle = self.create_publisher(Float32, 
-            '/wamv/thrusters/left_rear_thrust_angle', 10)
-        self.right_rear_pub_angle = self.create_publisher(Float32, 
-            '/wamv/thrusters/right_rear_thrust_angle', 10)
-        self.left_middle_pub_angle = self.create_publisher(Float32, 
-            '/wamv/thrusters/left_middle_thrust_angle', 10)
-        self.right_middle_pub_angle = self.create_publisher(Float32, 
-            '/wamv/thrusters/right_middle_thrust_angle', 10)
+        self.left_front_pub_angle = self.create_publisher(Float64, 
+            '/wamv/thrusters/left_front/pos', 10)
+        self.right_front_pub_angle = self.create_publisher(Float64, 
+            '/wamv/thrusters/right_front/pos', 10)
+        self.left_rear_pub_angle = self.create_publisher(Float64, 
+            '/wamv/thrusters/left_rear/pos', 10)
+        self.right_rear_pub_angle = self.create_publisher(Float64, 
+            '/wamv/thrusters/right_rear/pos', 10)
+        self.left_middle_pub_angle = self.create_publisher(Float64, 
+            '/wamv/thrusters/left_middle/pos', 10)
+        self.right_middle_pub_angle = self.create_publisher(Float64, 
+            '/wamv/thrusters/right_middle/pos', 10)
             
-        self.left_front_pub_cmd = self.create_publisher(Float32, 
-            '/wamv/thrusters/left_front_thrust_cmd', 10)
-        self.right_front_pub_cmd = self.create_publisher(Float32, 
-            '/wamv/thrusters/right_front_thrust_cmd', 10)             
-        self.left_rear_pub_cmd = self.create_publisher(Float32, 
-            '/wamv/thrusters/left_rear_thrust_cmd', 10)
-        self.right_rear_pub_cmd = self.create_publisher(Float32, 
-            '/wamv/thrusters/right_rear_thrust_cmd', 10)
-        self.left_middle_pub_cmd = self.create_publisher(Float32, 
-            '/wamv/thrusters/left_middle_thrust_cmd', 10)
-        self.right_middle_pub_cmd = self.create_publisher(Float32, 
-            '/wamv/thrusters/right_middle_thrust_cmd', 10)
+        self.left_front_pub_cmd = self.create_publisher(Float64, 
+            '/wamv/thrusters/left_front/thrust', 10)
+        self.right_front_pub_cmd = self.create_publisher(Float64, 
+            '/wamv/thrusters/right_front/thrust', 10)             
+        self.left_rear_pub_cmd = self.create_publisher(Float64, 
+            '/wamv/thrusters/left_rear/thrust', 10)
+        self.right_rear_pub_cmd = self.create_publisher(Float64, 
+            '/wamv/thrusters/right_rear/thrust', 10)
+        self.left_middle_pub_cmd = self.create_publisher(Float64, 
+            '/wamv/thrusters/left_middle/thrust', 10)
+        self.right_middle_pub_cmd = self.create_publisher(Float64, 
+            '/wamv/thrusters/right_middle/thrust', 10)
                 
         self.create_timer(0.1, self.timer_callback)
 
