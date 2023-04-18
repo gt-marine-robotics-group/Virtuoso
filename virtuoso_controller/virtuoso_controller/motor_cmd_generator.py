@@ -150,12 +150,12 @@ class MotorCmdGenerator:
                 left_rear_cmd.data /= highest_cmd
                 right_rear_cmd.data /= highest_cmd
             
-            left_front_cmd.data *= 50 
-            right_front_cmd.data *= 50 
-            left_rear_cmd.data *= 50 
-            right_rear_cmd.data *= 50 
-            left_middle_cmd.data *= 50
-            right_middle_cmd.data *= 50
+            left_front_cmd.data *= 100
+            right_front_cmd.data *= 100 
+            left_rear_cmd.data *= 100 
+            right_rear_cmd.data *= 100 
+            left_middle_cmd.data *= 100
+            right_middle_cmd.data *= 100
             
             #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
             #backwards for the same commmand forwards
