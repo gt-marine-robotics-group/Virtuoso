@@ -44,11 +44,12 @@ def generate_launch_description():
                 {"publish_filtered_gps": True},
                 {"wait_for_datum": False},
                 {"zero_altitude": False},
-                {"yaw_offset": 0.0},
+                {"yaw_offset": 1.10944},
                 {"use_odometry_yaw": True},
                 {"delay": 0.0},
                 {"frequency": 30.0},
                 {"broadcast_utm_transform": True},
+                robot_localization_file_path
             ]
         )
     ])
