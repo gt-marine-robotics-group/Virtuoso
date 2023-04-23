@@ -20,6 +20,7 @@ class ChoosePID:
         self.next_waypoint = Pose()
         self.cmd_vel = Twist()
         self.hold_final_orient = False
+        self.path_complete = False
     
     def run(self):
         if not self.received_path:
@@ -33,7 +34,7 @@ class ChoosePID:
 
         distance = ((dest_x - self_x)**2 + (dest_y - self_y)**2)**(1/2)
         #if within 2 m of the target point, use basic PID
-        if(distance < 2.0):
+        if(distance < 2.0 and self.path_complete):
             self.navigate_to_point.data = True
         else:
             self.navigate_to_point.data = False
@@ -43,7 +44,7 @@ class ChoosePID:
         #point at the orientation corresponding to the cmd velocity
         #hold final orient is dependant on the topic is_translation
         #This will get outputted to the basic PID to calculate target torque from
-        if(distance < 2.0 or self.hold_final_orient):
+        if((distance < 2.0 and self.path_complete) or self.hold_final_orient):
             target_waypoint.pose.pose = self.destination
         else:
             target_waypoint.pose.pose.position = self.destination.position
