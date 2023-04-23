@@ -5,6 +5,8 @@
 - [Camera](#camera)
 - [GPS](#gps)
 - [IMU](#imu)
+  - [Accounting for Magnetic Declination](#accounting-for-magnetic-declination)
+  - [Calibration](#calibration)
   - [Start Sequence](#start-sequence)
   - [Troubleshooting](#troubleshooting)
 - [Virtuoso Nodes](#virtuoso-nodes)
@@ -30,6 +32,10 @@ Supports ZED-F9P-00B-002 GPS.
 
 ## IMU
 Supports 3DM-GX3 -25 IMU.
+
+### Accounting for Magnetic Declination
+
+The vehicle is built around the principle that the map frame has east-north-up coordinate axes. This simplifies debugging significantly and makes it easier to specify absolute orientations when planning GPS waypoints. However, the magnetometer in the IMU will naturally cause it to output a heading in the magnetic ENU frame rather than the actual ENU frame. This means that the magnetic declination, or angle between the magnetic and true north directions, needs to be accounted for. This is done in the actual transformation for the IMU frame specified, at the moment, in gps.launch.py. While you may rotate this frame to account for the IMU's orientation with respect to the robot, it must be additionally rotated in the global z axis (up) by the magnitude of the magnetic declination in the local area. This can be found online. There are also useful phone apps, like GPS status for android, that display this information. The direction is theoretically the direction such that when the vehicle is oriented towards magnetic north, the IMU frame is oriented such that it is pointing towards true north (if the IMU thinks it's pointed at true north, the vehicle is in reality pointed at magnetic north). Use a phone compass that has built in correction for magnetic declination (again, such as GPS status) to check that the boat knows it's in the correct orientation. If it seems to be off, try reversing the rotation direction and see if that improves things.
 
 ### Calibration
 

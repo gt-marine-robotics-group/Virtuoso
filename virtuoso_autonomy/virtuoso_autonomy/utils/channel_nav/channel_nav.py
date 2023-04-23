@@ -2,6 +2,7 @@ from typing import List, Tuple
 from geometry_msgs.msg import PoseStamped, Pose
 import math
 import tf_transformations
+import numpy
 
 class ChannelNavigation:
 
@@ -64,8 +65,31 @@ class ChannelNavigation:
         if ang > math.pi * 2:
             ang = ang % (math.pi * 2)
 
-        if abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw) and  math.pi*2 - abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw):
-            ang += math.pi
+        #if abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw) and  math.pi*2 - abs(ang - robot_yaw) > abs(((ang + math.pi) % (math.pi * 2)) - robot_yaw):
+        #    ang += math.pi
+
+        q = [rq.x, 
+            rq.y, 
+            rq.z, 
+            rq.w]
+        q_inv = q.copy()
+        q_inv[0] = -q_inv[0]
+        q_inv[1] = -q_inv[1]
+        q_inv[2] = -q_inv[2]
+        veh_direction = [1,0,0,0]
+
+        #transform the forward vector to the map frame from the base_link frame
+        veh_direction = tf_transformations.quaternion_multiply(q, veh_direction)
+        veh_direction = tf_transformations.quaternion_multiply(veh_direction, q_inv)    
+
+        buoy_direction = [math.cos(ang), math.sin(ang),0.0,0]
+
+        dot_prod = numpy.dot(veh_direction,buoy_direction)
+
+        ang_btwn = numpy.arccos(dot_prod)
+
+        if(ang_btwn > math.pi/2):
+            ang += math.pi    
         
         quat = tf_transformations.quaternion_from_euler(0, 0, ang)
         ps.pose.orientation.x = quat[0]

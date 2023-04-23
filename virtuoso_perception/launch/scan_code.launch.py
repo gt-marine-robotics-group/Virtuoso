@@ -19,7 +19,7 @@ def generate_launch_description():
 
         Node(
             package='virtuoso_perception',
-            executable='scan_code',
+            executable='scan_code_node.py',
             parameters=[code_params_file]
         ) 
     ])

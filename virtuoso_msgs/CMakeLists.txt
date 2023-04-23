@@ -23,12 +23,14 @@ find_package(rosidl_default_generators REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(autoware_auto_perception_msgs REQUIRED)
+# find_package(autoware_auto_perception_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Buoy.msg"
   "msg/BuoyArray.msg"
   "msg/Contours.msg"
+  "msg/BoundingBox.msg"
+  "msg/BoundingBoxArray.msg"
   "srv/Channel.srv"
   "srv/Rotate.srv"
   "srv/ImageNoiseFilter.srv"
@@ -43,7 +45,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/ShootBalls.action"
   "action/TaskWaypointNav.action"
   "action/ApproachTarget.action"
-  DEPENDENCIES geometry_msgs std_msgs sensor_msgs autoware_auto_perception_msgs
+  DEPENDENCIES geometry_msgs std_msgs sensor_msgs 
  )
 
 if(BUILD_TESTING)

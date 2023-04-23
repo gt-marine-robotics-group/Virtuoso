@@ -1,7 +1,9 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
-from ..utils.pointcloud import read_points, create_cloud_xyz32
+from virtuoso_perception.utils.pointcloud import read_points, create_cloud_xyz32
 
 class ShoreFilterer(Node):
 

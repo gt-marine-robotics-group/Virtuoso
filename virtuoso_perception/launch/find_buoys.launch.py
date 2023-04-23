@@ -57,7 +57,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='buoy_lidar',
+            executable='buoy_lidar_node.py',
             parameters=[buoys_param_file]
         )
     )
@@ -66,7 +66,7 @@ def generate_launch_description():
         ld.append(
             Node(
                 package='virtuoso_perception',
-                executable='buoy_cam_filter',
+                executable='buoy_cam_filter_node.py',
                 name=f'perception_buoy_filter_{topic[topic.rfind("/") + 1:]}',
                 parameters=[
                     {'base_topic': topic},
@@ -79,7 +79,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='buoy_stereo',
+            executable='buoy_stereo_node.py',
             parameters=[
                 {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
                 {'frames': camera_data['camera_config']['bow_camera_frames']}, 
@@ -91,7 +91,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='channel',
+            executable='channel_node.py',
             parameters=[
                 {'camera_frame': camera_data['camera_config']['bow_camera_frames'][0]},
                 {'lidar_frame': lidar_data['lidar_config']['all_lidar_frames'][0]}

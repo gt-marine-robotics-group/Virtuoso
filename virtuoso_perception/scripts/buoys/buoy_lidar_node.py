@@ -1,16 +1,18 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from autoware_auto_perception_msgs.msg import BoundingBoxArray
-from std_msgs.msg import Bool
-from .buoy_lidar import FindBuoys
+from virtuoso_msgs.msg import BoundingBoxArray
 from virtuoso_msgs.srv import LidarBuoy
+from std_msgs.msg import Bool
+from virtuoso_perception.buoys.buoy_lidar import FindBuoys
 
 class BuoyLidarNode(Node):
 
     def __init__(self):
         super().__init__('perception_buoy_lidar')
 
-        self.boxes_sub = self.create_subscription(BoundingBoxArray, 'lidar_bounding_boxes', 
+        self.boxes_sub = self.create_subscription(BoundingBoxArray, '/perception/lidar/bounding_boxes', 
             self.lidar_bounding_boxes_callback, 10)
         
         self.declare_parameters(namespace='', parameters=[

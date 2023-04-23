@@ -5,11 +5,9 @@ import cv2
 from sensor_msgs.msg import PointCloud2
 from virtuoso_msgs.msg import Contours, Buoy, BuoyArray
 from geometry_msgs.msg import Point
-from .utils import unflatten_contours, img_points_to_physical_xy, contour_average_yx
-from ..utils.pointcloud import create_cloud_xyz32
+from .utils import unflatten_contours, img_points_to_physical_xy
+from virtuoso_perception.utils.pointcloud import create_cloud_xyz32
 from multiprocessing import Process, Array
-from sensor_msgs.msg import CameraInfo
-from cv_bridge import CvBridge
 from .pixel_matcher import PixelMatcher
 import time
 

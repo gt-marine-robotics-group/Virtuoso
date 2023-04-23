@@ -8,9 +8,6 @@ def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_localization')
 
-    sim_time_arg = DeclareLaunchArgument('sim_time', default_value='False')
-    sim_time_config = LaunchConfiguration('sim_time', default='False')
-
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
@@ -18,13 +15,9 @@ def generate_launch_description():
 
     return LaunchDescription([
         usv_arg,
-        sim_time_arg,
         Node(
             package='virtuoso_localization',
-            executable='republisher',
-            parameters=[{
-                'sim_time': sim_time_config
-            }]
+            executable='republisher'
         ),
         Node(
             package='robot_localization',
@@ -40,7 +33,7 @@ def generate_launch_description():
             package='robot_localization',
             executable='navsat_transform_node',
             name='navsat_transform_node',
-            respawn='true',
+            respawn=True,
             remappings=[
             ('/imu', '/navsat/imu'),
             ('/gps/fix', '/navsat/gps'),
@@ -51,11 +44,12 @@ def generate_launch_description():
                 {"publish_filtered_gps": True},
                 {"wait_for_datum": False},
                 {"zero_altitude": False},
-                {"yaw_offset": 0.0},
+                {"yaw_offset": 1.0},
                 {"use_odometry_yaw": True},
                 {"delay": 0.0},
                 {"frequency": 30.0},
                 {"broadcast_utm_transform": True},
+                robot_localization_file_path
             ]
         )
     ])

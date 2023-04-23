@@ -1,15 +1,15 @@
 
 camera_config:
   all_camera_base_topics: [
-    "/wamv/sensors/cameras/front_left_camera", 
-    "/wamv/sensors/cameras/front_right_camera" 
+    "/wamv/sensors/cameras/front_left_camera_sensor", 
+    "/wamv/sensors/cameras/front_right_camera_sensor" 
   ]
 
   bow_camera_base_topics: [
-      "/wamv/sensors/cameras/front_left_camera",
-      "/wamv/sensors/cameras/front_right_camera"
-    ]
+    "/wamv/sensors/cameras/front_left_camera_sensor", 
+    "/wamv/sensors/cameras/front_right_camera_sensor" 
+  ]
   bow_camera_frames: [
-    "wamv/front_left_camera_link",
-    "wamv/front_right_camera_link"
+    "wamv/wamv/base_link/front_left_camera_sensor",
+    "wamv/wamv/base_link/front_right_camera_sensor"
   ]

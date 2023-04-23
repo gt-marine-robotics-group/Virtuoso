@@ -1,2 +1,2 @@
 ---
-autoware_auto_perception_msgs/BoundingBoxArray buoys
+virtuoso_msgs/BoundingBoxArray buoys

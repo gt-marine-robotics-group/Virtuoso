@@ -1,9 +1,11 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_msgs.msg import Int32MultiArray, Int8
 from cv_bridge import CvBridge
-from .scan_code import ScanCode
+from virtuoso_perception.code.scan_code import ScanCode
 
 class ScanCodeNode(Node):
 

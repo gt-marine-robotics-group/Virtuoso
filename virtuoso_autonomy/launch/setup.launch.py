@@ -34,8 +34,7 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py')),
-            launch_arguments= {'sim_time': sim_time_config, 'sim_path': sim_path_config,
-                'usv': usv_config}.items()
+            launch_arguments= {'sim_time': sim_time_config, 'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),

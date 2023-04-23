@@ -1,15 +1,10 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
-from rclpy.action import ActionServer
-from rclpy.action.server import ServerGoalHandle
-import cv2
-from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
-from std_msgs.msg import Bool
-import numpy as np
 import time
 from virtuoso_msgs.srv import ImageNoiseFilter
-from .noise_filter import NoiseFilter
+from virtuoso_perception.camera_processing.noise_filter import NoiseFilter
 
 class NoiseFilterNode(Node):
 

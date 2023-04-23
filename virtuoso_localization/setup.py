@@ -36,7 +36,7 @@ setup(
     entry_points={
         'console_scripts': [
             'republisher = virtuoso_localization.republisher_node:main',
-            'test_pub = virtuoso_localization.test_data_publisher:main',
+            'test_pub = virtuoso_localization.testing.test_data_publisher:main',
             'localization_debugger = virtuoso_localization.localization_debugger_node:main',
 
             'keyboard_listener = virtuoso_localization.utils.keyboard_listener_node:main',

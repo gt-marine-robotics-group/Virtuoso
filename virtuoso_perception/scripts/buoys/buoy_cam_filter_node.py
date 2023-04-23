@@ -1,18 +1,14 @@
+#!/usr/bin/env python3
+
 import rclpy
-from rclpy.client import Client
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from ..utils.code_identification import find_contours
-from ..utils.color_range import ColorRange
-from ..utils.image_srv_chain import ImageSrvChain
-from .buoy_cam_filter import BuoyFilter
-from virtuoso_msgs.srv import ImageNoiseFilter, ImageResize, ImageBuoyFilter
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
-import time
-from ..camera_processing.noise_filter import NoiseFilter
-from ..camera_processing.resize import Resize
+from virtuoso_perception.utils.color_range import ColorRange
+from virtuoso_perception.buoys.buoy_cam_filter import BuoyFilter
+from virtuoso_msgs.srv import ImageBuoyFilter
+from virtuoso_perception.camera_processing.noise_filter import NoiseFilter
+from virtuoso_perception.camera_processing.resize import Resize
 
 class BuoyFilterNode(Node):
 
@@ -47,18 +43,18 @@ class BuoyFilterNode(Node):
 
             ('buoy_border_px', 0),
 
-            ('max_cluster_height', 0.0),
-            ('min_cluster_height', 0.0),
-            ('max_cluster_width', 0.0),
-            ('min_cluster_width', 0.0),
+            ('max_cluster_height', 0),
+            ('min_cluster_height', 0),
+            ('max_cluster_width', 0),
+            ('min_cluster_width', 0),
             ('epsilon', 0),
             ('min_pts', 0),
 
-            ('buoy_px_color_sample_size', 0),
+            ('buoy_px_color_sample_size', 0.0),
 
             ('clustering_method', 'DENSITY'),
 
-            ('denoising_params', []),
+            ('denoising_params', [0]),
             ('resize_factor', 1),
 
             ('use_resize', False),

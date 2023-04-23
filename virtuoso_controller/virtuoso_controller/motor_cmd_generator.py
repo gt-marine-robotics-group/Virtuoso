@@ -1,4 +1,4 @@
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, Float64
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import Odometry
 import numpy
@@ -32,33 +32,33 @@ class MotorCmdGenerator:
             #default to outputting 0 to the motors if a path has not been published
             else:
                 return {
-                    'right_front_angle': Float32(data=0.0),
-                    'right_rear_angle': Float32(data=0.0),
-                    'right_middle_angle': Float32(data=0.0),
-                    'left_front_angle': Float32(data=0.0),
-                    'left_rear_angle': Float32(data=0.0),
-                    'left_middle_angle': Float32(data=0.0),
-                    'right_front_cmd': Float32(data=0.0),
-                    'right_rear_cmd': Float32(data=0.0),
-                    'right_middle_cmd': Float32(data=0.0),
-                    'left_front_cmd': Float32(data=0.0),
-                    'left_rear_cmd': Float32(data=0.0),
-                    'left_middle_cmd': Float32(data=0.0)
+                    'right_front_angle': Float64(data=0.0),
+                    'right_rear_angle': Float64(data=0.0),
+                    'right_middle_angle': Float64(data=0.0),
+                    'left_front_angle': Float64(data=0.0),
+                    'left_rear_angle': Float64(data=0.0),
+                    'left_middle_angle': Float64(data=0.0),
+                    'right_front_cmd': Float64(data=0.0),
+                    'right_rear_cmd': Float64(data=0.0),
+                    'right_middle_cmd': Float64(data=0.0),
+                    'left_front_cmd': Float64(data=0.0),
+                    'left_rear_cmd': Float64(data=0.0),
+                    'left_middle_cmd': Float64(data=0.0)
                 }
 
-        left_front_angle = Float32()
-        right_rear_angle = Float32()
-        right_front_angle = Float32()      
-        left_rear_angle = Float32()
-        left_middle_angle = Float32()
-        right_middle_angle = Float32()
+        left_front_angle = Float64()
+        right_rear_angle = Float64()
+        right_front_angle = Float64()      
+        left_rear_angle = Float64()
+        left_middle_angle = Float64()
+        right_middle_angle = Float64()
         
-        left_front_cmd = Float32()
-        right_rear_cmd = Float32()
-        left_rear_cmd = Float32()
-        right_front_cmd = Float32()
-        left_middle_cmd = Float32()
-        right_middle_cmd = Float32()
+        left_front_cmd = Float64()
+        right_rear_cmd = Float64()
+        left_rear_cmd = Float64()
+        right_front_cmd = Float64()
+        left_middle_cmd = Float64()
+        right_middle_cmd = Float64()
         
         #angle for simulation purposes only. Depends on wamv urdf
         left_front_angle.data = -90*numpy.pi/180*0
@@ -118,49 +118,56 @@ class MotorCmdGenerator:
         #six motor h drive configuration
         if (self.motor_config == "H"):        
              
-             #if target force y has magnitude greater than 1.0, reduce the magnitude to 1.0
-             if(abs(target_force_y) > 1.0):
-                  target_force_y = target_force_y/abs(target_force_y)
-             
-             #the angles are for simulation purposes only, just based on the wamv urdf
-             left_front_angle.data = 0.785
-             left_rear_angle.data = -0.785
-             right_front_angle.data = -0.785
-             right_rear_angle.data = 0.785
-             
-             left_front_cmd.data = (target_force_x - target_torque)
-             right_front_cmd.data = (target_force_x + target_torque)
-             left_rear_cmd.data = (target_force_x - target_torque)
-             right_rear_cmd.data = (target_force_x + target_torque)
-             left_middle_cmd.data = -target_force_y
-             right_middle_cmd.data = target_force_y
-             
-             #We now want to normalize the commands so that the highest command has magnitude 1.0
-             #This is for the firmware, which requests commands from -1 to 1
-             highest_cmd = max(
-                 abs(left_front_cmd.data), 
-                 abs(right_front_cmd.data), 
-                 abs(left_rear_cmd.data), 
-                 abs(right_rear_cmd.data)
-             )
-             
-             if(highest_cmd > 1.0):
-                 left_front_cmd.data /= highest_cmd
-                 right_front_cmd.data /= highest_cmd
-                 left_rear_cmd.data /= highest_cmd
-                 right_rear_cmd.data /= highest_cmd
-             
-             #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
-             #backwards for the same commmand forwards
-             if self._sim_time:
-                 if(left_front_cmd.data < 0):
-                         left_front_cmd.data *= 2.5
-                 if(right_front_cmd.data < 0):
-                         right_front_cmd.data *= 2.5
-                 if(left_rear_cmd.data < 0):
-                         left_rear_cmd.data *= 2.5
-                 if(right_rear_cmd.data < 0):
-                         right_rear_cmd.data *= 2.5
+            #if target force y has magnitude greater than 1.0, reduce the magnitude to 1.0
+            if(abs(target_force_y) > 1.0):
+                target_force_y = target_force_y/abs(target_force_y)
+            
+            #the angles are for simulation purposes only, just based on the wamv urdf
+            left_front_angle.data = 0.785
+            left_rear_angle.data = -0.785
+            right_front_angle.data = -0.785
+            right_rear_angle.data = 0.785
+            
+            left_front_cmd.data = (target_force_x - target_torque)
+            right_front_cmd.data = (target_force_x + target_torque)
+            left_rear_cmd.data = (target_force_x - target_torque)
+            right_rear_cmd.data = (target_force_x + target_torque)
+            left_middle_cmd.data = -target_force_y
+            right_middle_cmd.data = target_force_y
+            
+            #We now want to normalize the commands so that the highest command has magnitude 1.0
+            #This is for the firmware, which requests commands from -1 to 1
+            highest_cmd = max(
+                abs(left_front_cmd.data), 
+                abs(right_front_cmd.data), 
+                abs(left_rear_cmd.data), 
+                abs(right_rear_cmd.data)
+            )
+            
+            if(highest_cmd > 1.0):
+                left_front_cmd.data /= highest_cmd
+                right_front_cmd.data /= highest_cmd
+                left_rear_cmd.data /= highest_cmd
+                right_rear_cmd.data /= highest_cmd
+            
+            left_front_cmd.data *= 100
+            right_front_cmd.data *= 100 
+            left_rear_cmd.data *= 100 
+            right_rear_cmd.data *= 100 
+            left_middle_cmd.data *= 100
+            right_middle_cmd.data *= 100
+            
+            #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
+            #backwards for the same commmand forwards
+            # if self._sim_time:
+            #     if(left_front_cmd.data < 0):
+            #             left_front_cmd.data *= 2.5
+            #     if(right_front_cmd.data < 0):
+            #             right_front_cmd.data *= 2.5
+            #     if(left_rear_cmd.data < 0):
+            #             left_rear_cmd.data *= 2.5
+            #     if(right_rear_cmd.data < 0):
+            #             right_rear_cmd.data *= 2.5
 
         return {
             'right_front_angle': right_front_angle,

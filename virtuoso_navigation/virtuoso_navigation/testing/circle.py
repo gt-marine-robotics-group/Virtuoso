@@ -15,12 +15,14 @@ class TestCircle(Node):
     def __init__(self):
         super().__init__('testing_circle')
 
-        self.pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.pub = self.create_publisher(Path, '/navigation/plan', 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.update_pose, 10)
         self.is_translation_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.path_sent = False
         self.robot_pose = None
+        
+        self.path = Path()
 
         self.declare_parameter('dist', 10.0)
 
@@ -38,6 +40,7 @@ class TestCircle(Node):
         self.is_translation_pub.publish(is_translation)
 
         if self.robot_pose is None or self.path_sent:
+            self.pub.publish(self.path)
             return
 
         self.path_sent = True
@@ -52,14 +55,28 @@ class TestCircle(Node):
         
         N = 6
         
-        for i in range(1,N):
+        for i in range(1,N*2+1):
              p2 = PoseStamped()
              p2.pose.position.x = self.robot_pose.pose.position.x + (self.get_parameter('dist').value * np.sin(np.pi/N*i))
              p2.pose.position.y = self.robot_pose.pose.position.y + (self.get_parameter('dist').value * np.cos(np.pi/N*i))  - self.get_parameter('dist').value
              p2.pose.orientation = self.robot_pose.pose.orientation
              p2.header.frame_id = 'map'
              path.poses.append(p2)
+	
+        p2 = PoseStamped()
+        p2.pose.position.x = path.poses[-1].pose.position.x + 20
+        p2.pose.position.y = path.poses[-1].pose.position.y + 0
+        p2.pose.orientation = self.robot_pose.pose.orientation
+        p2.header.frame_id = 'map'
+       # path.poses.append(p2)	
 
+        p2 = PoseStamped()
+        p2.pose.position.x = path.poses[-1].pose.position.x + 10
+        p2.pose.position.y = path.poses[-1].pose.position.y + 10
+        p2.pose.orientation = self.robot_pose.pose.orientation
+        p2.header.frame_id = 'map'
+       # path.poses.append(p2)	
+        self.path = path
 
         self.get_logger().info('PUBLISHING PATH')
         self.pub.publish(path)
