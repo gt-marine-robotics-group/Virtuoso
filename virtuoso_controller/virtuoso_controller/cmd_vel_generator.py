@@ -95,7 +95,10 @@ class CmdVelGenerator:
                 closest_pose = closest_pose - 1
          
         #We now need to check if we've already passed the current line segment we're on ("in front of") (the segment from the "closest pose" to the pose after it). If so, then we know that portion of the path is no longer relevant to us, so we increment and mark the previous pose's segment as done. We do this until we find a segment that we're either "behind" or "in the middle of"
-        in_front_of_second_pose = True
+        if(closest_pose == len(self.nav2_path.poses) - 1):
+            in_front_of_second_pose = False
+        else:
+            in_front_of_second_pose = True
         while(in_front_of_second_pose):
             next_to_second = [0.0,0.0,0.0]
             next_to_second[0] = self.nav2_path.poses[closest_pose+1].pose.position.x - self.nav2_path.poses[closest_pose].pose.position.x
