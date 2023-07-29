@@ -49,7 +49,7 @@ class EuclideanClusteringNode : public rclcpp::Node {
         vg.filter(*cloud_filtered);
 
         if (cloud_filtered->size() == temp_cloud->size()) {
-            RCLCPP_INFO(this->get_logger(), "Voxel filter failed... returning");
+            // RCLCPP_INFO(this->get_logger(), "Voxel filter failed... returning");
             return;
         }
 
