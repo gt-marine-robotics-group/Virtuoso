@@ -1,7 +1,14 @@
 navsat_transform_node:
     ros__parameters:
-        # magnetic_declination_radians: 1.10944
         magnetic_declination_radians: 0.0
+        publish_filtered_gps: True
+        wait_for_datum: False
+        zero_altitude: False
+        yaw_offset: 1.0
+        use_odometry_yaw: True
+        delay: 0.0
+        frequency: 30.0
+        broadcast_utm_transform: True
     
 ### ekf config file ###
 ekf_filter_node:
