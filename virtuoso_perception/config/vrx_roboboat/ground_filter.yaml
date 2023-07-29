@@ -1,3 +1,4 @@
 /**:
   ros__parameters:
+    frame_for_filtering: ''
     sensor_height: 1.1

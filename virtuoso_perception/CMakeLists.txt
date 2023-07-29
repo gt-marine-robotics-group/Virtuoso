@@ -12,6 +12,8 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(pcl_ros REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
@@ -30,7 +32,7 @@ ament_target_dependencies(euclidean_clustering rclcpp sensor_msgs geometry_msgs 
 target_link_libraries(euclidean_clustering ${PCL_LIBRARIES})
 
 add_executable(ground_filter src/ground_filter.cpp)
-ament_target_dependencies(ground_filter rclcpp sensor_msgs pcl_conversions PCL)
+ament_target_dependencies(ground_filter rclcpp tf2_ros pcl_ros sensor_msgs pcl_conversions PCL)
 target_link_libraries(ground_filter ${PCL_LIBRARIES})
 
 
