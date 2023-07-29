@@ -185,6 +185,8 @@ class EuclideanClusteringNode : public rclcpp::Node {
     public:
         EuclideanClusteringNode() : Node("perception_euclidean_clustering") {
 
+            pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
+
             this->declare_parameter("voxel_leaf_size.x", 0.0);
             this->declare_parameter("voxel_leaf_size.y", 0.0);
             this->declare_parameter("voxel_leaf_size.z", 0.0);
