@@ -1,0 +1,12 @@
+
+lidar_config:
+
+  all_lidar_types: [ # in our case, either hokuyo or vlp16
+    'hokuyo'
+  ]
+  all_lidar_base_topics: [
+    'wamv/sensors/lidars/lidar_wamv_sensor'
+  ]
+  all_lidar_frames: [
+    'wamv/wamv/base_link/lidar_wamv_sensor'
+  ]
