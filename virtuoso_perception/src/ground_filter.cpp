@@ -51,19 +51,17 @@ class GroundFilterNode : public rclcpp::Node {
         pcl::PointCloud<pcl::PointXYZ>::Ptr& transformed_cloud
     ) const
     {
-        geometry_msgs::msg::TransformStamped t;        
+        geometry_msgs::msg::TransformStamped t;
 
         try {
             t = m_tf_buffer->lookupTransform(
                 this->get_parameter("frame_for_filtering").as_string(),
-                "wamv/wamv/base_link/lidar_wamv_sensor", rclcpp::Time{}
+                cloud->header.frame_id, rclcpp::Time{}
             );
         } catch (const tf2::TransformException& e) {
-            RCLCPP_INFO(this->get_logger(), "No transformation to base_link\n");
+            RCLCPP_INFO(this->get_logger(), "No transformation to target frame\n");
             return;
         }
-        std::string msg = "Transformation: " + std::to_string(t.transform.translation.z);
-        RCLCPP_INFO(this->get_logger(), msg.c_str());
 
         pcl_ros::transformPointCloud(*cloud, *transformed_cloud, t);
     }
