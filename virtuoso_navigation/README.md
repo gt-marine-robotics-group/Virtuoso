@@ -96,6 +96,7 @@ Parameters for tuning Nav2. A full configuration guide can be found [here](https
 | navigation_waypoints | use_nav2 | bool | If true, Nav2 will work as specified above. If false, the waypoint node will not use Nav2 for path planning but will instead create straight line paths; nav2 will also not be launched. |
 | navigation_waypoints | only_translate | bool | If true, they waypoint node will send a command to translate to the controller whenever it sends the controller a path. |
 | navigation_waypoints | goal_dist_tolerance | float | The distance from the goal necessary for the waypoint node to decide that it has reached the waypoint. |
+| navigation_waypoints | goal_rotation_tolerance | float | The maximum yaw difference in radians that the USV can be from the target orientation for the USV to be at the waypoint. |
 
 ### rotate.yaml
 
