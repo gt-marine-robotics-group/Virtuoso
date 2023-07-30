@@ -95,5 +95,12 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(rviz_launch_file),
             condition=IfCondition(sim_time_config)
         ))
+    else:
+        ld.append(
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch', 'rviz.launch.py')),
+                condition=IfCondition(sim_time_config)
+            )
+        )
 
     return LaunchDescription(ld)
