@@ -91,7 +91,7 @@ source /opt/ros/foxy/setup.bash
 cd ~/mrg/dev_ws
 colcon build --packages-up-to virtuoso_autonomy
 source install/setup.bash
-ros2 launch virtuoso_autonomy <competition>_<task_name>_setup.launch.py sim_time:=<arg> usv:=<arg>
+ros2 launch virtuoso_autonomy <competition>_<task_name>_setup.launch.py usv:=<arg>
 ```
 
 See the documentation on the [launch arguments](/documentation/launch-arguments.md).
