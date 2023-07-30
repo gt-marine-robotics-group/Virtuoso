@@ -2,7 +2,7 @@
 
 ## Contents
 - [Virtuoso Perception Nodes](#virtuoso-perception-nodes)
-  - [ground_filter.cpp](#ground\_filtercpp)
+  - [ground_filter_node.cpp](#ground\_filter\_nodecpp)
   - [euclidean_clustering_node.cpp](#euclidean\_clustering\_nodecpp)
   - [lidar_processing/self_filter_node.py](#lidar\_processingself\_filter\_nodepy)
   - [lidar_processing/shore_filter_node.py](#lidar\_processingshore\_filter\_nodepy)
@@ -43,7 +43,7 @@
 
 ## Virtuoso Perception Nodes
 
-### ground_filter.cpp
+### ground_filter_node.cpp
 This node filters the lidar pointcloud which is the ground. On the water, this node does not need to filter anything since the lidar does not reflect off the water. However, it is needed when tested on ground or in the new VRX simulation (for ROS 2 Humble) where lidar does reflect off the water.
 
 ### euclidean_clustering_node.cpp
