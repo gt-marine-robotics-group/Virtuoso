@@ -1,0 +1,7 @@
+
+/**:
+  ros__parameters:
+
+    imu_topic: '/wamv/sensors/imu/imu/data'
+    gps_topic: '/wamv/sensors/gps/gps/fix'
+    gps_vel_topic: '/wamv/sensors/gps/gps/vel'

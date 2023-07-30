@@ -21,6 +21,12 @@ class RepublisherNode(Node):
         self.IMU_ready = False
         self.GPS_ready = False
         self.GPS_vel_ready = False
+
+        self.declare_parameters(namespace='', parameters=[
+            ('imu_topic', ''),
+            ('gps_topic', ''),
+            ('gps_vel_topic', '')
+        ])
         
 
         self.imuPublisher = self.create_publisher(Imu, '/navsat/imu', 10)
@@ -29,17 +35,17 @@ class RepublisherNode(Node):
         #subscribe to wamv sensor data
         self.imu_subscriber = self.create_subscription(
             Imu,
-            '/wamv/sensors/imu/imu/data',
+            self.get_parameter('imu_topic').value,
             self.imu_callback,
             10)
         self.gps_fix_subscriber = self.create_subscription(
             NavSatFix,
-            '/wamv/sensors/gps/gps/fix',
+            self.get_parameter('gps_topic').value,
             self.gps_fix_callback,
             10)
         self.gps_fix_vel_subscriber = self.create_subscription(
             Vector3Stamped,
-            '/wamv/sensors/gps/gps/fix_velocity',
+            self.get_parameter('gps_vel_topic').value,
             self.gps_fix_vel_callback,
             10)
 
