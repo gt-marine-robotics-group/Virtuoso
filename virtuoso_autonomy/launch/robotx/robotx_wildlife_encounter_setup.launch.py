@@ -7,10 +7,8 @@ import os
 
 def generate_launch_description():
     
-    sim_time_arg = DeclareLaunchArgument('sim_time', default_value='False')
     usv_arg = DeclareLaunchArgument('usv')
 
-    sim_time_config = LaunchConfiguration('sim_time', default='False')
     usv_config = LaunchConfiguration('usv')
 
     navigation = get_package_share_directory('virtuoso_navigation')
@@ -19,16 +17,15 @@ def generate_launch_description():
     controller = get_package_share_directory('virtuoso_controller')
 
     return LaunchDescription([
-        sim_time_arg,
         usv_arg,
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py')),
-            launch_arguments= {'sim_time': sim_time_config, 'usv': usv_config}.items()
+            launch_arguments= {'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
-            launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(perception, 'launch', 'find_buoys.launch.py')),
@@ -36,6 +33,6 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
-            launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config}.items()
         ),
     ])
