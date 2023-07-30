@@ -49,7 +49,7 @@ class EuclideanClusteringNode : public rclcpp::Node {
         vg.filter(*cloud_filtered);
 
         if (cloud_filtered->size() == temp_cloud->size()) {
-            RCLCPP_INFO(this->get_logger(), "Voxel filter failed... returning");
+            // RCLCPP_INFO(this->get_logger(), "Voxel filter failed... returning");
             return;
         }
 
@@ -184,6 +184,8 @@ class EuclideanClusteringNode : public rclcpp::Node {
 
     public:
         EuclideanClusteringNode() : Node("perception_euclidean_clustering") {
+
+            pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
             this->declare_parameter("voxel_leaf_size.x", 0.0);
             this->declare_parameter("voxel_leaf_size.y", 0.0);

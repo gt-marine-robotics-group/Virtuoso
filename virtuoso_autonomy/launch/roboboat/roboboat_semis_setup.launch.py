@@ -8,12 +8,8 @@ import os
 
 def generate_launch_description():
 
-    sim_time = DeclareLaunchArgument('sim_time', default_value='False')
-    sim_path = DeclareLaunchArgument('sim_path', default_value='')
     usv = DeclareLaunchArgument('usv')
 
-    sim_time_config = LaunchConfiguration('sim_time', default='False')
-    sim_path_config = LaunchConfiguration('sim_path', default='')
     usv_config = LaunchConfiguration('usv')
 
     perception = get_package_share_directory('virtuoso_perception')
@@ -23,8 +19,6 @@ def generate_launch_description():
     auxiliary = get_package_share_directory('virtuoso_auxiliary')
 
     return LaunchDescription([
-        sim_time,
-        sim_path,
         usv,
 
         IncludeLaunchDescription(
@@ -35,23 +29,22 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py')),
-            launch_arguments= {'sim_time': sim_time_config, 'sim_path': sim_path_config,
-                'usv': usv_config}.items()
+            launch_arguments= {'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
-            launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'multi_tasks_waypoint_player.launch.py')),
-            launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(controller, 'launch', 'main.launch.py')),
-            launch_arguments={'sim_time': sim_time_config, 'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(auxiliary, 'launch', 'main.launch.py')),
-            launch_arguments={'usv': usv_config, 'sim_time': sim_time_config}.items()
+            launch_arguments={'usv': usv_config}.items()
         )
     ])

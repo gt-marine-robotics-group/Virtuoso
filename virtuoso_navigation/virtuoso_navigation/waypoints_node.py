@@ -8,6 +8,7 @@ from nav_msgs.msg import Odometry
 from rclpy.action import ActionClient
 from std_msgs.msg import Bool
 import math
+import tf_transformations
 
 class Waypoints(Node):
 
@@ -28,11 +29,13 @@ class Waypoints(Node):
         self.declare_parameters(namespace='', parameters=[
             ('use_nav2', True),
             ('only_translate', False),
-            ('goal_dist_tolerance', 0.0)
+            ('goal_dist_tolerance', 0.0),
+            ('goal_rotation_tolerance', 0.0)
         ])
 
         self.waypoints_completed = 0
         self.path = None
+        self.path_yaws = None
         self.nav2_path = None
         self.nav2_goal = None
         self.robot_pose = None
@@ -42,8 +45,21 @@ class Waypoints(Node):
     def odom_callback(self, odom:Odometry):
         self.robot_pose = odom.pose.pose
 
-    def distance(self, p1, p2):
-        return sqrt((p1.position.x - p2.position.x)**2 + (p1.position.y - p2.position.y)**2)
+    def within_goal_tolerance(self, p1:Pose, p2:Pose):
+        if (sqrt((p1.position.x - p2.position.x)**2 + (p1.position.y - p2.position.y)**2)
+            > self.get_parameter('goal_dist_tolerance').value):
+            return False
+        
+        rq = self.robot_pose.orientation
+        euler = tf_transformations.euler_from_quaternion([
+            rq.x, rq.y, rq.z, rq.w
+        ])
+
+        if (abs(self.path_yaws[self.waypoints_completed] - euler[2])
+            > self.get_parameter('goal_rotation_tolerance').value):
+            return False
+
+        return True    
     
     def set_path(self, msg:Path, is_trans=False):
 
@@ -51,6 +67,14 @@ class Waypoints(Node):
 
         self.path = msg
         self.waypoints_completed = 0
+
+        self.path_yaws = list()
+        for pose in self.path.poses:
+            rq = pose.pose.orientation
+            euler = tf_transformations.euler_from_quaternion([
+                rq.x, rq.y, rq.z, rq.w
+            ])
+            self.path_yaws.append(euler[2])
 
         self.nav2_path = None
         self.nav2_goal = None
@@ -111,8 +135,7 @@ class Waypoints(Node):
         
         self.path_pub.publish(self.nav2_path)
 
-        if (self.distance(self.robot_pose, self.path.poses[self.waypoints_completed].pose) 
-                < self.get_parameter('goal_dist_tolerance').value):
+        if self.within_goal_tolerance(self.robot_pose, self.path.poses[self.waypoints_completed].pose):
             self.waypoints_completed += 1
             if self.waypoints_completed == len(self.path.poses):
                 self.get_logger().info('COMPLETED GOAL')

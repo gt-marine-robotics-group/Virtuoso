@@ -11,9 +11,6 @@ import yaml
 
 def generate_launch_description():
 
-    sim_time_arg = DeclareLaunchArgument('sim_time')
-    sim_time_config = LaunchConfiguration('sim_time', default='False')
-
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
@@ -30,6 +27,8 @@ def generate_launch_description():
         if arg.startswith('usv:='):
             usv_config_str = arg.split(':=')[1]
 
+    is_sim_time = bool('vrx' in usv_config_str)
+
     waypoint_data = None
     with open(f'{pkg_share}/config/{usv_config_str}/waypoints.yaml', 'r') as stream:
         waypoint_data = yaml.safe_load(stream)
@@ -37,21 +36,12 @@ def generate_launch_description():
     use_nav2 = waypoint_data['navigation_waypoints']['ros__parameters']['use_nav2']
 
     ld = [
-        sim_time_arg,
         usv_arg,
 
-        DeclareLaunchArgument(
-            name='sim_time',
-            default_value='False'
-        ),
         Node(
             package='virtuoso_navigation',
             executable='waypoints',
             parameters=[waypoints_param_file]
-        ),
-        Node(
-            package='virtuoso_navigation',
-            executable='single_waypoint'
         ),
         Node(
             package='virtuoso_navigation',
@@ -78,22 +68,31 @@ def generate_launch_description():
             executable='static_transform_publisher',
             name='odom_to_map',
             arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
-        ),
-        Node(
-            package='tf2_ros',
-            executable='static_transform_publisher',
-            name='base_links',
-            arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv'],
-            condition=IfCondition(sim_time_config)
         )
     ]
 
+    if is_sim_time:
+        ld.append(
+            Node(
+                package='tf2_ros',
+                executable='static_transform_publisher',
+                name='base_links',
+                arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv']
+            )
+        )
+
     if use_nav2:
         ld.append(IncludeLaunchDescription(PythonLaunchDescriptionSource(bringup_launch_file),launch_arguments={'params_file': nav2_params_file,
-        'use_sim_time': sim_time_config}.items()))
+        'use_sim_time': is_sim_time}.items()))
         ld.append(IncludeLaunchDescription(
             PythonLaunchDescriptionSource(rviz_launch_file),
-            condition=IfCondition(sim_time_config)
+            condition=is_sim_time
         ))
+    elif is_sim_time:
+        ld.append(
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch', 'rviz.launch.py'))
+            )
+        )
 
     return LaunchDescription(ld)

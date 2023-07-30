@@ -1,0 +1,63 @@
+
+perception_buoy_lidar:
+  ros__parameters:
+    always_run: False
+    buoy_max_side_length: 1.0
+    tall_buoy_min_z: 0.2
+    buoy_loc_noise: 1.2
+  
+perception_buoy_cam_filter:
+  ros__parameters:
+    debug: True
+
+    filter_bounds:
+      red:
+        lower1: [0, 50, 50]
+        upper1: [10, 255, 255]
+        lower2: [160, 50, 50]
+        upper2: [180, 255, 255]
+      green:
+        lower: [50, 50, 20]
+        upper: [86, 255, 255]
+      black:
+        lower: [0 ,0, 0]
+        upper: [50,50,100]
+      yellow:
+        lower: [20, 100, 100]
+        upper: [30, 255, 255]
+    
+    label_bounds: 
+      red:
+        lower1: [0, 50, 50]
+        upper1: [10, 255, 255]
+        lower2: [160, 50, 50]
+        upper2: [180, 255, 255]
+      green:
+        lower: [50, 50, 20]
+        upper: [86, 255, 255]
+      black:
+        lower: [0, 0, 255]
+        upper: [255, 255, 255]
+      yellow:
+        lower: [20, 100, 100]
+        upper: [30, 255, 255]
+      
+    clustering_method: 'DENSITY' # either DENSITY or CV2_CONTOURS
+
+    # DENSITY clustering params
+    max_cluster_height: 100
+    min_cluster_height: 20
+    max_cluster_width: 100
+    min_cluster_width: 20
+    epsilon: 2
+    min_pts: 12
+
+    # CV2_CONTOURS clustering params
+    buoy_border_px: 5
+    
+    # Both clustering params
+    buoy_px_color_sample_size: 0.1 # between 0 and 1
+
+    # Processing params
+    use_resize: True
+    use_noise_filter: False

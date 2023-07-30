@@ -1,0 +1,10 @@
+
+perception_buoy_stereo:
+  ros__parameters:
+    debug: True
+    multiprocessing: False
+
+perception_dock_stereo:
+  ros__parameters:
+    debug: True
+    multiprocessing: False

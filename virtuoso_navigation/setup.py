@@ -25,6 +25,12 @@ setup(
 
         (os.path.join('share', package_name, 'config/roboboat'),
             glob(os.path.join('config', 'roboboat', '*.yaml'))),
+
+        (os.path.join('share', package_name, 'config/vrx'),
+            glob(os.path.join('config', 'vrx', '*.yaml'))),
+
+        (os.path.join('share', package_name, 'rviz'),
+            glob(os.path.join('rviz', '*.rviz'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -36,7 +42,6 @@ setup(
     entry_points={
         'console_scripts': [
             'waypoints = virtuoso_navigation.waypoints_node:main',
-            'single_waypoint = virtuoso_navigation.single_waypoint_node:main',
             'translate = virtuoso_navigation.translate_node:main',
             'station_keeping = virtuoso_navigation.station_keeping_node:main',
             'rotate = virtuoso_navigation.rotate_node:main',

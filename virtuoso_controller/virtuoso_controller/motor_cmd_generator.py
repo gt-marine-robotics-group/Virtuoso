@@ -105,15 +105,15 @@ class MotorCmdGenerator:
                  right_rear_cmd.data /= highest_cmd
              
         
-             if self._sim_time:
-                 if(left_front_cmd.data < 0):
-                         left_front_cmd.data *= 2.5
-                 if(right_front_cmd.data < 0):
-                         right_front_cmd.data *= 2.5
-                 if(left_rear_cmd.data < 0):
-                         left_rear_cmd.data *= 2.5
-                 if(right_rear_cmd.data < 0):
-                         right_rear_cmd.data *= 2.5
+            #  if self._sim_time:
+            #      if(left_front_cmd.data < 0):
+            #              left_front_cmd.data *= 2.5
+            #      if(right_front_cmd.data < 0):
+            #              right_front_cmd.data *= 2.5
+            #      if(left_rear_cmd.data < 0):
+            #              left_rear_cmd.data *= 2.5
+            #      if(right_rear_cmd.data < 0):
+            #              right_rear_cmd.data *= 2.5
 
         #six motor h drive configuration
         if (self.motor_config == "H"):        
@@ -150,13 +150,6 @@ class MotorCmdGenerator:
                 left_rear_cmd.data /= highest_cmd
                 right_rear_cmd.data /= highest_cmd
             
-            left_front_cmd.data *= 100
-            right_front_cmd.data *= 100 
-            left_rear_cmd.data *= 100 
-            right_rear_cmd.data *= 100 
-            left_middle_cmd.data *= 100
-            right_middle_cmd.data *= 100
-            
             #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
             #backwards for the same commmand forwards
             # if self._sim_time:
@@ -168,6 +161,13 @@ class MotorCmdGenerator:
             #             left_rear_cmd.data *= 2.5
             #     if(right_rear_cmd.data < 0):
             #             right_rear_cmd.data *= 2.5
+            
+        left_front_cmd.data *= 100
+        right_front_cmd.data *= 100 
+        left_rear_cmd.data *= 100 
+        right_rear_cmd.data *= 100 
+        left_middle_cmd.data *= 100
+        right_middle_cmd.data *= 100
 
         return {
             'right_front_angle': right_front_angle,
