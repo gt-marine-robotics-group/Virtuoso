@@ -20,7 +20,7 @@ class DockingNode(Node):
         ])
 
         self.find_docks_req_pub = self.create_publisher(Int8, '/perception/start_find_docks', 10)
-        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_waypoints', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.find_docks_ready_sub = self.create_subscription(Int8, '/perception/find_dock_codes/ready',

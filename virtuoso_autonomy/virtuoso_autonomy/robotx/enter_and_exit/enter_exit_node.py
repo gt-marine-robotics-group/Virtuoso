@@ -16,7 +16,7 @@ class EnterAndExitNode(Node):
     def __init__(self):
         super().__init__('autonomy_enter_and_exit')
 
-        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_waypoints', 10)
         self.station_keeping_pub = self.create_publisher(Empty, '/navigation/station_keep', 10)
 
         self.nav_success_sub = self.create_subscription(PoseStamped, '/navigation/success', 

@@ -17,7 +17,7 @@ class LoopNode(Node):
     def __init__(self):
         super().__init__('autonomy_loop')
 
-        self.path_pub = self.create_publisher(Path, '/navigation/set_path', 10)
+        self.path_pub = self.create_publisher(Path, '/navigation/set_waypoints', 10)
         self.translate_pub = self.create_publisher(Point, '/navigation/translate', 10)
         self.station_keeping_pub = self.create_publisher(Empty, 
             '/navigation/station_keep', 10)

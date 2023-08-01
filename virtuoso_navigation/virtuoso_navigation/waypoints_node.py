@@ -13,7 +13,7 @@ class Waypoints(Node):
     def __init__(self):
         super().__init__('navigation_waypoints')
 
-        self.waypoints_sub = self.create_subscription(Path, '/navigation/set_path', self.set_waypoints, 10)
+        self.waypoints_sub = self.create_subscription(Path, '/navigation/set_waypoints', self.set_waypoints, 10)
         self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_path', 
             self.set_trans_path, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
