@@ -3,9 +3,7 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Path
 from geometry_msgs.msg import PoseStamped, Pose
-from nav2_msgs.action import NavigateToPose, ComputePathToPose
 from nav_msgs.msg import Odometry
-from rclpy.action import ActionClient
 from std_msgs.msg import Bool
 import math
 import tf_transformations
@@ -18,7 +16,6 @@ class Waypoints(Node):
         self.goal_sub = self.create_subscription(Path, '/navigation/set_path', self.set_path, 10)
         self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_path', 
             self.set_trans_path, 10)
-        self.nav_action = ActionClient(self, ComputePathToPose, '/compute_path_to_pose')
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
 
         self.success_pub = self.create_publisher(PoseStamped, '/navigation/success', 10)
@@ -27,7 +24,6 @@ class Waypoints(Node):
         self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.declare_parameters(namespace='', parameters=[
-            ('use_nav2', True),
             ('only_translate', False),
             ('goal_dist_tolerance', 0.0),
             ('goal_rotation_tolerance', 0.0)
@@ -87,42 +83,11 @@ class Waypoints(Node):
         self.set_path(msg, True) 
     
     def calc_nav2_path(self):
-        self.nav2_goal = ComputePathToPose.Goal()
+        self.nav2_goal = Pose()
 
-        if not self.get_parameter('use_nav2').value:
-            self.get_logger().info('Creating Straight path')
-            self.nav2_path = self.create_straight_path()
-            return
+        self.get_logger().info('Creating Straight path')
+        self.nav2_path = self.create_straight_path()
 
-        self.nav2_goal.pose = PoseStamped()
-        self.nav2_goal.pose.pose = self.path.poses[self.waypoints_completed].pose
-
-        self.get_logger().info('Sending Nav2 goal')
-
-        goal_future = self.nav_action.send_goal_async(self.nav2_goal)
-        goal_future.add_done_callback(self.nav2_goal_response_callback)
-
-    def nav2_goal_response_callback(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.get_logger().info('Nav2 Goal Rejected: Creating straight path')
-            self.nav2_path = self.create_straight_path()
-            return
-        self.get_logger().info('Nav2 Goal Accepted')
-
-        result_future = goal_handle.get_result_async()
-        result_future.add_done_callback(self.nav2_goal_done_callback) 
-    
-    def nav2_goal_done_callback(self, future):
-        result = future.result()
-
-        if len(result.result.path.poses) == 0:
-            self.get_logger().info('Nav2 Path contains no poses: Creating straight path')
-            self.nav2_path = self.create_straight_path()
-            return
-
-        self.nav2_path = result.result.path
-    
     def navigate(self):
 
         if self.robot_pose is None or self.path is None:
