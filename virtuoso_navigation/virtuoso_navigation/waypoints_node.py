@@ -14,8 +14,8 @@ class Waypoints(Node):
         super().__init__('navigation_waypoints')
 
         self.waypoints_sub = self.create_subscription(Path, '/navigation/set_waypoints', self.set_waypoints, 10)
-        self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_path', 
-            self.set_trans_path, 10)
+        self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_waypoints', 
+            self.set_trans_waypoints, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
 
         self.success_pub = self.create_publisher(PoseStamped, '/navigation/success', 10)
@@ -77,7 +77,7 @@ class Waypoints(Node):
             Bool(data= is_trans or self.get_parameter('only_translate').value)
         )
 
-    def set_trans_path(self, msg:Path):
+    def set_trans_waypoints(self, msg:Path):
         self.set_waypoints(msg, True) 
     
     def calc_path(self):
