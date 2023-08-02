@@ -86,22 +86,6 @@ class MotorCmdGenerator:
              #results in pure translation
              left_rear_cmd = (target_force_y*0.6 + target_force_x - target_torque)
              right_rear_cmd = (-target_force_y*0.6 + target_force_x + target_torque)
-
-             #We now want to normalize the commands so that the highest command has magnitude 1.0
-             #This is for the firmware, which requests commands from -1 to 1
-                     
-             highest_cmd = max(
-                 abs(left_front_cmd), 
-                 abs(right_front_cmd), 
-                 abs(left_rear_cmd), 
-                 abs(right_rear_cmd)
-             )
-             
-             if(highest_cmd > 1.0):
-                 left_front_cmd /= highest_cmd
-                 right_front_cmd /= highest_cmd
-                 left_rear_cmd /= highest_cmd
-                 right_rear_cmd /= highest_cmd
              
         #six motor h drive configuration
         if (self.motor_config == "H"):        
@@ -123,20 +107,20 @@ class MotorCmdGenerator:
             left_middle_cmd = -target_force_y
             right_middle_cmd = target_force_y
             
-            #We now want to normalize the commands so that the highest command has magnitude 1.0
-            #This is for the firmware, which requests commands from -1 to 1
-            highest_cmd = max(
-                abs(left_front_cmd), 
-                abs(right_front_cmd), 
-                abs(left_rear_cmd), 
-                abs(right_rear_cmd)
-            )
-            
-            if(highest_cmd > 1.0):
-                left_front_cmd /= highest_cmd
-                right_front_cmd /= highest_cmd
-                left_rear_cmd /= highest_cmd
-                right_rear_cmd /= highest_cmd
+        #We now want to normalize the commands so that the highest command has magnitude 1.0
+        #This is for the firmware, which requests commands from -1 to 1
+        highest_cmd = max(
+            abs(left_front_cmd), 
+            abs(right_front_cmd), 
+            abs(left_rear_cmd), 
+            abs(right_rear_cmd)
+        )
+        
+        if(highest_cmd > 1.0):
+            left_front_cmd /= highest_cmd
+            right_front_cmd /= highest_cmd
+            left_rear_cmd /= highest_cmd
+            right_rear_cmd /= highest_cmd
             
         # Simulation expects values -100 to 100
         if self._sim_time:
