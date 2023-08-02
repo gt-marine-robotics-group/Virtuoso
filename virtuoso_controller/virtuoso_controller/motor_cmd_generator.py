@@ -104,17 +104,6 @@ class MotorCmdGenerator:
                  left_rear_cmd.data /= highest_cmd
                  right_rear_cmd.data /= highest_cmd
              
-        
-            #  if self._sim_time:
-            #      if(left_front_cmd.data < 0):
-            #              left_front_cmd.data *= 2.5
-            #      if(right_front_cmd.data < 0):
-            #              right_front_cmd.data *= 2.5
-            #      if(left_rear_cmd.data < 0):
-            #              left_rear_cmd.data *= 2.5
-            #      if(right_rear_cmd.data < 0):
-            #              right_rear_cmd.data *= 2.5
-
         #six motor h drive configuration
         if (self.motor_config == "H"):        
              
@@ -150,24 +139,14 @@ class MotorCmdGenerator:
                 left_rear_cmd.data /= highest_cmd
                 right_rear_cmd.data /= highest_cmd
             
-            #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
-            #backwards for the same commmand forwards
-            # if self._sim_time:
-            #     if(left_front_cmd.data < 0):
-            #             left_front_cmd.data *= 2.5
-            #     if(right_front_cmd.data < 0):
-            #             right_front_cmd.data *= 2.5
-            #     if(left_rear_cmd.data < 0):
-            #             left_rear_cmd.data *= 2.5
-            #     if(right_rear_cmd.data < 0):
-            #             right_rear_cmd.data *= 2.5
-            
-        left_front_cmd.data *= 100
-        right_front_cmd.data *= 100 
-        left_rear_cmd.data *= 100 
-        right_rear_cmd.data *= 100 
-        left_middle_cmd.data *= 100
-        right_middle_cmd.data *= 100
+        # Simulation expects values -100 to 100
+        if self._sim_time:
+            left_front_cmd.data *= 100
+            right_front_cmd.data *= 100 
+            left_rear_cmd.data *= 100 
+            right_rear_cmd.data *= 100 
+            left_middle_cmd.data *= 100
+            right_middle_cmd.data *= 100
 
         return {
             'right_front_angle': right_front_angle,
@@ -184,15 +163,8 @@ class MotorCmdGenerator:
             'left_middle_cmd': left_middle_cmd
         }
                                                             
-        # self.right_front_pub_angle.publish(right_front_angle)
-        # self.left_rear_pub_angle.publish(left_rear_angle)
-        # self.left_front_pub_angle.publish(left_front_angle)
-        # self.right_rear_pub_angle.publish(right_rear_angle)     
-    
-        # self.left_front_pub_cmd.publish(left_front_cmd)
-        # self.right_rear_pub_cmd.publish(right_rear_cmd)      
-        # self.right_front_pub_cmd.publish(right_front_cmd)
-        # self.left_rear_pub_cmd.publish(left_rear_cmd)     
+
+# Not run normally, seems to be for debugging controller outside of ROS
 if __name__ == "__main__":
      cmdgen = MotorCmdGenerator(True, "H")
      #cmdgen.vel_force_x = 0.0

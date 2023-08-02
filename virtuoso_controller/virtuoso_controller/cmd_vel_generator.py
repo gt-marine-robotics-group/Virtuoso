@@ -24,7 +24,6 @@ class CmdVelGenerator:
 
         if not self.received_path:
             return None
-        #self.node.get_logger().info(str(self.completedPoses))
         dest_x = self.destination.position.x
         dest_y = self.destination.position.y
 

@@ -43,10 +43,6 @@ class CmdVelGeneratorNode(Node):
         self.generator.hold_final_orient = msg.data
         
     def path_callback(self, msg:Path):
-    
-        #if(len(msg) == len(self.old_path)):
-        #    for i in range(0,len(msg)):
-        #        if(msg.poses[i].pose)
         
         if(self.old_path == msg):
             return
@@ -71,7 +67,6 @@ class CmdVelGeneratorNode(Node):
         self.cmd_vel_publisher.publish(cmd)
   
     def odometry_callback(self, msg:Odometry):
-        # self.state_estimate = msg       
         self.generator.state_estimate = msg
 
         
