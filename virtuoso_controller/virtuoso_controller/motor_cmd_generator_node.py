@@ -51,11 +51,12 @@ class MotorCmdGeneratorNode(Node):
             self.vel_y_callback,
             10)  
         
+        self.MOTOR_MSG_TYPE = Float64 if self.get_parameter('sim_time').value else Float32
         self.pubs = dict() 
         for i, motor in enumerate(self.get_parameter('motors_general').value):
-            self.pubs[f'{motor}_angle'] = self.create_publisher(Float64,
+            self.pubs[f'{motor}_angle'] = self.create_publisher(self.MOTOR_MSG_TYPE,
                 self.get_parameter('motor_angle_topics').value[i], 10)
-            self.pubs[f'{motor}_cmd'] = self.create_publisher(Float64,
+            self.pubs[f'{motor}_cmd'] = self.create_publisher(self.MOTOR_MSG_TYPE,
                 self.get_parameter('motor_cmd_topics').value[i], 10)
                 
         self.create_timer(0.1, self.timer_callback)
@@ -85,7 +86,7 @@ class MotorCmdGeneratorNode(Node):
             return
         
         for key, value in commands.items():
-            self.pubs[key].publish(value)
+            self.pubs[key].publish(self.MOTOR_MSG_TYPE(data=value))
         
 def main(args=None):
     rclpy.init(args=args)
