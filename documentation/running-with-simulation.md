@@ -53,7 +53,7 @@ You can also drag objects into Gazebo to set up a challenge. Below, for example,
 
 ![Safety check](/documentation/images/rws3.png)
 
-## 4. Run a Setup Script
+## 2. Run a Setup Script
 
 To run the setup script for a task, follow the below template:
 
@@ -77,7 +77,7 @@ You should see an RVIZ appear similar to the image below (we have updated our RV
 
 ![Virtuoso RVIZ](/documentation/images/rws5.png)
 
-## 5. Run the Autonomy Script
+## 3. Run the Autonomy Script
 
 To run the autonomy script for a task, follow the below template:
 
