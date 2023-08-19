@@ -23,7 +23,7 @@ To get Ubuntu 22.04, we reccommend using a virtual machine (unless you can alrea
 ## 2. Set up an SSH key for GitHub authentication
 Follow [this guide](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/about-ssh) for adding an ssh key to your github account. Make sure you generate the ssh key on your VM.
 
-## 3. Install ROS2 Humble
+## 3. Install ROS 2 Humble
 Follow [this installation guide](https://docs.ros.org/en/humble/Installation.html) to install Humble. Make sure you do this within your VM.
 
 ## 5. Install VRX
