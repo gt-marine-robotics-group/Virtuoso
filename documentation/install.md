@@ -46,7 +46,7 @@ You may also need to create a udev rule as directed in their [README.md](https:/
 
 Note that this package is only used for communicating with the physical IMU we have. It is not needed for simulation.
 
-## 14. Installing Remaining dependinces
+## 8. Installing Remaining dependinces
 From the root of your workspace (e.g dev_ws), run the following commands:
 ```
 source /opt/ros/humble/setup.bash
@@ -54,7 +54,7 @@ rosdep install --from-paths src/Virtuoso
 ```
 This will install all of Virtuoso's dependencies that we are not building from source.
 
-## 15. Build Virtuoso
+## 9. Build Virtuoso
 From the root of your workspace, run the following commands:
 ```
 source /opt/ros/humble/setup.bash
