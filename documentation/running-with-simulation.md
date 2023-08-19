@@ -2,7 +2,6 @@
 
 This document assumes you have the file structure below following installation:
 ```
-~/openvdb
 ~/mrg
 └───vrx_ws 
 └───dev_ws

@@ -2,7 +2,6 @@
 
 ## Recommended File Structure (following installation)
 ```
-~/openvdb
 ~/mrg
 └───vrx_ws 
 └───dev_ws
