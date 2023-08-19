@@ -1,4 +1,3 @@
-from std_msgs.msg import Float32, Float64
 from geometry_msgs.msg import Pose
 from nav_msgs.msg import Odometry
 import numpy
@@ -32,39 +31,39 @@ class MotorCmdGenerator:
             #default to outputting 0 to the motors if a path has not been published
             else:
                 return {
-                    'right_front_angle': Float64(data=0.0),
-                    'right_rear_angle': Float64(data=0.0),
-                    'right_middle_angle': Float64(data=0.0),
-                    'left_front_angle': Float64(data=0.0),
-                    'left_rear_angle': Float64(data=0.0),
-                    'left_middle_angle': Float64(data=0.0),
-                    'right_front_cmd': Float64(data=0.0),
-                    'right_rear_cmd': Float64(data=0.0),
-                    'right_middle_cmd': Float64(data=0.0),
-                    'left_front_cmd': Float64(data=0.0),
-                    'left_rear_cmd': Float64(data=0.0),
-                    'left_middle_cmd': Float64(data=0.0)
+                    'right_front_angle': 0.0,
+                    'right_rear_angle': 0.0,
+                    'right_middle_angle': 0.0,
+                    'left_front_angle': 0.0,
+                    'left_rear_angle': 0.0,
+                    'left_middle_angle': 0.0,
+                    'right_front_cmd': 0.0,
+                    'right_rear_cmd': 0.0,
+                    'right_middle_cmd': 0.0,
+                    'left_front_cmd': 0.0,
+                    'left_rear_cmd': 0.0,
+                    'left_middle_cmd': 0.0
                 }
 
-        left_front_angle = Float64()
-        right_rear_angle = Float64()
-        right_front_angle = Float64()      
-        left_rear_angle = Float64()
-        left_middle_angle = Float64()
-        right_middle_angle = Float64()
-        
-        left_front_cmd = Float64()
-        right_rear_cmd = Float64()
-        left_rear_cmd = Float64()
-        right_front_cmd = Float64()
-        left_middle_cmd = Float64()
-        right_middle_cmd = Float64()
+        left_front_angle = 0.0
+        right_rear_angle = 0.0
+        right_front_angle = 0.0
+        left_rear_angle = 0.0
+        left_middle_angle = 0.0
+        right_middle_angle = 0.0
+
+        left_front_cmd = 0.0
+        right_rear_cmd = 0.0
+        left_rear_cmd = 0.0
+        right_front_cmd = 0.0
+        left_middle_cmd = 0.0
+        right_middle_cmd = 0.0
         
         #angle for simulation purposes only. Depends on wamv urdf
-        left_front_angle.data = -90*numpy.pi/180*0
-        right_rear_angle.data = 90*numpy.pi/180*0
-        right_front_angle.data = 90*numpy.pi/180*0
-        left_rear_angle.data = -90*numpy.pi/180*0
+        left_front_angle = -90*numpy.pi/180*0
+        right_rear_angle = 90*numpy.pi/180*0
+        right_front_angle = 90*numpy.pi/180*0
+        left_rear_angle = -90*numpy.pi/180*0
 
         
         #if navigate_to_point is true, use basic PID forcecommands
@@ -80,41 +79,14 @@ class MotorCmdGenerator:
         
         #X drive configuration
         if (self.motor_config == "X"):        
-             left_front_cmd.data = (-target_force_y + target_force_x - target_torque)
-             right_front_cmd.data = (target_force_y + target_force_x + target_torque)
+             left_front_cmd = (-target_force_y + target_force_x - target_torque)
+             right_front_cmd = (target_force_y + target_force_x + target_torque)
              #note the coefficient on target force y, which is to account for the difference in distance from the center of 
              #mass of the front and rear motors. Goal is that the torque from the front and rear motors cancel so that a target force y
              #results in pure translation
-             left_rear_cmd.data = (target_force_y*0.6 + target_force_x - target_torque)
-             right_rear_cmd.data = (-target_force_y*0.6 + target_force_x + target_torque)
-
-             #We now want to normalize the commands so that the highest command has magnitude 1.0
-             #This is for the firmware, which requests commands from -1 to 1
-                     
-             highest_cmd = max(
-                 abs(left_front_cmd.data), 
-                 abs(right_front_cmd.data), 
-                 abs(left_rear_cmd.data), 
-                 abs(right_rear_cmd.data)
-             )
+             left_rear_cmd = (target_force_y*0.6 + target_force_x - target_torque)
+             right_rear_cmd = (-target_force_y*0.6 + target_force_x + target_torque)
              
-             if(highest_cmd > 1.0):
-                 left_front_cmd.data /= highest_cmd
-                 right_front_cmd.data /= highest_cmd
-                 left_rear_cmd.data /= highest_cmd
-                 right_rear_cmd.data /= highest_cmd
-             
-        
-            #  if self._sim_time:
-            #      if(left_front_cmd.data < 0):
-            #              left_front_cmd.data *= 2.5
-            #      if(right_front_cmd.data < 0):
-            #              right_front_cmd.data *= 2.5
-            #      if(left_rear_cmd.data < 0):
-            #              left_rear_cmd.data *= 2.5
-            #      if(right_rear_cmd.data < 0):
-            #              right_rear_cmd.data *= 2.5
-
         #six motor h drive configuration
         if (self.motor_config == "H"):        
              
@@ -123,51 +95,41 @@ class MotorCmdGenerator:
                 target_force_y = target_force_y/abs(target_force_y)
             
             #the angles are for simulation purposes only, just based on the wamv urdf
-            left_front_angle.data = 0.785
-            left_rear_angle.data = -0.785
-            right_front_angle.data = -0.785
-            right_rear_angle.data = 0.785
+            left_front_angle = 0.785
+            left_rear_angle = -0.785
+            right_front_angle = -0.785
+            right_rear_angle = 0.785
             
-            left_front_cmd.data = (target_force_x - target_torque)
-            right_front_cmd.data = (target_force_x + target_torque)
-            left_rear_cmd.data = (target_force_x - target_torque)
-            right_rear_cmd.data = (target_force_x + target_torque)
-            left_middle_cmd.data = -target_force_y
-            right_middle_cmd.data = target_force_y
+            left_front_cmd = (target_force_x - target_torque)
+            right_front_cmd = (target_force_x + target_torque)
+            left_rear_cmd = (target_force_x - target_torque)
+            right_rear_cmd = (target_force_x + target_torque)
+            left_middle_cmd = -target_force_y
+            right_middle_cmd = target_force_y
             
-            #We now want to normalize the commands so that the highest command has magnitude 1.0
-            #This is for the firmware, which requests commands from -1 to 1
-            highest_cmd = max(
-                abs(left_front_cmd.data), 
-                abs(right_front_cmd.data), 
-                abs(left_rear_cmd.data), 
-                abs(right_rear_cmd.data)
-            )
+        #We now want to normalize the commands so that the highest command has magnitude 1.0
+        #This is for the firmware, which requests commands from -1 to 1
+        highest_cmd = max(
+            abs(left_front_cmd), 
+            abs(right_front_cmd), 
+            abs(left_rear_cmd), 
+            abs(right_rear_cmd)
+        )
+        
+        if(highest_cmd > 1.0):
+            left_front_cmd /= highest_cmd
+            right_front_cmd /= highest_cmd
+            left_rear_cmd /= highest_cmd
+            right_rear_cmd /= highest_cmd
             
-            if(highest_cmd > 1.0):
-                left_front_cmd.data /= highest_cmd
-                right_front_cmd.data /= highest_cmd
-                left_rear_cmd.data /= highest_cmd
-                right_rear_cmd.data /= highest_cmd
-            
-            #In simulation, the motors are 2.5x faster forwards than backwards. This aims to get the same thrust
-            #backwards for the same commmand forwards
-            # if self._sim_time:
-            #     if(left_front_cmd.data < 0):
-            #             left_front_cmd.data *= 2.5
-            #     if(right_front_cmd.data < 0):
-            #             right_front_cmd.data *= 2.5
-            #     if(left_rear_cmd.data < 0):
-            #             left_rear_cmd.data *= 2.5
-            #     if(right_rear_cmd.data < 0):
-            #             right_rear_cmd.data *= 2.5
-            
-        left_front_cmd.data *= 100
-        right_front_cmd.data *= 100 
-        left_rear_cmd.data *= 100 
-        right_rear_cmd.data *= 100 
-        left_middle_cmd.data *= 100
-        right_middle_cmd.data *= 100
+        # Simulation expects values -100 to 100
+        if self._sim_time:
+            left_front_cmd *= 100
+            right_front_cmd *= 100 
+            left_rear_cmd *= 100 
+            right_rear_cmd *= 100 
+            left_middle_cmd *= 100
+            right_middle_cmd *= 100
 
         return {
             'right_front_angle': right_front_angle,
@@ -184,15 +146,8 @@ class MotorCmdGenerator:
             'left_middle_cmd': left_middle_cmd
         }
                                                             
-        # self.right_front_pub_angle.publish(right_front_angle)
-        # self.left_rear_pub_angle.publish(left_rear_angle)
-        # self.left_front_pub_angle.publish(left_front_angle)
-        # self.right_rear_pub_angle.publish(right_rear_angle)     
-    
-        # self.left_front_pub_cmd.publish(left_front_cmd)
-        # self.right_rear_pub_cmd.publish(right_rear_cmd)      
-        # self.right_front_pub_cmd.publish(right_front_cmd)
-        # self.left_rear_pub_cmd.publish(left_rear_cmd)     
+
+# Not run normally, seems to be for debugging controller outside of ROS
 if __name__ == "__main__":
      cmdgen = MotorCmdGenerator(True, "H")
      #cmdgen.vel_force_x = 0.0

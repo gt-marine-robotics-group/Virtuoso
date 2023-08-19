@@ -29,7 +29,7 @@ class WaypointPlayerNode(Node):
 
         self.fromLL_cli = self.create_client(FromLL, '/fromLL')
 
-        self.path_pub = self.create_publisher(NavPath, '/navigation/set_path', 10)
+        self.path_pub = self.create_publisher(NavPath, '/navigation/set_waypoints', 10)
 
         self.send_next_waypoint()
     

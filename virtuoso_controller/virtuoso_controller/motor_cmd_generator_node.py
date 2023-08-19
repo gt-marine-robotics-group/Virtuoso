@@ -12,7 +12,10 @@ class MotorCmdGeneratorNode(Node):
 
         self.declare_parameters(namespace='', parameters=[
             ('sim_time', False),
-            ('motor_config', "X")
+            ('motor_config', "X"),
+            ('motors_general', ['']),
+            ('motor_angle_topics', ['']),
+            ('motor_cmd_topics', [''])
         ])
 
         self.generator = MotorCmdGenerator(sim_time=self.get_parameter('sim_time').value, motor_config=self.get_parameter('motor_config').value)
@@ -47,32 +50,14 @@ class MotorCmdGeneratorNode(Node):
             'controller/velocity_pid/targetForceY',
             self.vel_y_callback,
             10)  
-
-        self.left_front_pub_angle = self.create_publisher(Float64, 
-            '/wamv/thrusters/left_front/pos', 10)
-        self.right_front_pub_angle = self.create_publisher(Float64, 
-            '/wamv/thrusters/right_front/pos', 10)
-        self.left_rear_pub_angle = self.create_publisher(Float64, 
-            '/wamv/thrusters/left_rear/pos', 10)
-        self.right_rear_pub_angle = self.create_publisher(Float64, 
-            '/wamv/thrusters/right_rear/pos', 10)
-        self.left_middle_pub_angle = self.create_publisher(Float64, 
-            '/wamv/thrusters/left_middle/pos', 10)
-        self.right_middle_pub_angle = self.create_publisher(Float64, 
-            '/wamv/thrusters/right_middle/pos', 10)
-            
-        self.left_front_pub_cmd = self.create_publisher(Float64, 
-            '/wamv/thrusters/left_front/thrust', 10)
-        self.right_front_pub_cmd = self.create_publisher(Float64, 
-            '/wamv/thrusters/right_front/thrust', 10)             
-        self.left_rear_pub_cmd = self.create_publisher(Float64, 
-            '/wamv/thrusters/left_rear/thrust', 10)
-        self.right_rear_pub_cmd = self.create_publisher(Float64, 
-            '/wamv/thrusters/right_rear/thrust', 10)
-        self.left_middle_pub_cmd = self.create_publisher(Float64, 
-            '/wamv/thrusters/left_middle/thrust', 10)
-        self.right_middle_pub_cmd = self.create_publisher(Float64, 
-            '/wamv/thrusters/right_middle/thrust', 10)
+        
+        self.MOTOR_MSG_TYPE = Float64 if self.get_parameter('sim_time').value else Float32
+        self.pubs = dict() 
+        for i, motor in enumerate(self.get_parameter('motors_general').value):
+            self.pubs[f'{motor}_angle'] = self.create_publisher(self.MOTOR_MSG_TYPE,
+                self.get_parameter('motor_angle_topics').value[i], 10)
+            self.pubs[f'{motor}_cmd'] = self.create_publisher(self.MOTOR_MSG_TYPE,
+                self.get_parameter('motor_cmd_topics').value[i], 10)
                 
         self.create_timer(0.1, self.timer_callback)
 
@@ -99,20 +84,9 @@ class MotorCmdGeneratorNode(Node):
 
         if commands is None:
             return
-                                                            
-        self.right_front_pub_angle.publish(commands['right_front_angle'])
-        self.left_rear_pub_angle.publish(commands['left_rear_angle'])
-        self.left_front_pub_angle.publish(commands['left_front_angle'])
-        self.right_rear_pub_angle.publish(commands['right_rear_angle'])     
-        self.left_middle_pub_angle.publish(commands['left_middle_angle'])
-        self.right_middle_pub_angle.publish(commands['right_middle_angle'])     
-           
-        self.left_front_pub_cmd.publish(commands['left_front_cmd'])
-        self.right_rear_pub_cmd.publish(commands['right_rear_cmd'])      
-        self.right_front_pub_cmd.publish(commands['right_front_cmd'])
-        self.left_rear_pub_cmd.publish(commands['left_rear_cmd'])     
-        self.right_middle_pub_cmd.publish(commands['right_middle_cmd'])
-        self.left_middle_pub_cmd.publish(commands['left_middle_cmd'])   
+        
+        for key, value in commands.items():
+            self.pubs[key].publish(self.MOTOR_MSG_TYPE(data=value))
         
 def main(args=None):
     rclpy.init(args=args)

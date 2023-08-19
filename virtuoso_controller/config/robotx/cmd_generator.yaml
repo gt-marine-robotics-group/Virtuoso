@@ -3,3 +3,24 @@ controller_motor_cmd_generator:
   ros__parameters:
     sim_time: False
     motor_config: "X"
+
+    # same between all configs, just used to map to topics
+    motors_general: ['right_front', 'right_middle', 'right_rear', 'left_front', 'left_middle', 'left_rear']
+
+    # different between simulation and physical usvs
+    motor_angle_topics: [
+      '/wamv/thrusters/right_front_thrust_angle',
+      '/wamv/thrusters/right_middle_thrust_angle',
+      '/wamv/thrusters/right_rear_thrust_angle',
+      '/wamv/thrusters/left_front_thrust_angle',
+      '/wamv/thrusters/left_middle_thrust_angle',
+      '/wamv/thrusters/left_rear_thrust_angle'
+    ]
+    motor_cmd_topics: [
+      '/wamv/thrusters/right_front_thrust_cmd',
+      '/wamv/thrusters/right_middle_thrust_cmd',
+      '/wamv/thrusters/right_rear_thrust_cmd',
+      '/wamv/thrusters/left_front_thrust_cmd',
+      '/wamv/thrusters/left_middle_thrust_cmd',
+      '/wamv/thrusters/left_rear_thrust_cmd'
+    ]

@@ -27,11 +27,11 @@ set(PCL_INCLUDE_DIRS /usr/local/include/pcl-1.8)  #指定pcl1.8路径
 
 include_directories(${PCL_INCLUDE_DIRS})
 
-add_executable(euclidean_clustering src/euclidean_clustering_node.cpp)
+add_executable(euclidean_clustering virtuoso_perception/lidar_processing/euclidean_clustering_node.cpp)
 ament_target_dependencies(euclidean_clustering rclcpp sensor_msgs geometry_msgs visualization_msgs virtuoso_msgs pcl_conversions PCL)
 target_link_libraries(euclidean_clustering ${PCL_LIBRARIES})
 
-add_executable(ground_filter src/ground_filter_node.cpp)
+add_executable(ground_filter virtuoso_perception/lidar_processing/ground_filter_node.cpp)
 ament_target_dependencies(ground_filter rclcpp tf2_ros pcl_ros sensor_msgs pcl_conversions PCL)
 target_link_libraries(ground_filter ${PCL_LIBRARIES})
 
@@ -45,20 +45,20 @@ install(TARGETS
 ament_python_install_package(${PROJECT_NAME})
 
 install(PROGRAMS
-  scripts/buoys/buoy_cam_filter_node.py
-  scripts/buoys/buoy_lidar_node.py
-  scripts/buoys/channel_node.py
-  scripts/buoys/classify_buoys_node.py
-  scripts/camera_processing/noise_filter_node.py
-  scripts/camera_processing/resize_node.py
-  scripts/code/scan_code_node.py
-  scripts/dock/find_dock_codes_node.py
-  scripts/dock/find_dock_entrances_node.py
-  scripts/dock/find_dock_posts_node.py
-  scripts/lidar_processing/self_filter_node.py
-  scripts/lidar_processing/shore_filter_node.py
-  scripts/stereo/buoy_stereo_node.py
-  scripts/stereo/dock_stereo_node.py
+  virtuoso_perception/buoys/buoy_cam_filter_node.py
+  virtuoso_perception/buoys/buoy_lidar_node.py
+  virtuoso_perception/buoys/channel_node.py
+  virtuoso_perception/buoys/classify_buoys_node.py
+  virtuoso_perception/camera_processing/noise_filter_node.py
+  virtuoso_perception/camera_processing/resize_node.py
+  virtuoso_perception/code/scan_code_node.py
+  virtuoso_perception/dock/find_dock_codes_node.py
+  virtuoso_perception/dock/find_dock_entrances_node.py
+  virtuoso_perception/dock/find_dock_posts_node.py
+  virtuoso_perception/lidar_processing/self_filter_node.py
+  virtuoso_perception/lidar_processing/shore_filter_node.py
+  virtuoso_perception/stereo/buoy_stereo_node.py
+  virtuoso_perception/stereo/dock_stereo_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

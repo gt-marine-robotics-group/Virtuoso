@@ -1,7 +1,6 @@
 
 navigation_waypoints:
   ros__parameters:
-    use_nav2: True
     only_translate: False
     goal_dist_tolerance: 1.0
     goal_rotation_tolerance: 0.5235 # 30 degrees
