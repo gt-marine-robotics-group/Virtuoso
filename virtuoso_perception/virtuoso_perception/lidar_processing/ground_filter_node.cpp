@@ -7,16 +7,17 @@
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
+#include "std_msgs/msg/string.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2_ros/transform_listener.h"
 #include "tf2_ros/buffer.h"
 
 class GroundFilterNode : public rclcpp::Node {
 
-    void points_sub_callback(const sensor_msgs::msg::PointCloud2& msg) const 
+    void points_sub_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) const 
     {
         pcl::PCLPointCloud2 pcl_pc2;
-        pcl_conversions::toPCL(msg, pcl_pc2);
+        pcl_conversions::toPCL(*msg, pcl_pc2);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::fromPCLPointCloud2(pcl_pc2, *cloud);
 
@@ -41,7 +42,7 @@ class GroundFilterNode : public rclcpp::Node {
 
         sensor_msgs::msg::PointCloud2 pub_msg;
         pcl::toROSMsg(*cloud.get(), pub_msg);
-        pub_msg.header.frame_id = msg.header.frame_id;
+        pub_msg.header.frame_id = msg->header.frame_id;
         m_nonground_pub->publish(pub_msg);
     }
 
