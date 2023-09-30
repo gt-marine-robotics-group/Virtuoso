@@ -638,30 +638,44 @@
       <yDotV>0.0</yDotV>
       <nDotR>0.0</nDotR>
       <!-- Linear and quadratic drag -->
-      <xU>51.3</xU>
-      <xUU>72.4</xUU>
-      <yV>40.0</yV>
-      <yVV>0.0</yVV>
+      <xU>100.0</xU>
+      <xUU>150.0</xUU>
+      <yV>100.0</yV>
+      <yVV>100.0</yVV>
       <zW>500.0</zW>
-      <kP>100.0</kP>
-      <mQ>100.0</mQ>
-      <nR>400.0</nR>
-      <nRR>0.0</nRR>
+      <kP>300.0</kP>
+      <kPP>600.0</kPP>
+      <mQ>900.0</mQ>
+      <mQQ>900.0</mQQ>
+      <nR>800.0</nR>
+      <nRR>800.0</nRR>
+    </plugin>
+  </gazebo>
+  <!-- === [Un]lock the robot to the world === -->
+  <gazebo>
+    <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <parent_link>wamv/base_link</parent_link>
+      <child_model>platform</child_model>
+      <child_link>dummy_upper</child_link>
+      <topic>/vrx/release</topic>
+      <suppress_child_warning>true</suppress_child_warning>
     </plugin>
   </gazebo>
   <!-- === TF === -->
   <!-- Publish robot state information -->
   <gazebo>
     <plugin filename="libgz-sim-pose-publisher-system.so" name="gz::sim::systems::PosePublisher">
-      <publish_link_pose>true</publish_link_pose>
+      <publish_link_pose>false</publish_link_pose>
       <publish_sensor_pose>true</publish_sensor_pose>
       <publish_collision_pose>false</publish_collision_pose>
       <publish_visual_pose>false</publish_visual_pose>
-      <publish_nested_model_pose>true</publish_nested_model_pose>
+      <publish_nested_model_pose>false</publish_nested_model_pose>
       <publish_model_pose>false</publish_model_pose>
       <use_pose_vector_msg>true</use_pose_vector_msg>
-      <static_publisher>true</static_publisher>
+      <static_publisher>false</static_publisher>
       <static_update_frequency>1</static_update_frequency>
+    </plugin>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
     </plugin>
   </gazebo>
   <!-- Monocular Camera -->
@@ -785,7 +799,7 @@
         </image>
         <clip>
           <near>0.05</near>
-          <far>300</far>
+          <far>400</far>
         </clip>
         <noise>
           <type>gaussian</type>
@@ -919,7 +933,7 @@
         </image>
         <clip>
           <near>0.05</near>
-          <far>300</far>
+          <far>400</far>
         </clip>
         <noise>
           <type>gaussian</type>
@@ -1053,7 +1067,7 @@
         </image>
         <clip>
           <near>0.05</near>
-          <far>300</far>
+          <far>400</far>
         </clip>
         <noise>
           <type>gaussian</type>
@@ -1099,7 +1113,7 @@
   <gazebo reference="wamv/gps_wamv_link">
     <sensor name="navsat" type="navsat">
       <always_on>1</always_on>
-      <update_rate>15</update_rate>
+      <update_rate>20</update_rate>
       <!--<topic>${namespace}/${sensor_namespace}gps/gps/fix</topic>-->
     </sensor>
   </gazebo>
@@ -1135,7 +1149,7 @@
   </joint>
   <gazebo reference="wamv/imu_wamv_link">
     <sensor name="imu_wamv_sensor" type="imu">
-      <update_rate>15</update_rate>
+      <update_rate>100</update_rate>
       <imu>
         <angular_velocity>
           <x>
@@ -1207,6 +1221,9 @@
             </noise>
           </z>
         </linear_acceleration>
+        <orientation_reference_frame>
+          <localization>ENU</localization>
+        </orientation_reference_frame>
       </imu>
     </sensor>
   </gazebo>
@@ -1431,6 +1448,55 @@
       <num_shots>4</num_shots>
       <shot_force>65</shot_force>
       <topic>wamv/shooters/ball_shooter/fire</topic>
+    </plugin>
+  </gazebo>
+  <link name="wamv/receiver">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.01"/>
+      </geometry>
+    </visual>
+    <inertial>
+      <mass value="0.1"/>
+      <inertia ixx="0.00000542" ixy="0.0" ixz="0.0" iyy="0.00002104" iyz="0.0" izz="0.00002604"/>
+    </inertial>
+  </link>
+  <joint name="wamv/receiver_pinger_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="0.0" upper="0" velocity="0"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <parent link="wamv/base_link"/>
+    <child link="wamv/receiver"/>
+  </joint>
+  <gazebo>
+    <plugin filename="libAcousticPingerPlugin.so" name="vrx::AcousticPingerPlugin">
+      <position>1.0 0 -1.0</position>
+      <topic>/wamv/sensors/acoustics/receiver/range_bearing</topic>
+      <set_position_topic>/pinger/set_pinger_position
+        </set_position_topic>
+      <frame_id>pinger</frame_id>
+      <range_noise>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>3.0</stddev>
+        </noise>
+      </range_noise>
+      <bearing_noise>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </bearing_noise>
+      <elevation_noise>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.01</stddev>
+        </noise>
+      </elevation_noise>
     </plugin>
   </gazebo>
   <link name="wamv/cpu_cases_link">
