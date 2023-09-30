@@ -65,7 +65,7 @@ class StationKeepingNode(Node):
         self.executing = True
 
         path = Path()
-        path.poses.append(self.goal)
+        path.poses.append(self.transformed_goal)
         self.path_pub.publish(path)
     
     def transform_goal(self):
@@ -110,8 +110,8 @@ class StationKeepingNode(Node):
         self.req = FromLL.Request()
         # self.req.ll_point = self.goal.pose.position
         self.req.ll_point = GeoPoint()
-        self.req.ll_point.longitude = self.goal.pose.position.x
-        self.req.ll_point.latitude = self.goal.pose.position.y
+        self.req.ll_point.longitude = self.goal.pose.position.y
+        self.req.ll_point.latitude = self.goal.pose.position.x
         self.req.ll_point.altitude = self.goal.pose.position.z
         self.get_logger().info(str(self.req))
         dest = self.fromLL_cli.call_async(self.req)
