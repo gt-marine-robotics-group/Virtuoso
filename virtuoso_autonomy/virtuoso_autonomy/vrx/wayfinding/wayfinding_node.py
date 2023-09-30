@@ -1,28 +1,26 @@
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped, Pose
 from nav_msgs.msg import Path
-from geographic_msgs.msg import GeoPoseStamped, GeoPoint
+from geometry_msgs.msg import Point, Pose, PoseStamped, PoseArray
 from robot_localization.srv import FromLL
 from ros_gz_interfaces.msg import ParamVec
-
+from geographic_msgs.msg import GeoPoint
 from virtuoso_autonomy.utils.task_info import get_state
-
-
 import tf_transformations
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
-class StationKeepingNode(Node):
+class WayfindingNode(Node):
 
     def __init__(self):
-        super().__init__('station_keeping')
+        super().__init__('wayfinding')
 
-        self.state = 'initial'
-        self.goal:PoseStamped = None
+        self.transformed_waypoints = Path()
+        self.raw_waypoints = None
         self.executing = False
-        self.transformed_goal = None
+
+        self.transform_count = 0
 
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
@@ -30,43 +28,43 @@ class StationKeepingNode(Node):
         self.task_info_sub = self.create_subscription(ParamVec, '/vrx/task/info', 
             self.task_info_callback, 10)
         
-        self.goal_sub = self.create_subscription(PoseStamped, '/vrx/stationkeeping/goal',
-            self.goal_callback, 10)
+        self.waypoints_sub = self.create_subscription(PoseArray, '/vrx/wayfinding/waypoints',
+            self.waypoints_callback, 10)
 
         self.fromLL_cli = self.create_client(FromLL, '/fromLL')
 
         self.path_pub = self.create_publisher(Path, '/navigation/set_waypoints', 10)
-        
+
         self.create_timer(1.0, self.execute)
-    
+
     def task_info_callback(self, msg:ParamVec):
         self.state = get_state(msg)
     
-    def goal_callback(self, msg:PoseStamped):
-        self.goal = msg
+    def waypoints_callback(self, msg:PoseArray):
+        self.raw_waypoints = msg
     
     def execute(self):
-        # self.get_logger().info(f'trans goal: {self.transformed_goal}')
-    
+
         if self.executing:
             return
-
-        if self.goal is None:
+        
+        if self.raw_waypoints is None:
             return
         
-        if not self.transformed_goal:
-            self.get_logger().info('transforming goal')
+        if len(self.transformed_waypoints.poses) == 0:
             self.executing = True
-            self.transform_goal()
+            self.transform_waypoints()
+            return
+        
+        if len(self.transformed_waypoints.poses) < len(self.raw_waypoints.poses):
             return
         
         self.executing = True
-
-        path = Path()
-        path.poses.append(self.transformed_goal)
-        self.path_pub.publish(path)
+        self.get_logger().info(str(self.transformed_waypoints))
+        self.path_pub.publish(self.transformed_waypoints)
     
-    def transform_goal(self):
+    def transform_waypoints(self):
+
         from_frame_rel = 'utm'
         to_frame_rel = 'odom'
         
@@ -83,14 +81,15 @@ class StationKeepingNode(Node):
              return
         self.quatUTMtoODOM = trans.transform.rotation
 
-
         def ll_callback(future):
+            self.get_logger().info(f'finished transform {self.transform_count}')
             point = future.result().map_point
             pose_stamped = PoseStamped()
             pose = Pose()
             pose.position = point
 
-            q_goal = [self.goal.pose.orientation.x, self.goal.pose.orientation.y, self.goal.pose.orientation.z, self.goal.pose.orientation.w]
+            o = self.raw_waypoints.poses[self.transform_count].orientation
+            q_goal = [o.x, o.y, o.z, o.w]
             
             q_utm_to_odom = [self.quatUTMtoODOM.x, self.quatUTMtoODOM.y, self.quatUTMtoODOM.z, self.quatUTMtoODOM.w]
             q_final = tf_transformations.quaternion_multiply(q_utm_to_odom, q_goal)
@@ -98,26 +97,36 @@ class StationKeepingNode(Node):
             pose.orientation.y = q_final[1]
             pose.orientation.z = q_final[2]
             pose.orientation.w = q_final[3]
-
+            # pose.orientation = self.raw_waypoints.poses[self.transform_count].orientation
             pose_stamped.pose = pose
-            self.transformed_goal = pose_stamped
-            self.executing = False
 
+            self.transformed_waypoints.poses.append(pose_stamped)
+            
+            self.transform_count += 1
+            if (self.transform_count >= len(self.raw_waypoints.poses)):
+                self.executing = False
+                return
+            ll = self.create_ll_future()
+            ll.add_done_callback(ll_callback)
+
+        ll = self.create_ll_future()
+        ll.add_done_callback(ll_callback)
+    
+    def create_ll_future(self):
         self.req = FromLL.Request()
         self.req.ll_point = GeoPoint()
-        self.req.ll_point.longitude = self.goal.pose.position.y
-        self.req.ll_point.latitude = self.goal.pose.position.x
-        self.req.ll_point.altitude = self.goal.pose.position.z
-        self.get_logger().info(str(self.req))
-        dest = self.fromLL_cli.call_async(self.req)
-        dest.add_done_callback(ll_callback)
-
+        p = self.raw_waypoints.poses[self.transform_count].position
+        self.req.ll_point.longitude = p.y
+        self.req.ll_point.latitude = p.x
+        self.req.ll_point.altitude = p.z
+        return self.fromLL_cli.call_async(self.req)
+    
 
 def main(args=None):
     
     rclpy.init(args=args)
 
-    node = StationKeepingNode()
+    node = WayfindingNode()
 
     rclpy.spin(node)
 
@@ -126,4 +135,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-

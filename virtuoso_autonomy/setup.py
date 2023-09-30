@@ -45,7 +45,7 @@ setup(
             'vrx_mission_interpreter = virtuoso_autonomy.vrx.mission_interpreter:main',
             'vrx_perception = virtuoso_autonomy.vrx.perception.main:main',
             'vrx_station_keeping = virtuoso_autonomy.vrx.station_keeping.station_keeping_node:main',
-            'vrx_wayfinding = virtuoso_autonomy.vrx.wayfinding.main:main',
+            'vrx_wayfinding = virtuoso_autonomy.vrx.wayfinding.wayfinding_node:main',
 
 
             # ROBOTX LAUNCHES
