@@ -46,6 +46,7 @@ setup(
             'vrx_perception = virtuoso_autonomy.vrx.perception.main:main',
             'vrx_station_keeping = virtuoso_autonomy.vrx.station_keeping.station_keeping_node:main',
             'vrx_wayfinding = virtuoso_autonomy.vrx.wayfinding.wayfinding_node:main',
+            'vrx_acoustic_perception = virtuoso_autonomy.vrx.acoustic_perception.acoustic_perception_node:main',
 
 
             # ROBOTX LAUNCHES

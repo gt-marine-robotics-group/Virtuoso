@@ -66,7 +66,7 @@ def generate_launch_description():
                 package='tf2_ros',
                 executable='static_transform_publisher',
                 name='base_links',
-                arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv']
+                arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv/wamv/base_link']
             )
         )
         ld.append(

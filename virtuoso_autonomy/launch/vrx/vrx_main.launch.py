@@ -49,5 +49,9 @@ def generate_launch_description():
         Node(
             package='virtuoso_autonomy',
             executable='vrx_wayfinding'
+        ),
+        Node(
+            package='virtuoso_autonomy',
+            executable='vrx_acoustic_perception'
         )
     ])
