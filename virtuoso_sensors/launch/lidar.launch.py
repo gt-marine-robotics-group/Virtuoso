@@ -35,7 +35,7 @@ def generate_launch_description():
     ld.append(usv_arg)
 
     for i in range(len(lidars['lidar_config']['all_lidar_types'])):
-        if lidars['lidar_config']['all_lidar_types'] == 'vlp16':
+        if lidars['lidar_config']['all_lidar_types'][i] == 'vlp16':
             ld.append(IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(velodyne_share, 'launch', 'velodyne-all-nodes-VLP16-launch.py')
