@@ -2,7 +2,6 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/PCLPointCloud2.h>
 #include <pcl/point_types.h>
-#include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl/segmentation/extract_clusters.h>
 #include <pcl/ModelCoefficients.h>
@@ -36,25 +35,8 @@ class EuclideanClusteringNode : public rclcpp::Node {
         pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::fromPCLPointCloud2(pcl_pc2, *temp_cloud);
 
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
-
-        pcl::VoxelGrid<pcl::PointXYZ> vg;
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-        vg.setInputCloud(temp_cloud);
-        vg.setLeafSize(
-            this->get_parameter("voxel_leaf_size.x").as_double(),
-            this->get_parameter("voxel_leaf_size.y").as_double(),
-            this->get_parameter("voxel_leaf_size.z").as_double()
-        );
-        vg.filter(*cloud_filtered);
-
-        if (cloud_filtered->size() == temp_cloud->size()) {
-            // RCLCPP_INFO(this->get_logger(), "Voxel filter failed... returning");
-            return;
-        }
-
         pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
-        tree->setInputCloud(cloud_filtered);
+        tree->setInputCloud(temp_cloud);
 
         std::vector<pcl::PointIndices> cluster_indices;
         pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
@@ -62,7 +44,7 @@ class EuclideanClusteringNode : public rclcpp::Node {
         ec.setMinClusterSize(this->get_parameter("min_cluster_size").as_int());
         ec.setMaxClusterSize(this->get_parameter("max_cluster_size").as_int());
         ec.setSearchMethod(tree);
-        ec.setInputCloud(cloud_filtered);
+        ec.setInputCloud(temp_cloud);
         ec.extract(cluster_indices);
 
         visualization_msgs::msg::Marker clear_marker;
@@ -83,7 +65,7 @@ class EuclideanClusteringNode : public rclcpp::Node {
             pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster(new pcl::PointCloud<pcl::PointXYZ>);
 
             for (const auto idx : cluster.indices) {
-                cloud_cluster->push_back((*cloud_filtered)[idx]);
+                cloud_cluster->push_back((*temp_cloud)[idx]);
             }
 
             cloud_cluster->width = cloud_cluster->size();
@@ -187,15 +169,12 @@ class EuclideanClusteringNode : public rclcpp::Node {
 
             pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
-            this->declare_parameter("voxel_leaf_size.x", 0.0);
-            this->declare_parameter("voxel_leaf_size.y", 0.0);
-            this->declare_parameter("voxel_leaf_size.z", 0.0);
             this->declare_parameter("cluster_tolerance", 0.0);
             this->declare_parameter("min_cluster_size", 0);
             this->declare_parameter("max_cluster_size", 0);
 
             m_points_sub = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-                "/perception/lidar/points_shore_filtered", 10, std::bind(&EuclideanClusteringNode::points_callback, this, std::placeholders::_1)
+                "/perception/lidar/voxels", 10, std::bind(&EuclideanClusteringNode::points_callback, this, std::placeholders::_1)
             );
             m_clusters_viz_pub = this->create_publisher<visualization_msgs::msg::MarkerArray>(
                 "/perception/clusters_viz", 10

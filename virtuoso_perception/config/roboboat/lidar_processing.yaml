@@ -8,3 +8,10 @@ processing_shore_filter:
     x_min: 0.0
     y_min: -10.0
     y_max: 10.0
+
+processing_voxels:
+  ros__parameters:
+    voxel_leaf_size:
+      x: 0.01
+      y: 0.01
+      z: 0.01
