@@ -35,10 +35,19 @@ add_executable(ground_filter virtuoso_perception/lidar_processing/ground_filter_
 ament_target_dependencies(ground_filter rclcpp tf2_ros pcl_ros sensor_msgs pcl_conversions PCL)
 target_link_libraries(ground_filter ${PCL_LIBRARIES})
 
+add_executable(self_filter virtuoso_perception/lidar_processing/self_filter_node.cpp)
+ament_target_dependencies(self_filter rclcpp pcl_ros sensor_msgs pcl_conversions PCL)
+target_link_libraries(self_filter ${PCL_LIBRARIES})
+
+add_executable(shore_filter virtuoso_perception/lidar_processing/shore_filter_node.cpp)
+ament_target_dependencies(shore_filter rclcpp pcl_ros sensor_msgs pcl_conversions PCL)
+target_link_libraries(shore_filter ${PCL_LIBRARIES})
 
 install(TARGETS
   euclidean_clustering
   ground_filter
+  self_filter
+  shore_filter
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -55,7 +64,7 @@ install(PROGRAMS
   virtuoso_perception/dock/find_dock_codes_node.py
   virtuoso_perception/dock/find_dock_entrances_node.py
   virtuoso_perception/dock/find_dock_posts_node.py
-  virtuoso_perception/lidar_processing/self_filter_node.py
+  # virtuoso_perception/lidar_processing/self_filter_node.py
   virtuoso_perception/lidar_processing/shore_filter_node.py
   virtuoso_perception/stereo/buoy_stereo_node.py
   virtuoso_perception/stereo/dock_stereo_node.py
