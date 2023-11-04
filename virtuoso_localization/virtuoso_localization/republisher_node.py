@@ -55,14 +55,14 @@ class RepublisherNode(Node):
 
     def imu_callback(self, msg:Imu):
         self.measured_IMU = msg
-        # self.measured_IMU.header.frame_id = 'wamv/wamv/imu_wamv_link'
+        self.measured_IMU.header.frame_id = 'wamv/wamv/imu_wamv_link'
         self.IMU_ready = True
         self.state_estimation()
 
         
     def gps_fix_callback(self, msg:NavSatFix):
         self.gps_fix = msg
-        # self.gps_fix.header.frame_id = 'wamv/wamv/gps_wamv_link'
+        self.gps_fix.header.frame_id = 'wamv/wamv/gps_wamv_link'
         self.GPS_ready = True
         self.state_estimation()
         

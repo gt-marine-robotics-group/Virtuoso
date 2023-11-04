@@ -2,7 +2,7 @@
 lidar_config:
 
   all_lidar_types: [ # in our case, either hokuyo or vlp16
-    'hokuyo'
+    'vlp16'
   ]
   all_lidar_base_topics: [
     '/lidars/front_lidar'
