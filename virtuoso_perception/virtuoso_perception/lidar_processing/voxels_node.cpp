@@ -26,6 +26,13 @@ class VoxelsNode : public rclcpp::Node {
         pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::fromPCLPointCloud2(pcl_pc2, *temp_cloud);
 
+        if (this->get_parameter("debug").as_bool()) {
+            RCLCPP_INFO(
+                this->get_logger(), 
+                ("Input size: " + std::to_string(temp_cloud->size())).c_str()
+            );
+        }
+
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
 
         pcl::VoxelGrid<pcl::PointXYZ> vg;
@@ -37,6 +44,13 @@ class VoxelsNode : public rclcpp::Node {
             this->get_parameter("leaf_size.z").as_double()
         );
         vg.filter(*cloud_filtered);
+
+        if (this->get_parameter("debug").as_bool()) {
+            RCLCPP_INFO(
+                this->get_logger(), 
+                ("Output size: " + std::to_string(cloud_filtered->size())).c_str()
+            );
+        }
 
         sensor_msgs::msg::PointCloud2 pub_msg;
         pcl::toROSMsg(*cloud_filtered.get(), pub_msg);
@@ -53,6 +67,7 @@ class VoxelsNode : public rclcpp::Node {
 
             pcl::console::setVerbosityLevel(pcl::console::L_ALWAYS);
 
+            this->declare_parameter("debug", false);
             this->declare_parameter("leaf_size.x", 0.0);
             this->declare_parameter("leaf_size.y", 0.0);
             this->declare_parameter("leaf_size.z", 0.0);
