@@ -1,9 +1,5 @@
 /**:
   ros__parameters:
-    voxel_leaf_size:
-      x: 0.01
-      y: 0.01
-      z: 0.01
     cluster_tolerance: 0.5
     min_cluster_size: 2
     max_cluster_size: 25000

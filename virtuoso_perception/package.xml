@@ -22,6 +22,8 @@
 	<exec_depend>nav_msgs</exec_depend>
 	<exec_depend>tf2_ros</exec_depend>
 	<exec_depend>cv_bridge</exec_depend>
+	<exec_depend>pcl_ros</exec_depend>
+	<exec_depend>python-transforms3d-pip</exec_depend>
 
 	<!-- Python packages -->
 	<exec_depend>python3-numpy</exec_depend>

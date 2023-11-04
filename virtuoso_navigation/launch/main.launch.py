@@ -61,11 +61,20 @@ def generate_launch_description():
     ]
 
     if is_sim_time:
+        # Sometimes VRX makes the base_link wamv, other times wamv/wamv/base_link, so we account for both
         ld.append(
             Node(
                 package='tf2_ros',
                 executable='static_transform_publisher',
-                name='base_links',
+                name='base_links1',
+                arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv/wamv/base_link']
+            )
+        )
+        ld.append(
+            Node(
+                package='tf2_ros',
+                executable='static_transform_publisher',
+                name='base_links2',
                 arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv']
             )
         )

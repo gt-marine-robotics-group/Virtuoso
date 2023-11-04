@@ -20,7 +20,7 @@
   <exec_depend>robot_localization</exec_depend>
 
   <!-- Python Dependencies -->
-  <exec_depend>pynput</exec_depend>
+  <exec_depend>pynput-pip</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
 
   <test_depend>ament_copyright</test_depend>

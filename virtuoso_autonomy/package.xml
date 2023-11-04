@@ -17,13 +17,9 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>tf_transformations</exec_depend>
-  <exec_depend>geodesy</exec_depend>
 
   <!-- Python Dependencies -->
   <exec_depend>python3-numpy</exec_depend>
-
-  <!-- AutowareAuto packages -->
-  <exec_depend>autoware_auto_perception_msgs</exec_depend>
 
   <!-- Virtuoso packages -->
   <exec_depend>virtuoso_msgs</exec_depend>
