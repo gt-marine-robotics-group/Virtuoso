@@ -11,6 +11,7 @@ processing_shore_filter:
 
 processing_voxels:
   ros__parameters:
+    debug: False
     leaf_size:
       x: 0.01
       y: 0.01
