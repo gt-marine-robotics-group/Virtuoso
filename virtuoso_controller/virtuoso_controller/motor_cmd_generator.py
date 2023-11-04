@@ -100,7 +100,6 @@ class MotorCmdGenerator:
             right_front_angle = -0.785
             right_rear_angle = 0.785
             
-            # flipped!!!!! for roboboat
             left_front_cmd = (target_force_x - target_torque)
             right_front_cmd = (target_force_x + target_torque)
             left_rear_cmd = (target_force_x - target_torque)
