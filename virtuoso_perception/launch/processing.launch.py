@@ -61,7 +61,7 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='self_filter_node.py',
+            executable='self_filter',
             parameters=[lidar_processing_param_file],
         )
     )
@@ -69,7 +69,15 @@ def generate_launch_description():
     ld.append(
         Node(
             package='virtuoso_perception',
-            executable='shore_filter_node.py',
+            executable='shore_filter',
+            parameters=[lidar_processing_param_file]
+        )
+    )
+
+    ld.append(
+        Node(
+            package='virtuoso_perception',
+            executable='voxels',
             parameters=[lidar_processing_param_file]
         )
     )
