@@ -93,15 +93,14 @@ class OccupancyMapGenerator(Node):
         return pose
     
     def pointcloud_callback(self, msg) -> None:
-        # TODO: Firgure out why the indecies are reveresed here 
-        points = np.array([[i[1], i[0]] for i in point_cloud2.read_points(
+        points = np.array([[i[0], i[1]] for i in point_cloud2.read_points(
             msg, field_names=('x', 'y'), skip_nans=True)])
         transformed_points = self.transform_points(points)
         self.latest_pointcloud = transformed_points
 
     def transform_points(self, points) -> np.array:
         try:
-            trans = self.tf_buffer.lookup_transform('wamv/wamv/base_link', 'odom', Time())
+            trans = self.tf_buffer.lookup_transform('map','wamv/wamv/base_link', Time())
         except Exception as e:
             self.get_logger().info('Failed to find transform')
             return
@@ -112,7 +111,7 @@ class OccupancyMapGenerator(Node):
     def transform_point(self, point, trans) -> list[int]:
         point_stamped = PointStamped(point=Point(x=float(point[0]), y=float(point[1])))
         transformed_point = do_transform_point(point_stamped, trans)
-        return [transformed_point.point.x, transformed_point.point.y]
+        return [transformed_point.point.x, -transformed_point.point.y]
 
     def update_occupancy_map(self) -> None:
         if self.latest_pointcloud is not None and self.latest_pointcloud.size != 0:
@@ -132,7 +131,7 @@ class OccupancyMapGenerator(Node):
 
     def update_scan_data(self, curr_scan, binned_cells) -> None:
         for cell in binned_cells:
-            cell_index = self.grid_width * cell[0] + cell[1]
+            cell_index = self.grid_width * cell[1] + cell[0]
             curr_scan[cell_index] += 1
 
         for i, curr_val in enumerate(self.occupancy_map.data):
