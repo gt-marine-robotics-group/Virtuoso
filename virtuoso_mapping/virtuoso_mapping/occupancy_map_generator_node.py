@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Header
@@ -8,7 +10,6 @@ from sensor_msgs.msg import PointCloud2
 from sensor_msgs_py import point_cloud2
 from tf2_ros import TransformListener
 from tf2_ros.buffer import Buffer
-from virtuoso_perception.utils.geometry_msgs import do_transform_point
 import numpy as np
 
 class OccupancyMapGenerator(Node):
@@ -44,7 +45,7 @@ class OccupancyMapGenerator(Node):
 
     def setup_subscribers_and_publishers(self) -> None:
         self.pointcloud_sub = self.create_subscription(
-            PointCloud2, '/perception/lidar/voxels', self.pointcloud_callback, 10)
+            PointCloud2, '/mapping/voxels_in_map_frame', self.pointcloud_callback, 10)
         self.occupancy_map_pub = self.create_publisher(
             OccupancyGrid, '/mapping/occupancy_map', 10)
         self.update_occupancy_map_timer = self.create_timer(
@@ -89,29 +90,12 @@ class OccupancyMapGenerator(Node):
         pose.orientation.z = 0.0
         pose.orientation.w = 1.0
 
-
         return pose
     
     def pointcloud_callback(self, msg) -> None:
-        points = np.array([[i[0], i[1]] for i in point_cloud2.read_points(
+        points = np.array([[i[0], -i[1]] for i in point_cloud2.read_points(
             msg, field_names=('x', 'y'), skip_nans=True)])
-        transformed_points = self.transform_points(points)
-        self.latest_pointcloud = transformed_points
-
-    def transform_points(self, points) -> np.array:
-        try:
-            trans = self.tf_buffer.lookup_transform('map','wamv/wamv/base_link', Time())
-        except Exception as e:
-            self.get_logger().info('Failed to find transform')
-            return
-
-        transformed_points = np.array([self.transform_point(p, trans) for p in points])
-        return transformed_points
-
-    def transform_point(self, point, trans) -> list[int]:
-        point_stamped = PointStamped(point=Point(x=float(point[0]), y=float(point[1])))
-        transformed_point = do_transform_point(point_stamped, trans)
-        return [transformed_point.point.x, -transformed_point.point.y]
+        self.latest_pointcloud = points
 
     def update_occupancy_map(self) -> None:
         if self.latest_pointcloud is not None and self.latest_pointcloud.size != 0:
