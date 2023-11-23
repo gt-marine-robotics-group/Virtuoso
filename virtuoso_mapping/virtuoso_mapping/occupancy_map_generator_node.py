@@ -46,7 +46,7 @@ class OccupancyMapGenerator(Node):
 
     def setup_subscribers_and_publishers(self) -> None:
         self.pointcloud_sub = self.create_subscription(
-            PointCloud2, '/perception/lidar/voxels', self.pointcloud_callback, 10)
+            PointCloud2, '/mapping/voxels_in_map_frame', self.pointcloud_callback, 10)
         self.occupancy_map_pub = self.create_publisher(
             OccupancyGrid, '/mapping/occupancy_map', 10)
         self.update_occupancy_map_timer = self.create_timer(
@@ -95,10 +95,10 @@ class OccupancyMapGenerator(Node):
         return pose
     
     def pointcloud_callback(self, msg) -> None:
-        points = np.array([[i[0], i[1]] for i in point_cloud2.read_points(
+        points = np.array([[i[0], -i[1]] for i in point_cloud2.read_points(
             msg, field_names=('x', 'y'), skip_nans=True)])
-        transformed_points = self.transform_points(points)
-        self.latest_pointcloud = transformed_points
+        # transformed_points = self.transform_points(points)
+        self.latest_pointcloud = points
 
     def transform_points(self, points) -> np.array:
         try:
