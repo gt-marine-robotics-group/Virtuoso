@@ -45,6 +45,7 @@ setup(
             'translate = virtuoso_navigation.translate_node:main',
             'station_keeping = virtuoso_navigation.station_keeping_node:main',
             'rotate = virtuoso_navigation.rotate_node:main',
+            'rrt = virtuoso_navigation.rrt_node:main',
 
             'waypoint_player = virtuoso_navigation.waypoint_player_node:main',
             'multi_tasks_waypoint_player = virtuoso_navigation.multi_tasks_waypoint_player_node:main',

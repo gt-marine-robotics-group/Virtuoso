@@ -7,6 +7,9 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
 import math
 import tf_transformations
+from nav_msgs.msg import OccupancyGrid
+from virtuoso_navigation.planners.Planner import Planner
+from virtuoso_navigation.planners.StraightPath import StraightPath
 
 class Waypoints(Node):
 
@@ -17,6 +20,9 @@ class Waypoints(Node):
         self.translate_sub = self.create_subscription(Path, '/navigation/set_trans_waypoints', 
             self.set_trans_waypoints, 10)
         self.odom_sub = self.create_subscription(Odometry, '/localization/odometry', self.odom_callback, 10)
+
+        self.map_sub = self.create_subscription(OccupancyGrid, '/mapping/occupancy_map',
+            self.map_callback, 10)
 
         self.success_pub = self.create_publisher(PoseStamped, '/navigation/success', 10)
         
@@ -35,10 +41,16 @@ class Waypoints(Node):
         self.path = None
         self.robot_pose = None
 
+        self.planner: Planner = StraightPath()
+
         self.create_timer(.1, self.navigate)
     
+    def map_callback(self, map: OccupancyGrid):
+        self.planner.map = map
+
     def odom_callback(self, odom:Odometry):
         self.robot_pose = odom.pose.pose
+        self.planner.robot_pose = odom.pose.pose
 
     def within_goal_tolerance(self, p1:Pose, p2:Pose):
         if (sqrt((p1.position.x - p2.position.x)**2 + (p1.position.y - p2.position.y)**2)
@@ -81,8 +93,10 @@ class Waypoints(Node):
         self.set_waypoints(msg, True) 
     
     def calc_path(self):
-        self.get_logger().info('Creating Straight path')
-        self.path = self.create_straight_path()
+        self.get_logger().info('Creating path')
+        self.path = self.planner.create_path(
+            Planner.pose_deep_copy(self.waypoints.poses[self.waypoints_completed].pose)
+        )
 
     def navigate(self):
 
@@ -104,58 +118,6 @@ class Waypoints(Node):
                 self.waypoints = None
             self.path = None
             return
-    
-    def create_straight_path(self):
-        goal = Waypoints.pose_deep_copy(self.waypoints.poses[self.waypoints_completed].pose)
-
-        if goal.position.x - self.robot_pose.position.x > 0:
-            x_dir = 1
-        else:
-            x_dir = -1
-        
-        if goal.position.y - self.robot_pose.position.y > 0:
-            y_dir = 1
-        else:
-            y_dir = -1
-
-        path = Path()
-        path.header.frame_id = 'map'
-
-        if goal.position.x - self.robot_pose.position.x == 0.0:
-            theta = .5 * math.pi
-        else:
-            theta = math.atan(abs(
-                (goal.position.y - self.robot_pose.position.y) / (goal.position.x - self.robot_pose.position.x)
-            ))
-
-        curr_pose = Waypoints.pose_deep_copy(self.robot_pose)
-
-        while (
-            (abs(curr_pose.position.x - self.robot_pose.position.x) 
-                < abs(goal.position.x - self.robot_pose.position.x)) and 
-            (abs(curr_pose.position.y - self.robot_pose.position.y) 
-                < abs(goal.position.y - self.robot_pose.position.y))
-        ):
-            path.poses.append(PoseStamped(pose=Waypoints.pose_deep_copy(curr_pose)))
-
-            curr_pose.position.x += math.cos(theta) * 0.2 * x_dir
-            curr_pose.position.y += math.sin(theta) * 0.2 * y_dir
-
-        path.poses.append(PoseStamped(pose=goal))
-
-        return path
-    
-    def pose_deep_copy(pose:Pose):
-        copy = Pose()
-        copy.position.x = pose.position.x
-        copy.position.y = pose.position.y
-        copy.position.z = pose.position.z
-        copy.orientation.x = pose.orientation.x
-        copy.orientation.y = pose.orientation.y
-        copy.orientation.z = pose.orientation.z
-        copy.orientation.w = pose.orientation.w
-
-        return copy
 
 def main(args=None):
     
