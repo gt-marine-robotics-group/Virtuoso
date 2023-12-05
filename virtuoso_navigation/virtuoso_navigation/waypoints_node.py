@@ -10,6 +10,7 @@ import tf_transformations
 from nav_msgs.msg import OccupancyGrid
 from virtuoso_navigation.planners.Planner import Planner
 from virtuoso_navigation.planners.StraightPath import StraightPath
+from virtuoso_navigation.planners.RRT import RRT
 
 class Waypoints(Node):
 
@@ -32,16 +33,22 @@ class Waypoints(Node):
         self.declare_parameters(namespace='', parameters=[
             ('only_translate', False),
             ('goal_dist_tolerance', 0.0),
-            ('goal_rotation_tolerance', 0.0)
+            ('goal_rotation_tolerance', 0.0),
+            ('planner', '')
         ])
 
         self.waypoints_completed = 0
         self.waypoints = None
         self.waypoint_yaws = None
         self.path = None
-        self.robot_pose = None
 
-        self.planner: Planner = StraightPath()
+        planner_chosen = self.get_parameter('planner').value
+        if planner_chosen == 'STRAIGHT':
+            self.planner: Planner = StraightPath()
+        elif planner_chosen == 'RRT':
+            self.planner: Planner = RRT()
+        else:
+            raise 'No valid planner chosen.'
 
         self.create_timer(.1, self.navigate)
     
@@ -49,7 +56,6 @@ class Waypoints(Node):
         self.planner.map = map
 
     def odom_callback(self, odom:Odometry):
-        self.robot_pose = odom.pose.pose
         self.planner.robot_pose = odom.pose.pose
 
     def within_goal_tolerance(self, p1:Pose, p2:Pose):
@@ -57,7 +63,7 @@ class Waypoints(Node):
             > self.get_parameter('goal_dist_tolerance').value):
             return False
         
-        rq = self.robot_pose.orientation
+        rq = self.planner.robot_pose.orientation
         euler = tf_transformations.euler_from_quaternion([
             rq.x, rq.y, rq.z, rq.w
         ])
@@ -100,7 +106,7 @@ class Waypoints(Node):
 
     def navigate(self):
 
-        if self.robot_pose is None or self.waypoints is None:
+        if self.planner.robot_pose is None or self.planner.map is None or self.waypoints is None:
             return
 
         if not self.path:
@@ -110,7 +116,7 @@ class Waypoints(Node):
         
         self.path_pub.publish(self.path)
 
-        if self.within_goal_tolerance(self.robot_pose, self.waypoints.poses[self.waypoints_completed].pose):
+        if self.within_goal_tolerance(self.planner.robot_pose, self.waypoints.poses[self.waypoints_completed].pose):
             self.waypoints_completed += 1
             if self.waypoints_completed == len(self.waypoints.poses):
                 self.get_logger().info('COMPLETED GOAL')
