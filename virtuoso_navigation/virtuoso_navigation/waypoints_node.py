@@ -50,6 +50,8 @@ class Waypoints(Node):
         else:
             raise 'No valid planner chosen.'
 
+        self.planner.node = self
+
         self.create_timer(.1, self.navigate)
     
     def map_callback(self, map: OccupancyGrid):
@@ -103,6 +105,7 @@ class Waypoints(Node):
         self.path = self.planner.create_path(
             Planner.pose_deep_copy(self.waypoints.poses[self.waypoints_completed].pose)
         )
+        self.path.header.frame_id = 'map'
 
     def navigate(self):
 

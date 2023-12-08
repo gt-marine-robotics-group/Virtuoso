@@ -6,6 +6,8 @@ import numpy as np
 class RRT(Planner):
 
     def __init__(self):
+        super().__init__()
+
         self.MAX_ITER_COUNT = 1_000_000
         self.step_dist = 1
     
@@ -44,6 +46,9 @@ class RRT(Planner):
 
     def step_from_to(self, node0, node1):
 
+        # self.debug(f'node0: {node0}')
+        # self.debug(f'node1: {node1}')
+
         if RRT.distance(node0[0], node0[1], node1[0], node1[1]) < self.step_dist:
             return node1
         
@@ -62,8 +67,8 @@ class RRT(Planner):
             y = node0[1] + ((node1[1] - node0[1]) * (1/i))
 
             if self.is_occupied(x, y):
-                return False
-        return True
+                return True
+        return False
 
     def create_path(self, goal: Pose) -> Path:
 
@@ -75,7 +80,7 @@ class RRT(Planner):
         self.tree = {}
         self.parents = {}
 
-        curr_loc = (self.robot_pose.x, self.robot_pose.y)
+        curr_loc = (self.robot_pose.position.x, self.robot_pose.position.y)
 
         self.tree[curr_loc] = []
         self.parents[curr_loc] = 0
@@ -93,7 +98,7 @@ class RRT(Planner):
 
             for node in self.tree.keys():
                 d = RRT.distance(node[0], node[1], x, y)
-                if d < closest_dist:
+                if closest_node is None or d < closest_dist:
                     closest_node = node
                     closest_dist = d
             
@@ -107,7 +112,7 @@ class RRT(Planner):
 
             self.parents[next_node] = closest_node
 
-            if self.distance(next_node[0], next_node[1], self.goal.position.x, self.goal.position.y) < 0.1:
+            if RRT.distance(next_node[0], next_node[1], self.goal.position.x, self.goal.position.y) < 0.1:
                 goal_node = next_node
                 break
         
@@ -121,7 +126,7 @@ class RRT(Planner):
             path.append(curr_node)
             curr_node = self.parents[curr_node]
         
-        path = path.reverse()
+        path.reverse()
 
         # add smoothing sometime
 

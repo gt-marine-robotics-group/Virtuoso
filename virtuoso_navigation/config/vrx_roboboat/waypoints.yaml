@@ -5,4 +5,4 @@ navigation_waypoints:
     goal_dist_tolerance: 1.0
     goal_rotation_tolerance: 0.5235 # 30 degrees
 
-    planner: 'STRAIGHT' # STRAIGHT, RRT
+    planner: 'RRT' # STRAIGHT, RRT

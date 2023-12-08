@@ -9,6 +9,13 @@ class Planner(ABC):
         self.map: OccupancyGrid = None
         self.robot_pose: Pose = None
 
+        self.node = None
+    
+    def debug(self, msg: str):
+        if self.node is None:
+            return
+        self.node.get_logger().info(msg)
+    
     @abstractmethod
     def create_path(self, goal: Pose) -> Path:
         pass
