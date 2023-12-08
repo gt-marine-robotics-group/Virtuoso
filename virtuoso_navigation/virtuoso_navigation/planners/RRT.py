@@ -6,12 +6,12 @@ from typing import List
 
 class RRT(Planner):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, inflation_layer):
+        super().__init__(inflation_layer)
 
-        self.MAX_ITER_COUNT = 1_000_000
-        self.step_dist = 0.5
-        self.line_collision_check_granularity = 0.1
+        self._MAX_ITER_COUNT = 1_000_000
+        self._step_dist = 0.5
+        self._line_collision_check_granularity = 0.1
     
     def distance(x1: float, y1: float, x2: float, y2: float):
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
@@ -27,9 +27,14 @@ class RRT(Planner):
         x_index = int(x_costmap)
         y_index = int(y_costmap) - 1
 
+        self.debug(f'index: {(y_index * self.map.info.width) + x_index}')
         if self.map.data[(y_index * self.map.info.width) + x_index] > 0:
             return True
-        
+
+        # self._inflation_layer.map = self.map
+        # if self._inflation_layer.in_inflation_layer(x, y):
+        #     return True
+
         return False
 
     def get_random_loc(self):
@@ -51,15 +56,15 @@ class RRT(Planner):
         # self.debug(f'node0: {node0}')
         # self.debug(f'node1: {node1}')
 
-        if RRT.distance(node0[0], node0[1], node1[0], node1[1]) < self.step_dist:
+        if RRT.distance(node0[0], node0[1], node1[0], node1[1]) < self._step_dist:
             return node1
         
         diff = [node1[0] - node0[0], node1[1] - node0[1]]
 
         diff /= np.sqrt(np.sum(np.square(diff)))
 
-        x = node0[0] + (diff[0] * self.step_dist)
-        y = node0[1] + (diff[1] * self.step_dist)
+        x = node0[0] + (diff[0] * self._step_dist)
+        y = node0[1] + (diff[1] * self._step_dist)
 
         return x, y
     
@@ -67,13 +72,13 @@ class RRT(Planner):
         if self.is_occupied(node1[0], node1[1]): return True
 
         dist = RRT.distance(node0[0], node0[1], node1[0], node1[1])
-        iterations = int(dist / self.line_collision_check_granularity)
+        iterations = int(dist / self._line_collision_check_granularity)
 
         x = node0[0]
         y = node0[1]
         for _ in range(iterations):
-            x += (node1[0] - node0[0]) * self.line_collision_check_granularity
-            y += (node1[1] - node0[1]) * self.line_collision_check_granularity
+            x += (node1[0] - node0[0]) * self._line_collision_check_granularity
+            y += (node1[1] - node0[1]) * self._line_collision_check_granularity
 
             if self.is_occupied(x, y):
                 return True
@@ -124,7 +129,7 @@ class RRT(Planner):
         goal_node = None
 
         iteration = 0
-        while iteration < self.MAX_ITER_COUNT:
+        while iteration < self._MAX_ITER_COUNT:
             iteration += 1
 
             x, y = self.get_random_loc()

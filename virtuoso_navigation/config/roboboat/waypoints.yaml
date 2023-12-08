@@ -6,3 +6,4 @@ navigation_waypoints:
     goal_rotation_tolerance: 0.5235 # 30 degrees
 
     planner: 'STRAIGHT' # STRAIGHT, RRT
+    inflation_layer: 0.5

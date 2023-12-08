@@ -34,7 +34,8 @@ class Waypoints(Node):
             ('only_translate', False),
             ('goal_dist_tolerance', 0.0),
             ('goal_rotation_tolerance', 0.0),
-            ('planner', '')
+            ('planner', ''),
+            ('inflation_layer', 0.0)
         ])
 
         self.waypoints_completed = 0
@@ -43,10 +44,11 @@ class Waypoints(Node):
         self.path = None
 
         planner_chosen = self.get_parameter('planner').value
+        inflation_layer = self.get_parameter('inflation_layer').value
         if planner_chosen == 'STRAIGHT':
-            self.planner: Planner = StraightPath()
+            self.planner: Planner = StraightPath(inflation_layer)
         elif planner_chosen == 'RRT':
-            self.planner: Planner = RRT()
+            self.planner: Planner = RRT(inflation_layer)
         else:
             raise 'No valid planner chosen.'
 

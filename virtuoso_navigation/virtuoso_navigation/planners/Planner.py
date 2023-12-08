@@ -1,13 +1,16 @@
 from abc import ABC, abstractmethod
 from nav_msgs.msg import OccupancyGrid, Path
 from geometry_msgs.msg import Pose
+from virtuoso_mapping.inflation_layer import InflationLayer
 
 class Planner(ABC):
 
-    def __init__(self):
+    def __init__(self, inflation_layer):
 
         self.map: OccupancyGrid = None
         self.robot_pose: Pose = None
+
+        self._inflation_layer = InflationLayer(inflation_layer)
 
         self.node = None
     
