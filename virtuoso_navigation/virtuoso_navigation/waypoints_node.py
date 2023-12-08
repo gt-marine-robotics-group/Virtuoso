@@ -46,9 +46,9 @@ class Waypoints(Node):
         planner_chosen = self.get_parameter('planner').value
         inflation_layer = self.get_parameter('inflation_layer').value
         if planner_chosen == 'STRAIGHT':
-            self.planner: Planner = StraightPath(inflation_layer)
+            self.planner: Planner = StraightPath()
         elif planner_chosen == 'RRT':
-            self.planner: Planner = RRT(inflation_layer)
+            self.planner: Planner = RRT()
         else:
             raise 'No valid planner chosen.'
 

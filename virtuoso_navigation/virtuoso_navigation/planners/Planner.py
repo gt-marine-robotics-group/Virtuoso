@@ -5,12 +5,12 @@ from virtuoso_mapping.inflation_layer import InflationLayer
 
 class Planner(ABC):
 
-    def __init__(self, inflation_layer):
+    def __init__(self):
 
         self.map: OccupancyGrid = None
         self.robot_pose: Pose = None
 
-        self._inflation_layer = InflationLayer(inflation_layer)
+        # self._inflation_layer = InflationLayer(inflation_layer)
 
         self.node = None
     
