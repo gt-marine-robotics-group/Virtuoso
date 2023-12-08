@@ -64,22 +64,18 @@ class RRT(Planner):
         return x, y
     
     def is_collision_with_obstacles(self, node0: tuple, node1: tuple):
-        if self.is_occupied(node1[0], node1[1]): return True
-
         dist = RRT.distance(node0[0], node0[1], node1[0], node1[1])
-        iterations = int(dist / self.line_collision_check_granularity)
+        iterations = max(int(dist / self.line_collision_check_granularity), 2)
 
-        x = node0[0]
-        y = node0[1]
-        for _ in range(iterations):
-            x += (node1[0] - node0[0]) * self.line_collision_check_granularity
-            y += (node1[1] - node0[1]) * self.line_collision_check_granularity
-
+        for i in range(1, iterations):
+            x = node0[0] + ((node1[0] - node0[0]) * (i/(iterations - 1)))
+            y = node0[1] + ((node1[1] - node0[1]) * (i/(iterations - 1)))
+    
             if self.is_occupied(x, y):
                 return True
         
         return False
-    
+
     def smooth_path(self, path: List[tuple]):
 
         n = len(path)
