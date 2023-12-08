@@ -105,6 +105,7 @@ class RRT(Planner):
             next_node = self.step_from_to(closest_node, (x, y))
 
             if self.is_collision_with_obstacles(closest_node, next_node):
+                self.debug('collision detected')
                 continue
             
             self.tree[next_node] = []

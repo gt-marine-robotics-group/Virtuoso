@@ -60,7 +60,8 @@ setup(
             'test_translate = virtuoso_navigation.testing.translate_node:main',
             'test_diamond = virtuoso_navigation.testing.diamond:main',
             'test_station_keeping = virtuoso_navigation.testing.station_keeping:main',
-            'test_circle = virtuoso_navigation.testing.circle:main'
+            'test_circle = virtuoso_navigation.testing.circle:main',
+            'test_rviz_waypoint = virtuoso_navigation.testing.rviz_waypoint:main'
         ],
     },
 )
