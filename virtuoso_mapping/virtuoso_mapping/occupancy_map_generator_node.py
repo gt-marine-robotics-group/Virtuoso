@@ -25,9 +25,9 @@ class OccupancyMapGenerator(Node):
 
     def initialize_parameters(self) -> None:
         parameters = [
-            ('resolution', 1.0),
-            ('grid_width', 100),
-            ('grid_height', 100),
+            ('resolution', 0.5),
+            ('grid_width', 200),
+            ('grid_height', 200),
             ('update_delay', 0.5),
             ('point_weight', 13),
             ('decay_rate', 15),

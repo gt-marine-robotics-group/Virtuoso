@@ -9,7 +9,7 @@ class RRT(Planner):
         super().__init__()
 
         self.MAX_ITER_COUNT = 1_000_000
-        self.step_dist = 1
+        self.step_dist = 0.5
     
     def distance(x1, y1, x2, y2):
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
@@ -19,8 +19,8 @@ class RRT(Planner):
         # Note that x and y are coming in the map frame but we should not index the costmap
         # with that x and y. It must be transformed to the costmap indices. 
 
-        x_costmap = x + (self.width_m / 2)
-        y_costmap = -1 * ((self.height_m / 2) - y)
+        x_costmap = (x + (self.width_m / 2)) / self.map.info.resolution
+        y_costmap = -1 * ((self.height_m / 2) - y) / self.map.info.resolution
 
         x_index = int(x_costmap)
         y_index = int(y_costmap) - 1
