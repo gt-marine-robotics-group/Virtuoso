@@ -19,13 +19,13 @@ class RRT(Planner):
         # Note that x and y are coming in the map frame but we should not index the costmap
         # with that x and y. It must be transformed to the costmap indices. 
 
-        x_costmap = abs((self.height_m / 2) - x) / self.map.info.resolution
-        y_costmap = (y + (self.width_m / 2)) / self.map.info.resolution
+        x_costmap = x + (self.width_m / 2)
+        y_costmap = -1 * ((self.height_m / 2) - y)
 
         x_index = int(x_costmap)
-        y_index = int(y_costmap)
+        y_index = int(y_costmap) - 1
 
-        if self.map.data[(x_index * self.map.info.width) + y_index] > 0:
+        if self.map.data[(y_index * self.map.info.width) + x_index] > 0:
             return True
         
         return False

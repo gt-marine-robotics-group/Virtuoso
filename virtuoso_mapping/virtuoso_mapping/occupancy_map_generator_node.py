@@ -115,7 +115,7 @@ class OccupancyMapGenerator(Node):
 
     def update_scan_data(self, curr_scan, binned_cells) -> None:
         for cell in binned_cells:
-            cell_index = self.grid_width * cell[1] + cell[0]
+            cell_index = self.grid_width * (cell[1] - 1) + cell[0]
             curr_scan[cell_index] += 1
 
         for i, curr_val in enumerate(self.occupancy_map.data):
