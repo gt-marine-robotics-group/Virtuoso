@@ -2,7 +2,6 @@ from geometry_msgs.msg import Pose, PoseStamped
 from nav_msgs.msg import Path
 from virtuoso_navigation.planners.Planner import Planner
 import numpy as np
-from typing import List
 
 class RRT(Planner):
 
@@ -13,10 +12,10 @@ class RRT(Planner):
         self._step_dist = 0.5
         self._line_collision_check_granularity = 0.1
     
-    def distance(x1: float, y1: float, x2: float, y2: float):
+    def distance(x1, y1, x2, y2):
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
 
-    def is_occupied(self, x: float, y: float):
+    def is_occupied(self, x, y):
 
         # Note that x and y are coming in the map frame but we should not index the costmap
         # with that x and y. It must be transformed to the costmap indices. 
@@ -51,7 +50,7 @@ class RRT(Planner):
         
         return x, y
 
-    def step_from_to(self, node0: tuple, node1: tuple):
+    def step_from_to(self, node0, node1):
 
         # self.debug(f'node0: {node0}')
         # self.debug(f'node1: {node1}')
@@ -82,34 +81,7 @@ class RRT(Planner):
 
             if self.is_occupied(x, y):
                 return True
-        
         return False
-    
-    def smooth_path(self, path: List[tuple]):
-
-        n = len(path)
-
-        for _ in range(n):
-
-            others = np.random.choice(list(range(len(path))), size=len(path), replace=False)
-
-            i = others[0]
-
-            for j in range(1, len(others)):
-                other = others[j]
-
-                if abs(i - other) < 2: continue
-
-                first = min(i, other)
-                last = max(i, other)
-
-                if self.is_collision_with_obstacles(path[first], path[last]): continue
-
-                path = path[:first + 1] + path[last:]
-
-                break
-        
-        return path
 
     def create_path(self, goal: Pose) -> Path:
 
@@ -146,6 +118,7 @@ class RRT(Planner):
             next_node = self.step_from_to(closest_node, (x, y))
 
             if self.is_collision_with_obstacles(closest_node, next_node):
+                self.debug('collision detected')
                 continue
             
             self.tree[next_node] = []
@@ -158,7 +131,6 @@ class RRT(Planner):
                 break
         
         if goal_node is None:
-            self.debug('Reached Max Iteration Count')
             return Path()
         
         path = []
@@ -171,7 +143,6 @@ class RRT(Planner):
         path.reverse()
 
         # add smoothing sometime
-        path = self.smooth_path(path)
 
         ros_path = Path()
         for node in path:
