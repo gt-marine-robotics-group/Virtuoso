@@ -10,6 +10,27 @@ class InflationLayer:
     def in_inflation_layer(self, x, y):
 
         # x and y are in map frame
+
+        if self.map.info.resolution < self._size:
+            for i in range(1, int(self._size / self.map.info.resolution) + 1):
+                s = self.map.info.resolution * i
+                points = [
+                    (x + s, y),
+                    (x, y + s),
+                    (x - s, y),
+                    (x, y - s),
+                    (x + s * 0.707, y + s * 0.707),
+                    (x - s * 0.707, y + s * 0.707),
+                    (x - s * 0.707, y - s * 0.707),
+                    (x + s * 0.707, y - s * 0.707)
+                ]
+
+                for point in points:
+                    if self._is_occupied(*point):
+                        return True
+                
+            return False
+
         
         points = [
             (x + self._size, y),

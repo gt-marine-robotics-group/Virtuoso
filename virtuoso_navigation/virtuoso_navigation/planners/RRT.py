@@ -6,8 +6,8 @@ from typing import List
 
 class RRT(Planner):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, inflation_layer):
+        super().__init__(inflation_layer)
 
         self.MAX_ITER_COUNT = 1_000_000
         self.step_dist = 0.5
@@ -28,6 +28,10 @@ class RRT(Planner):
         y_index = int(y_costmap) - 1
 
         if self.map.data[(y_index * self.map.info.width) + x_index] > 0:
+            return True
+        
+        self._inflation_layer.map = self.map
+        if self._inflation_layer.in_inflation_layer(x, y):
             return True
         
         return False
