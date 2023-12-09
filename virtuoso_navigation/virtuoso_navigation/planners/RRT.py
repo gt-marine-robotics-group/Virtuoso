@@ -133,8 +133,6 @@ class RRT(Planner):
             for leaf in leaves:
                 msg.points.append(node_point)
                 msg.points.append(Point(x=leaf[0], y=leaf[1]))
-
-        self.debug('publishing')
         
         self.node.rrt_tree_pub.publish(msg)
 
