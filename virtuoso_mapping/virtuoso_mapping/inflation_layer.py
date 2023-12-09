@@ -67,10 +67,11 @@ class InflationLayer:
 
         index = (y_index * self.map.info.width) + x_index
 
-        if index >= len(self.map.data) or index < 0:
+        try:
+            if self.map.data[index] > 0:
+                return True
+        except Exception as e:
+            # indexing out of the map
             return False
-
-        if self.map.data[index] > 0:
-            return True
         
         return False
