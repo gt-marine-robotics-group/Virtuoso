@@ -8,6 +8,7 @@ from std_msgs.msg import Bool
 import math
 import tf_transformations
 from nav_msgs.msg import OccupancyGrid
+from visualization_msgs.msg import Marker
 from virtuoso_navigation.planners.Planner import Planner
 from virtuoso_navigation.planners.StraightPath import StraightPath
 from virtuoso_navigation.planners.RRT import RRT
@@ -31,13 +32,15 @@ class Waypoints(Node):
         self.is_trans_pub = self.create_publisher(Bool, '/controller/is_translation', 10)
 
         self.declare_parameters(namespace='', parameters=[
+            ('debug', False),
             ('only_translate', False),
             ('goal_dist_tolerance', 0.0),
             ('goal_rotation_tolerance', 0.0),
             ('planner', ''),
             ('inflation_layer', 0.0),
             ('rrt.step_dist', 0.0),
-            ('rrt.line_collision_check_granularity', 0.0)
+            ('rrt.line_collision_check_granularity', 0.0),
+            ('rrt.debug_iteration_time', 0.0)
         ])
 
         self.waypoints_completed = 0
@@ -53,12 +56,17 @@ class Waypoints(Node):
             self.planner: Planner = RRT(
                 inflation_layer,
                 self.get_parameter('rrt.step_dist').value,
-                self.get_parameter('rrt.line_collision_check_granularity').value
+                self.get_parameter('rrt.line_collision_check_granularity').value,
+                self.get_parameter('rrt.debug_iteration_time').value
             )
         else:
             raise 'No valid planner chosen.'
 
-        self.planner.node = self
+        if self.get_parameter('debug').value:
+            self.planner.node = self
+
+            if planner_chosen == 'RRT':
+                self.rrt_tree_pub = self.create_publisher(Marker, '/navigation/rrt_tree', 10)
 
         self.create_timer(.1, self.navigate)
     

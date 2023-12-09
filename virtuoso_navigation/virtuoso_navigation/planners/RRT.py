@@ -1,17 +1,22 @@
-from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, Point
 from nav_msgs.msg import Path
 from virtuoso_navigation.planners.Planner import Planner
 import numpy as np
 from typing import List
+from visualization_msgs.msg import Marker
+import time
 
 class RRT(Planner):
 
-    def __init__(self, inflation_layer, step_dist, line_collision_check_granularity):
+    def __init__(self, inflation_layer, step_dist, line_collision_check_granularity, 
+        debug_iteration_time):
         super().__init__(inflation_layer)
 
         self.MAX_ITER_COUNT = 1_000_000
         self._step_dist = step_dist
         self._line_collision_check_granularity = line_collision_check_granularity
+
+        self._debug_iteration_time = debug_iteration_time
     
     def distance(x1: float, y1: float, x2: float, y2: float):
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
@@ -105,6 +110,35 @@ class RRT(Planner):
                 break
         
         return path
+    
+    def display_tree(self):
+        # only display the tree if debug == true in waypoints.yaml
+        if self.node is None: return
+
+        msg = Marker()
+        
+        msg.header.frame_id = 'map'
+        msg.action = Marker.MODIFY
+        msg.ns = 'rrt_tree_viz'
+        msg.id = 1
+        msg.type = Marker.LINE_LIST
+        msg.scale.x = 0.1
+        msg.color.a = 1.0
+        msg.color.r = 1.0
+        msg.color.g = 0.0
+        msg.color.b = 0.0
+
+        for node, leaves in self.tree.items():
+            node_point = Point(x=node[0], y=node[1])
+            for leaf in leaves:
+                msg.points.append(node_point)
+                msg.points.append(Point(x=leaf[0], y=leaf[1]))
+
+        self.debug('publishing')
+        
+        self.node.rrt_tree_pub.publish(msg)
+
+        time.sleep(self._debug_iteration_time)
 
     def create_path(self, goal: Pose) -> Path:
 
@@ -147,6 +181,8 @@ class RRT(Planner):
             self.tree[closest_node].append(next_node)
 
             self.parents[next_node] = closest_node
+
+            self.display_tree()
 
             if RRT.distance(next_node[0], next_node[1], self.goal.position.x, self.goal.position.y) < 0.1:
                 goal_node = next_node
