@@ -7,3 +7,7 @@ navigation_waypoints:
 
     planner: 'STRAIGHT' # STRAIGHT, RRT
     inflation_layer: 0.5
+
+    rrt:
+      step_dist: 0.5
+      line_collision_check_granularity: 0.1

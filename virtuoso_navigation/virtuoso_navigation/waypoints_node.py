@@ -35,7 +35,9 @@ class Waypoints(Node):
             ('goal_dist_tolerance', 0.0),
             ('goal_rotation_tolerance', 0.0),
             ('planner', ''),
-            ('inflation_layer', 0.0)
+            ('inflation_layer', 0.0),
+            ('rrt.step_dist', 0.0),
+            ('rrt.line_collision_check_granularity', 0.0)
         ])
 
         self.waypoints_completed = 0
@@ -48,7 +50,11 @@ class Waypoints(Node):
         if planner_chosen == 'STRAIGHT':
             self.planner: Planner = StraightPath(inflation_layer)
         elif planner_chosen == 'RRT':
-            self.planner: Planner = RRT(inflation_layer)
+            self.planner: Planner = RRT(
+                inflation_layer,
+                self.get_parameter('rrt.step_dist').value,
+                self.get_parameter('rrt.line_collision_check_granularity').value
+            )
         else:
             raise 'No valid planner chosen.'
 

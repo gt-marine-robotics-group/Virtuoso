@@ -6,12 +6,12 @@ from typing import List
 
 class RRT(Planner):
 
-    def __init__(self, inflation_layer):
+    def __init__(self, inflation_layer, step_dist, line_collision_check_granularity):
         super().__init__(inflation_layer)
 
         self.MAX_ITER_COUNT = 1_000_000
-        self.step_dist = 0.5
-        self.line_collision_check_granularity = 0.1
+        self._step_dist = step_dist
+        self._line_collision_check_granularity = line_collision_check_granularity
     
     def distance(x1: float, y1: float, x2: float, y2: float):
         return ((x1 - x2)**2 + (y1 - y2)**2)**0.5
@@ -55,21 +55,21 @@ class RRT(Planner):
         # self.debug(f'node0: {node0}')
         # self.debug(f'node1: {node1}')
 
-        if RRT.distance(node0[0], node0[1], node1[0], node1[1]) < self.step_dist:
+        if RRT.distance(node0[0], node0[1], node1[0], node1[1]) < self._step_dist:
             return node1
         
         diff = [node1[0] - node0[0], node1[1] - node0[1]]
 
         diff /= np.sqrt(np.sum(np.square(diff)))
 
-        x = node0[0] + (diff[0] * self.step_dist)
-        y = node0[1] + (diff[1] * self.step_dist)
+        x = node0[0] + (diff[0] * self._step_dist)
+        y = node0[1] + (diff[1] * self._step_dist)
 
         return x, y
     
     def is_collision_with_obstacles(self, node0: tuple, node1: tuple):
         dist = RRT.distance(node0[0], node0[1], node1[0], node1[1])
-        iterations = max(int(dist / self.line_collision_check_granularity), 2)
+        iterations = max(int(dist / self._line_collision_check_granularity), 2)
 
         for i in range(1, iterations):
             x = node0[0] + ((node1[0] - node0[0]) * (i/(iterations - 1)))
