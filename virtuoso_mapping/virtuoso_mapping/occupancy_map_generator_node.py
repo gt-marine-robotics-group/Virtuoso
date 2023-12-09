@@ -25,9 +25,9 @@ class OccupancyMapGenerator(Node):
 
     def initialize_parameters(self) -> None:
         parameters = [
-            ('resolution', 1.0),
-            ('grid_width', 100),
-            ('grid_height', 100),
+            ('resolution', 0.5),
+            ('grid_width', 200),
+            ('grid_height', 200),
             ('update_delay', 0.5),
             ('point_weight', 13),
             ('decay_rate', 15),
@@ -115,7 +115,7 @@ class OccupancyMapGenerator(Node):
 
     def update_scan_data(self, curr_scan, binned_cells) -> None:
         for cell in binned_cells:
-            cell_index = self.grid_width * cell[1] + cell[0]
+            cell_index = self.grid_width * (cell[1] - 1) + cell[0]
             curr_scan[cell_index] += 1
 
         for i, curr_val in enumerate(self.occupancy_map.data):
