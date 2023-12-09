@@ -1,6 +1,7 @@
 
 navigation_waypoints:
   ros__parameters:
+    debug: False
     only_translate: False
     goal_dist_tolerance: 1.0
     goal_rotation_tolerance: 0.5235 # 30 degrees
@@ -11,3 +12,5 @@ navigation_waypoints:
     rrt:
       step_dist: 0.5
       line_collision_check_granularity: 0.1
+
+      debug_iteration_time: 0.5
