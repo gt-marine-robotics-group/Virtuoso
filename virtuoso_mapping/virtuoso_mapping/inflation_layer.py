@@ -11,41 +11,30 @@ class InflationLayer:
 
         # x and y are in map frame
 
-        if self.map.info.resolution < self._size:
+        if self._size <= self.map.info.resolution:
+            sizes = [self._size]
+        else:
+            sizes = []
             for i in range(1, int(self._size / self.map.info.resolution) + 1):
-                s = self.map.info.resolution * i
-                points = [
-                    (x + s, y),
-                    (x, y + s),
-                    (x - s, y),
-                    (x, y - s),
-                    (x + s * 0.707, y + s * 0.707),
-                    (x - s * 0.707, y + s * 0.707),
-                    (x - s * 0.707, y - s * 0.707),
-                    (x + s * 0.707, y - s * 0.707)
-                ]
-
-                for point in points:
-                    if self._is_occupied(*point):
-                        return True
-                
-            return False
-
+                sizes.append(self.map.info.resolution * i)
+            if sizes[-1] != self._size:
+                sizes.append(self._size)
         
-        points = [
-            (x + self._size, y),
-            (x, y + self._size),
-            (x - self._size, y),
-            (x, y - self._size),
-            (x + self._size * 0.707, y + self._size * 0.707),
-            (x - self._size * 0.707, y + self._size * 0.707),
-            (x - self._size * 0.707, y - self._size * 0.707),
-            (x + self._size * 0.707, y - self._size * 0.707)
-        ]
+        for s in sizes:
+            points = [
+                (x + s, y),
+                (x, y + s),
+                (x - s, y),
+                (x, y - s),
+                (x + s * 0.707, y + s * 0.707),
+                (x - s * 0.707, y + s * 0.707),
+                (x - s * 0.707, y - s * 0.707),
+                (x + s * 0.707, y - s * 0.707)
+            ]
 
-        for point in points:
-            if self._is_occupied(*point):
-                return True
+            for point in points:
+                if self._is_occupied(*point):
+                    return True
         
         return False
 

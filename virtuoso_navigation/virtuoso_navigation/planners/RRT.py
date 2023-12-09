@@ -111,14 +111,6 @@ class RRT(Planner):
         self.width_m = self.map.info.width * self.map.info.resolution
         self.height_m = self.map.info.height * self.map.info.resolution
 
-        # is_collision = self.is_collision_with_obstacles(
-        #     (self.robot_pose.position.x, self.robot_pose.position.y),
-        #     (goal.position.x, goal.position.y)
-        # )
-
-        # self.debug(f'collision: {is_collision}')
-        # return Path()
-
         self.goal = goal
 
         self.tree = {}
