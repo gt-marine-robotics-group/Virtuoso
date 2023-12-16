@@ -13,13 +13,13 @@
 
 class PclToMapFrameNode : public rclcpp::Node {
 
-    void points_callback(const sensor_msgs::msg::PointCloud2& msg) const {
+    void points_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) const {
 
         geometry_msgs::msg::TransformStamped t;
 
         try {
             t = m_tf_buffer->lookupTransform(
-                std::string("map"), std::string(msg.header.frame_id), rclcpp::Time()
+                std::string("map"), std::string(msg->header.frame_id), rclcpp::Time()
             );
         } catch (const tf2::TransformException& ex) {
             RCLCPP_INFO(this->get_logger(), "Transform failed");
@@ -42,7 +42,7 @@ class PclToMapFrameNode : public rclcpp::Node {
         tf2::Transform transform(q, p);
 
         pcl::PCLPointCloud2 pcl_pc2;
-        pcl_conversions::toPCL(msg, pcl_pc2);
+        pcl_conversions::toPCL(*msg, pcl_pc2);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::fromPCLPointCloud2(pcl_pc2, *cloud);
 
