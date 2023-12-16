@@ -95,25 +95,6 @@ class EuclideanClusteringNode : public rclcpp::Node {
                 }
             }
 
-            visualization_msgs::msg::Marker marker;
-            marker.header.frame_id = msg->header.frame_id;
-            marker.id = j;
-            marker.ns = "perception_ec";
-            marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
-            marker.scale.x = 0.5;
-            marker.color.a = 1.0;
-            marker.color.r = 1.0;
-            marker.color.g = 1.0;
-            marker.color.b = 0.0;
-            
-            add_point_to_marker(marker, bounds.x_min, bounds.y_min, bounds.z_min);
-            add_point_to_marker(marker, bounds.x_min, bounds.y_max, bounds.z_min);
-
-            add_point_to_marker(marker, bounds.x_min, bounds.y_max, bounds.z_max);
-            add_point_to_marker(marker, bounds.x_min, bounds.y_min, bounds.z_max);
-
-            markers.markers[j-1] = marker;
-
             virtuoso_msgs::msg::BoundingBox box;
             
             add_centroid_to_bounding_box(box, *cloud_cluster);
@@ -122,8 +103,32 @@ class EuclideanClusteringNode : public rclcpp::Node {
             add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_max, bounds.z_min);
             add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_max, bounds.z_max);
             add_point_to_bounding_box_corners(box, bounds.x_min, bounds.y_min, bounds.z_max);
+            add_point_to_bounding_box_corners(box, bounds.x_max, bounds.y_min, bounds.z_min);
+            add_point_to_bounding_box_corners(box, bounds.x_max, bounds.y_max, bounds.z_min);
+            add_point_to_bounding_box_corners(box, bounds.x_max, bounds.y_max, bounds.z_max);
+            add_point_to_bounding_box_corners(box, bounds.x_max, bounds.y_min, bounds.z_max);
 
             boxes.boxes[j-1] = box;
+
+            visualization_msgs::msg::Marker marker;
+            marker.header.frame_id = msg->header.frame_id;
+            marker.id = j;
+            marker.ns = "perception_ec";
+            marker.type = visualization_msgs::msg::Marker::CUBE;
+            marker.color.a = 1.0;
+            marker.color.r = 1.0;
+            marker.color.g = 1.0;
+            marker.color.b = 0.0;
+
+            marker.pose.position.x = box.centroid.x;
+            marker.pose.position.y = box.centroid.y;
+            marker.pose.position.z = box.centroid.z;
+
+            marker.scale.x = bounds.x_max - bounds.x_min;
+            marker.scale.y = bounds.y_max - bounds.y_min;
+            marker.scale.z = bounds.z_max - bounds.z_min;
+
+            markers.markers[j-1] = marker;
 
             ++j;
         }

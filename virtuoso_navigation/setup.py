@@ -45,6 +45,7 @@ setup(
             'translate = virtuoso_navigation.translate_node:main',
             'station_keeping = virtuoso_navigation.station_keeping_node:main',
             'rotate = virtuoso_navigation.rotate_node:main',
+            'rrt = virtuoso_navigation.rrt_node:main',
 
             'waypoint_player = virtuoso_navigation.waypoint_player_node:main',
             'multi_tasks_waypoint_player = virtuoso_navigation.multi_tasks_waypoint_player_node:main',
@@ -59,7 +60,8 @@ setup(
             'test_translate = virtuoso_navigation.testing.translate_node:main',
             'test_diamond = virtuoso_navigation.testing.diamond:main',
             'test_station_keeping = virtuoso_navigation.testing.station_keeping:main',
-            'test_circle = virtuoso_navigation.testing.circle:main'
+            'test_circle = virtuoso_navigation.testing.circle:main',
+            'test_rviz_waypoint = virtuoso_navigation.testing.rviz_waypoint:main'
         ],
     },
 )

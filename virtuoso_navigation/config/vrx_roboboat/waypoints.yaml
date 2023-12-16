@@ -1,6 +1,16 @@
 
 navigation_waypoints:
   ros__parameters:
+    debug: False
     only_translate: False
     goal_dist_tolerance: 1.0
     goal_rotation_tolerance: 0.5235 # 30 degrees
+
+    planner: 'RRT' # STRAIGHT, RRT
+    inflation_layer: 1.0
+
+    rrt:
+      step_dist: 0.5
+      line_collision_check_granularity: 0.1
+
+      debug_iteration_time: 0.5
