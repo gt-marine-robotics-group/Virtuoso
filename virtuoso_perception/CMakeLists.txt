@@ -71,6 +71,7 @@ install(PROGRAMS
   virtuoso_perception/dock/find_dock_posts_node.py
   virtuoso_perception/stereo/buoy_stereo_node.py
   virtuoso_perception/stereo/dock_stereo_node.py
+  virtuoso_perception/yolo/yolo_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -80,6 +81,10 @@ install(DIRECTORY
 
 install(DIRECTORY
   config
+  DESTINATION share/${PROJECT_NAME}/)
+
+install(DIRECTORY
+  yolo
   DESTINATION share/${PROJECT_NAME}/)
 
 ament_package()
