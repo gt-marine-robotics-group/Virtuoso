@@ -28,6 +28,12 @@ def generate_launch_description():
             launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(perception, 'launch', 'yolo.launch.py')
+            ),
+            launch_arguments={'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(localization, 'launch', 'ekf.launch.py')),
             launch_arguments= {'usv': usv_config}.items()
         ),
