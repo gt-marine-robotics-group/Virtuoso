@@ -36,6 +36,7 @@ def generate_launch_description():
             name=f'perception_YOLO_{topic[topic.rfind("/") + 1:]}',
             remappings=[
                 ('input', topic + '/image_raw'),
+                ('results', topic + '/yolo_results'),
                 ('yolo_debug', topic + '/yolo_debug')
             ]
         )

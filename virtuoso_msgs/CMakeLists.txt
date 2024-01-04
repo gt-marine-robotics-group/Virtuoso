@@ -31,6 +31,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Contours.msg"
   "msg/BoundingBox.msg"
   "msg/BoundingBoxArray.msg"
+  "msg/YOLOResult.msg"
+  "msg/YOLOResultArray.msg"
   "srv/Channel.srv"
   "srv/Rotate.srv"
   "srv/ImageNoiseFilter.srv"
