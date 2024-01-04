@@ -23,13 +23,12 @@ class YOLONode(Node):
 
         self.threshold = 0.5
 
-        self.image_sub = self.create_subscription(Image, '/wamv/sensors/cameras/front_left_camera_sensor/image_raw', 
+        self.image_sub = self.create_subscription(Image, 'input', 
             self.image_callback, 10)
         
-        self.image_pub = self.create_publisher(Image, 'yolo_results', 10)
+        self.image_pub = self.create_publisher(Image, 'yolo_debug', 10)
     
     def image_callback(self, msg: Image):
-        self.get_logger().info('received image')
         bgr = self.cv_bridge.imgmsg_to_cv2(msg, 'bgr8')
 
         results = self.model(bgr)[0]
