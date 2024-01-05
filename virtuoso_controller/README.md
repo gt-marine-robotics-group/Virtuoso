@@ -10,6 +10,7 @@
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [Parameters](#parameters)
+  - [cmd_generator.yaml](#cmd\_generatoryaml)
   - [pidgains.yaml](#pidgainsyaml)
 - [Tuning the Controller](#tuning-the-controller)
   - [Motor Command Generator](#motor-command-generator)
@@ -57,6 +58,16 @@ The control mixer is what sends individual thruster commands based on target X a
 
 ## Parameters
 
+### cmd_generator.yaml
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| controller_motor_cmd_generator | sim_time | bool | Whether or not running in simulation. Param files within a directory prefixed by `vrx` will have this value set to True. |
+| controller_motor_cmd_generator | motor_config | string | Motor configuration. Currently supports "X" and "H". |
+| controller_motor_cmd_generator | motors_general | string[] | The general motors on the USV. Should be the same along all configs as we do not currently support having more than six motors on a USV. |
+| controller_motor_cmd_generator | motor_angle_topics | string[] | Topics to publish the motor angles to. Only relevant for simulation. |
+| controller_motor_cmd_generator | motor_cmd_topics | string[] | Topics to publish the motor thrusts to. |
+
 ### pidgains.yaml
 
 Note that the PID gain parameters are currently multiplied by the baked-in PID gains in the PID nodes to get the actual PID gains used. So a 0.5 in the config file would result in half the built-in gain.
@@ -78,11 +89,6 @@ Note that the PID gain parameters are currently multiplied by the baked-in PID g
 | controller_velocity_PID | velocity_k_drag_y | float | Feed-forward drag gain factor of velocity PID in the vehicle y direction. |
 | controller_velocity_PID | velocity_k_error_y | float | Velocity error gain factor of velocity PID in the vehicle y direction. |
 | controller_velocity_PID | velocity_ki_y | float | Integral gain factor of velocity PID in the vehicle y direction. |
-
-### cmd_generator.yaml
-| Node | Parameter | Type | Description |
-|------|-----------|------|-------------|
-| controller_motor_cmd_generator | motor_config | string | Name of the motor configuration. Current allowable values "X" or "H". |
 
 ## Tuning the Controller
 
