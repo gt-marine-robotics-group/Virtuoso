@@ -12,6 +12,7 @@
 - [Parameters](#parameters)
   - [ekf.yaml](#ekfyaml)
   - [multi_tasks_waypoint_saver.yaml](#multi\_tasks\_waypoint\_saveryaml)
+  - [sensor_config.yaml](#sensor\_configyaml)
 
 ## Robot Localization
 
@@ -61,3 +62,11 @@ Documentation for the parameters can be found [here](http://docs.ros.org/en/melo
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
 | localization_multi_task_waypoint_saver | num_tasks | int | Number of tasks for which to save waypoints for. |
+
+### sensor_config.yaml
+
+| Node | Parameter | Type | Description |
+|------|-----------|------|-------------|
+| localization_republisher | imu_topic | string | Topic to receive raw IMU data. |
+| localization_republisher | gps_topic | string | Topic to receive raw GPS data. |
+| localization_republisher | gps_vel_topic | string | Topic to receive raw GPS velocity data. |
