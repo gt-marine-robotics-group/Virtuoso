@@ -1,7 +1,6 @@
 # Virtuoso Navigation
 
 ## Contents
-- [Nav2](#nav2)
 - [Virtuoso Navigation Nodes](#virtuoso-navigation-nodes)
   - [waypoints_node.py](#waypoints\_nodepy)
   - [translate_node.py](#translate\_nodepy)
@@ -10,23 +9,21 @@
   - [approach_target_node.py](#approach\_target\_nodepy)
   - [waypoint_player_node.py](#waypoint\_player\_nodepy)
   - [multi_tasks_waypoint_player_node.py](#multi\_tasks\_waypoint\_player\_nodepy)
+- [Planners](#planners)
+  - [Straight Path](#straightpathpy)
+  - [RRT](#rrtpy)
 - [External Subscribed Topics](#external-subscribed-topics)
 - [External Published Topics](#external-published-topics)
 - [External Services](#external-services)
 - [External Actions](#external-actions)
 - [Parameters](#parameters)
-  - [nav2.yaml](#nav2yaml)
   - [waypoints.yaml](#waypointsyaml)
   - [rotate.yaml](#rotateyaml)
-
-## Nav2
-
-Nav2 is an open-source package which is used by our navigation server for global path planning. Nav2 takes in odometry from the localization server and point clouds from the perception server, and it creates a global costmap. When we send it a goal in the map frame, it will generate a sequence of waypoints which the USV will follow. This path is passed to our controller server. Further documentation can be found on the [Nav2 Github](https://github.com/ros-planning/navigation2). 
 
 ## Virtuoso Navigation Nodes
 
 ### waypoints_node.py
-This node takes in a sequence of waypoints in the map frame the USV needs to navigate to. Every time the USV arrives at a waypoint, it will generate a path to the next waypoint through Nav2. When finised with all waypoints, the node will publish a success message.
+This node takes in a sequence of waypoints in the map frame the USV needs to navigate to. Every time the USV arrives at a waypoint, it will generate a path to the next waypoint through one of our planners. When finised with all waypoints, the node will publish a success message.
 
 ### translate_node.py
 This node takes in a point in the base_link frame the USV needs to translate to. The point is transformed to the map frame and then passed into the `waypoints_node` as a single waypoint. When translation has finished, the node will publish a success message.
@@ -51,6 +48,14 @@ When finished with all waypoints, the player will publish a success message.
 
 ### multi_tasks_waypoint_player_node.py
 Check the `virtuoso_localization` documentation on the `multi_tasks_waypoint_saver_node.py` to see how multi-task waypoints are saved. The node takes a request specifying which task's waypoints the USV should navigate through. The waypoints are saved in a `points_{file_num}.yaml` file inside of `~/mrg/semis_waypoints`. If no file_num is specified as a paramter when the node is launched, the node will use the most recent waypoints file (i.e. the one with the highest number). The node will then find the waypoints for the requested task in the file and navigate through them, similar to how the `waypoint_player_node` does. Upon success, the action returns.
+
+## Planners
+
+### StraightPath.py
+This is the planner of last resort. It will simply plan a straight line from the current robot pose to the goal pose, with waypoints spaced 0.2 meters apart. Obstacles will be ignored. 
+
+### RRT.py
+This planner is an implementation of the rapidly exploring random trees algorithm. The tree starting from the current pose grows randomly and avoids any obstacles in the costmap. Once a path to the goal is found, the path is smoothed by removing waypoints which would lead to a new path that does not intersect obstacles. See the `waypoints.yaml` parameter descriptions to see how it can be tuned.
 
 ## External Subscribed Topics
 
@@ -86,17 +91,19 @@ Check the `virtuoso_localization` documentation on the `multi_tasks_waypoint_sav
 
 ## Parameters
 
-### nav2.yaml
-Parameters for tuning Nav2. A full configuration guide can be found [here](https://navigation.ros.org/configuration/index.html). 
-
 ### waypoints.yaml
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| navigation_waypoints | use_nav2 | bool | If true, Nav2 will work as specified above. If false, the waypoint node will not use Nav2 for path planning but will instead create straight line paths; nav2 will also not be launched. |
+| navigation_waypoints | debug | bool | If true, debug messages may be printed to the terminal or sent to debug topics. |
 | navigation_waypoints | only_translate | bool | If true, they waypoint node will send a command to translate to the controller whenever it sends the controller a path. |
 | navigation_waypoints | goal_dist_tolerance | float | The distance from the goal necessary for the waypoint node to decide that it has reached the waypoint. |
 | navigation_waypoints | goal_rotation_tolerance | float | The maximum yaw difference in radians that the USV can be from the target orientation for the USV to be at the waypoint. |
+| navigation_waypoints | planner | string | Planner to use. Valid options currently are "STRAIGHT" and "RRT". |
+| navigation_waypoints | inflation_layer | float | Size of the inflation layer to pad around obstacles. Ensures paths are not too close to obstacles. |
+| navigation_waypoints | rrt.step_dist | float | Size of the maximum step distance in the tree. The step distance is the distance from the new node in the tree to its neighbor. |
+| navigation_waypoints | rrt.line_collision_check_granularity | float | At what granularity to check for collisions along the path to any obstacles. For example, if set to 1, each meter along the path the planner will check for a collision with obstacles to determine if the path is valid. | 
+| navigation_waypoints | rrt.debug_iteration_time | float | When debug is set to true, the RRT planner will publish a tree that can be viewed in RVIZ. To see the tree grow at a slower speed, this parameter should be increased. If set to zero, the planner will run at normal speed. |
 
 ### rotate.yaml
 
