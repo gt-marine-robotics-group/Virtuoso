@@ -3,7 +3,7 @@
 </p>
 
 ## About
-Virtuoso is the GT Marine Robotics Group's ROS2 software stack for the RoboBoat, RobotX, and Virtual RobotX competitions.
+Virtuoso is the GT Marine Robotics Group's ROS 2 software stack for the RoboBoat, RobotX, and Virtual RobotX competitions.
 
 ## System Architecture
 

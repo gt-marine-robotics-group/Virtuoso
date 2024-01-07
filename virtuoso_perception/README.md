@@ -4,8 +4,9 @@
 - [Virtuoso Perception Nodes](#virtuoso-perception-nodes)
   - [lidar_processing/ground_filter_node.cpp](#lidar\_processingground\_filter\_nodecpp)
   - [lidar_processing/euclidean_clustering_node.cpp](#lidar\_processingeuclidean\_clustering\_nodecpp)
-  - [lidar_processing/self_filter_node.py](#lidar\_processingself\_filter\_nodepy)
-  - [lidar_processing/shore_filter_node.py](#lidar\_processingshore\_filter\_nodepy)
+  - [lidar_processing/self_filter_node.cpp](#lidar\_processingself\_filter\_nodecpp)
+  - [lidar_processing/shore_filter_node.cpp](#lidar\_processingshore\_filter\_nodecpp)
+  - [lidar_processing/voxels_node.cpp](#lidar\_processingvoxels\_nodecpp)
   - [camera_processing/resize_node.py](#camera\_processingresize\_nodepy)
   - [camera_processing/noise_filter_node.py](#camera\_processingnoise\_filter\_nodepy)
   - [buoys/buoy_lidar_node.py](#buoysbuoy\_lidar\_nodepy)
@@ -17,6 +18,7 @@
   - [dock/find_dock_posts_node.py](#dockfind\_dock\_posts\_nodepy)
   - [stereo/buoy_stereo_node.py](#stereobuoy\_stereo\_nodepy)
   - [stereo/dock_stereo_node.py](#stereodock\_stereo\_nodepy)
+  - [yolo/yolo_node.py](#yoloyolo\_nodepy)
 - [Other Algorithms of Note](#other-algorithms-of-note)
   - [Density Filter](#clusteringdensity\_filterpy)
   - [Color Filter](#utilsColorRangepy)
@@ -28,8 +30,6 @@
 	- [euclidean_clustering.yaml](#euclidean\_clusteringyaml)
   - [camera_config.yaml](#camera\_configyaml)
   - [lidar_config.yaml](#lidar\_configyaml)
-  - [ray_ground_classifier.yaml](#ray\_ground\_classifieryaml)
-  - [voxel_grid.yaml](#voxel\_gridyaml)
   - [lidar_processing.yaml](#lidar\_processingyaml)
   - [camera_processing.yaml](#camera\_processingyaml)
   - [euclidean_clustering.yaml](#euclidean\_clusteringyaml)
@@ -49,11 +49,14 @@ This node filters the lidar pointcloud which is the ground. On the water, this n
 ### lidar_processing/euclidean_clustering_node.cpp
 This node runs a euclidean clustering algorithm on the filtered point cloud to identify obstacles.
 
-### lidar_processing/self_filter_node.py
+### lidar_processing/self_filter_node.cpp
 This node filters any points within a certain distance of the LIDAR. These points in most cases will be the USV itself.
 
-### lidar_processing/shore_filter_node.py
+### lidar_processing/shore_filter_node.cpp
 This node filters any points less a certain x-values and outside a certain range along the y-axis. This is not necessarily a "shore filter" as it was intending to be, but will filter anything outside of our desired field of view.
+
+### lidar_processing/voxels_node.cpp
+This node takes in Lidar data from the shore filter node and publishes a voxel grid (same PointCloud2 message type). The purpose of the voxel grid is to reduce the number of Lidar points processed by future perception algorithms while preserving the major features of the original point cloud.
 
 ### camera_processing/noise_filter_node.py
 This node removes noise from an image. Because our environment tends to be quite sparse (water with fairly distinct objects on them like buoys), we prefer "over-filtering" noise from an image than not removing enough. Losing small details from incoming image data is not a big deal. Note that this node's service is not typically called, but instead the class is used in a different node in order to avoid sending unnecessarily sending images over the network.
@@ -88,6 +91,9 @@ This node first identifies the buoys in each camera by calling the service found
 ### stereo/dock_stereo_node.py
 This node first identifies the codes of the dock by calling the service in the `find_dock_codes_node` which returns the contours of each code (this is not an external service listed below). Then, similar to buoy stereo, it matches midpoints and does trigonometry to determine to position of the two farthest codes. We can then use these two poses to orient the USV with the dock. Results have been mixed even in simulation, so we will be phasing this out in favor of an outdoor stereo camera.
 
+### yolo/yolo_node.py
+This node uses a YOLOv8 model to detect objects around the USV from a camera. It has not been largely integrated to the rest of Virtuoso yet.
+
 ## Other Algorithms of Note
 
 ### clustering/density_filter.py
@@ -109,6 +115,7 @@ Colors for objects of choice, such as specifically colored buoys or dock codes c
 
 | Topic | Message Type | Frame | Purpose |
 |-------|--------------|-------|---------|
+| /perception/lidar/voxels | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | lidar_link | Voxel grid of the processed lidar data. Used in mapping for obstacle detection.
 | /perception/code | [std_msgs/Int32MultiArray](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Int32MultiArray.html) | N/A | Array of 3 integers representing the color sequence identified. 0 = red, 1 = green, 2 = blue. |
 | /perception/dock_ahead_entrance | [sensor_msgs/PointCloud2](http://docs.ros.org/en/melodic/api/sensor_msgs/html/msg/PointCloud2.html) | base_link | 2 Points representing the 2 endpoints of the entrance ahead. |
 
@@ -132,9 +139,6 @@ Colors for objects of choice, such as specifically colored buoys or dock codes c
 ### euclidean_clustering.yaml
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| perception_euclidean_clustering | voxel_leaf_size.x | float | Set the voxel grid leaf size. |
-| perception_euclidean_clustering | voxel_leaf_size.y | float | Set the voxel grid leaf size. |
-| perception_euclidean_clustering | voxel_leaf_size.z | float | Set the voxel grid leaf size. |
 | perception_euclidean_clustering | cluster_tolerance | float | The maximum distance a point in a cluster can be from its nearest point in the cluster. |
 | perception_euclidean_clustering | min_cluster_size | int | The minimum number of points in a cluster. |
 | perception_euclidean_clustering | max_cluster_size | int | The maximum number of points in a cluster. |
@@ -165,6 +169,10 @@ Colors for objects of choice, such as specifically colored buoys or dock codes c
 | processing_shore_filter | x_min | float | The minimum x-coordinate a point must have in order to not be filtered. For example, an x_min of 0 would filter all points behind the LIDAR. |
 | processing_shore_filter | y_min | float | The minimum y-coordinate a point must have in order to not be filtered. For example, a y_min of 0 would filter all points to the right of the LIDAR. |
 | processing_shore_filter | y_max | float | The maximum y-coordinate a point must have in order to not be filtered. For example, a y_max of 0 would filter all points to the left of the LIDAR. |
+| processing_voxels | debug | bool | Whether to print debug messages to the terminal. |
+| processing_voxels | leaf_size.x | float | Set the voxel grid leaf size. |
+| processing_voxels | leaf_size.y | float | Set the voxel grid leaf size. |
+| processing_voxels | leaf_size.z | float | Set the voxel grid leaf size. |
 
 ## camera_processing.yaml
 | Node | Parameter | Type | Description |
