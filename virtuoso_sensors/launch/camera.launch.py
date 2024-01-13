@@ -85,7 +85,7 @@ def generate_launch_description():
                 )
             )
 
-        for i, frame in enumerate(camera_data['camera_config']['all_camera_base_topics']):
+        for i, topic in enumerate(camera_data['camera_config']['all_camera_base_topics']):
             ld.append(
                 Node(
                     package='virtuoso_sensors',
