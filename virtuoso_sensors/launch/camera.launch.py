@@ -85,4 +85,18 @@ def generate_launch_description():
                 )
             )
 
+        for i, topic in enumerate(camera_data['camera_config']['all_camera_base_topics']):
+            ld.append(
+                Node(
+                    package='virtuoso_sensors',
+                    executable='camera_republish',
+                    name=f'{topic[topic.rfind("/") + 1:]}_republish',
+                    remappings=[
+                        ('input', f'{topic}/image_raw'),
+                        ('output', f'{topic}/image_raw/best_effort')
+                    ]
+                )
+            )
+
+
     return LaunchDescription(ld)
