@@ -12,11 +12,15 @@ from ament_index_python.packages import get_package_share_directory
 class YOLONode(Node):
 
     def __init__(self):
-        super().__init__('YOLO')
+        super().__init__('perception_YOLO')
+
+        self.declare_parameters(namespace='', parameters=[
+            ('usv', '')
+        ])
 
         pkg_share = get_package_share_directory('virtuoso_perception')
 
-        model_path = pkg_share + '/yolo/model.pt'
+        model_path = pkg_share + '/yolo/' + self.get_parameter('usv').value + '/model.pt'
 
         self.cv_bridge = CvBridge()
 
