@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float32
+from std_msgs.msg import Float32, String
 import tf_transformations
 from .velocity_pid import VelocityPID
 
@@ -33,6 +33,11 @@ class VelocityPIDNode(Node):
             '/controller/velocity_pid/targetForceX', 10)
         self.target_force_y_pub = self.create_publisher(Float32, 
             '/controller/velocity_pid/targetForceY', 10)
+
+        self.control_mode = 'waypointing'
+
+        self.control_mode_sub =  self.create_subscription(String, 'controller_mode', 
+            self.control_mode_callback, 10)
         
         #subscribe to odometry from localization
         self.odom_subscriber = self.create_subscription(
@@ -47,13 +52,31 @@ class VelocityPIDNode(Node):
             '/controller/cmd_vel',
             self.cmd_vel_callback,
             10)    
+        
+        self.manual_cmd_vel_subscriber = self.create_subscription(
+            Twist,
+            '/controller/manual/cmd_vel',
+            self.manual_cmd_vel_callback,
+            10
+        )
 
         self.create_timer(0.1, self.run_pid)
+    
+    def control_mode_callback(self, msg:String):
+        self.control_mode = msg.data
         
     def odometry_callback(self, msg:Odometry):
         self.pid.state_estimate = msg
     
     def cmd_vel_callback(self, msg:Twist):
+        if self.control_mode != 'waypointing': return
+
+        self.pid.target_twist = msg
+        self.pid.received_cmd_vel = True
+    
+    def manual_cmd_vel_callback(self, msg:Twist):
+        if self.control_mode != 'manual': return
+
         self.pid.target_twist = msg
         self.pid.received_cmd_vel = True
 

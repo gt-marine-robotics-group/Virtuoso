@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
-from std_msgs.msg import Float32, Float64
+from std_msgs.msg import Float32, Float64, String
 from .motor_cmd_generator import MotorCmdGenerator
 
 class MotorCmdGeneratorNode(Node):
@@ -19,6 +19,9 @@ class MotorCmdGeneratorNode(Node):
         ])
 
         self.generator = MotorCmdGenerator(sim_time=self.get_parameter('sim_time').value, motor_config=self.get_parameter('motor_config').value)
+
+        self.control_mode_sub =  self.create_subscription(String, 'controller_mode', 
+            self.control_mode_callback, 10)
         
         self.navigate_to_point_subscriber = self.create_subscription(
             Bool,
@@ -50,6 +53,8 @@ class MotorCmdGeneratorNode(Node):
             'controller/velocity_pid/targetForceY',
             self.vel_y_callback,
             10)  
+
+        self.control_mode = 'waypointing'
         
         self.MOTOR_MSG_TYPE = Float64 if self.get_parameter('sim_time').value else Float32
         self.pubs = dict() 
@@ -60,6 +65,9 @@ class MotorCmdGeneratorNode(Node):
                 self.get_parameter('motor_cmd_topics').value[i], 10)
                 
         self.create_timer(0.1, self.timer_callback)
+    
+    def control_mode_callback(self, msg:String):
+        self.control_mode = msg.data
 
     def navigate_to_point_callback(self, msg:Bool):
         self.generator.navigate_to_point = msg.data
@@ -80,6 +88,9 @@ class MotorCmdGeneratorNode(Node):
         self.generator.vel_force_y = msg.data
         
     def timer_callback(self):
+        if self.control_mode == 'manual':
+            self.generator.navigate_to_point = False
+
         commands = self.generator.run()
 
         if commands is None:
