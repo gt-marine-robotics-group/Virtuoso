@@ -36,7 +36,7 @@ class VelocityPIDNode(Node):
 
         self.control_mode = 'waypointing'
 
-        self.control_mode_sub =  self.create_subscription(String, 'controller_mode', 
+        self.control_mode_sub =  self.create_subscription(String, '/controller_mode', 
             self.control_mode_callback, 10)
         
         #subscribe to odometry from localization

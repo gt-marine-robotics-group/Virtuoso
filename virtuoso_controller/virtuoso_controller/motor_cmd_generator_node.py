@@ -20,7 +20,7 @@ class MotorCmdGeneratorNode(Node):
 
         self.generator = MotorCmdGenerator(sim_time=self.get_parameter('sim_time').value, motor_config=self.get_parameter('motor_config').value)
 
-        self.control_mode_sub =  self.create_subscription(String, 'controller_mode', 
+        self.control_mode_sub =  self.create_subscription(String, '/controller_mode', 
             self.control_mode_callback, 10)
         
         self.navigate_to_point_subscriber = self.create_subscription(
@@ -90,6 +90,7 @@ class MotorCmdGeneratorNode(Node):
     def timer_callback(self):
         if self.control_mode == 'manual':
             self.generator.navigate_to_point = False
+            self.generator._not_ready = False
 
         commands = self.generator.run()
 

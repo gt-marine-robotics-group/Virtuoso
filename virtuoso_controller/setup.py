@@ -53,6 +53,7 @@ setup(
             'test_right = virtuoso_controller.testing.test_right:main',
             'test_yaw_left = virtuoso_controller.testing.test_yaw_left:main',
             'test_yaw_right = virtuoso_controller.testing.test_yaw_right:main',
+            'test_manual = virtuoso_controller.testing.test_manual:main'
         ],
     },
 )

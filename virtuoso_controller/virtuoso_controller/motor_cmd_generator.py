@@ -75,7 +75,7 @@ class MotorCmdGenerator:
                 target_force_x = self.vel_force_x
                 target_force_y = self.vel_force_y
         #always use basic PID torque commands
-        target_torque = self.basic_torque
+        target_torque = self.basic_torque if self.basic_torque is not None else 0
         
         #X drive configuration
         if (self.motor_config == "X"):        
