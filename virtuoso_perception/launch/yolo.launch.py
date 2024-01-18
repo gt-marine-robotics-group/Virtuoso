@@ -34,6 +34,9 @@ def generate_launch_description():
             package='virtuoso_perception',
             executable='yolo_node.py',
             name=f'perception_YOLO_{topic[topic.rfind("/") + 1:]}',
+            parameters=[
+                {'usv': usv_config_str}
+            ],
             remappings=[
                 ('input', topic + '/image_raw'),
                 ('results', topic + '/yolo_results'),
