@@ -1,31 +1,38 @@
 
 camera_config:
-  # Needed for virtuoso_sensors
+  all_camera_types: [
+    "oakd",
+    # "usb",
+    # "usb"
+  ]
   all_camera_base_topics: [
-    "/cameras/front_left_camera", # /dev/video0
-    "/cameras/front_right_camera" # /dev/video1
+    "oak/rgb"
+    # "/cameras/front_left_camera", # /dev/video0
+    # "/cameras/front_right_camera" # /dev/video1
   ]
   all_camera_matrices: [
-    # [442.373, 0.0, 303.131, 0.0, 442.373, 226.466, 0.0, 0.0, 1.0],
-    # [442.373, 0.0, 303.131, 0.0, 442.373, 226.466, 0.0, 0.0, 1.0]
-    [590.837708, 0.000000, 270.523309, 0.000000, 590.837708, 225.113157, 0.0, 0.0, 1.0],
-    [590.837708, 0.000000, 270.523309, 0.000000, 590.837708, 225.113157, 0.0, 0.0, 1.0]
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0] # oakd will publish its own matrix, so this is just a placeholder
+    # [590.837708, 0.000000, 270.523309, 0.000000, 590.837708, 225.113157, 0.0, 0.0, 1.0],
+    # [590.837708, 0.000000, 270.523309, 0.000000, 590.837708, 225.113157, 0.0, 0.0, 1.0]
   ]
   all_camera_transforms: [ # from base_link
-    [1.0, 0.11, 0.1], # [x, y, z] translation, assume no rotation
-    [1.0, -0.09, 0.1]
+    [1.0, 0.0, 0.1]
+    # [1.0, 0.11, 0.1], # [x, y, z] translation, assume no rotation
+    # [1.0, -0.09, 0.1]
   ]
   all_camera_frames: [
-    "front_left_camera_link",
-    "front_right_camera_link"
+    "oak"
+    # "front_left_camera_link",
+    # "front_right_camera_link"
   ]
 
-  # Needed for virtuoso_perception
   bow_camera_base_topics: [
-    "/cameras/front_left_camera",
-    "/cameras/front_right_camera"
+    "oak/rgb"
+    # "/cameras/front_left_camera",
+    # "/cameras/front_right_camera"
   ]
   bow_camera_frames: [
-    "front_left_camera_link",
-    "front_right_camera_link"
+    "oak"
+    # "front_left_camera_link",
+    # "front_right_camera_link"
   ]
