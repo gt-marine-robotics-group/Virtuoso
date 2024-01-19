@@ -1,6 +1,10 @@
 
 camera_config:
   # Needed for virtuoso_sensors
+  all_camera_types: [
+    "usb",
+    "usb"
+  ]
   all_camera_base_topics: [
     "/cameras/front_left_camera", # /dev/video0
     "/cameras/front_right_camera" # /dev/video1
