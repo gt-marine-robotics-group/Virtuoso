@@ -11,7 +11,6 @@ import os
 def generate_launch_description():
 
     pkg_share = get_package_share_directory('virtuoso_sensors')
-    oakd_share = get_package_share_directory('depthai_ros_driver')
 
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
@@ -35,9 +34,6 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/camera.launch.py')),
             launch_arguments={'usv': usv_config}.items()
         ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/rgbd_pcl.launch.py'))
-        ),
         Node(
             package='tf2_ros',
             executable='static_transform_publisher',
@@ -45,4 +41,3 @@ def generate_launch_description():
             arguments=['0', '0', '0', '0', '0', '0', 'base_link', 'wamv/base_link'],
         )
     ])
-
