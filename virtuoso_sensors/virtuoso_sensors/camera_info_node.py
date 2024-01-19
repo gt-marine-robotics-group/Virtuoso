@@ -10,7 +10,7 @@ class CameraInfoNode(Node):
         self.declare_parameters(namespace='', parameters=[
             ('base_topic', ''),
             ('frame', ''),
-            ('matrix', [])
+            ('matrix', [0.0])
         ])
 
         self.empty_info_sub = self.create_subscription(CameraInfo, 
