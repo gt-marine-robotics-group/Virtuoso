@@ -1,0 +1,34 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/advayb/mrg/dev_ws/install/virtuoso_autonomy/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_sensors/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_perception/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_navigation/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_msgs/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_mapping/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_localization/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_controller/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_auxiliary/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/training_msgs/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/training_localization/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/training_controller/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/advayb/mrg/dev_ws/install/virtuoso_autonomy/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_sensors/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_perception/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_navigation/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_msgs/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_mapping/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_localization/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_controller/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/virtuoso_auxiliary/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/training_msgs/local/lib/python3.10/dist-packages",
+        "/home/advayb/mrg/dev_ws/install/training_localization/lib/python3.10/site-packages",
+        "/home/advayb/mrg/dev_ws/install/training_controller/lib/python3.10/site-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages"
+    ]
+}

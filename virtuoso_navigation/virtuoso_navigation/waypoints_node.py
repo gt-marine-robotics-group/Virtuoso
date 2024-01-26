@@ -123,16 +123,43 @@ class Waypoints(Node):
         )
         self.path.header.frame_id = 'map'
 
+    def recalc_path(self):
+        self.get_logger().info('Recreating path, RRT collision')
+        self.path = self.planner.create_path(
+            Planner.pose_deep_copy(self.waypoints.poses[-1].pose)
+        )
+        self.path.header.frame_id = 'map'
+    
+    def curr_RRT_path_collision(self):
+        if not isinstance(self.planner, RRT): return False
+        completed : int = 0
+        for pose in self.path.poses:
+            if completed < self.waypoints_completed:
+                completed += 1
+                continue
+        
+            pose : Pose = pose.pose
+            x : float = pose.position.x
+            y : float = pose.position.y
+
+            if self.planner.is_occupied(x, y):
+                return True
+        return False
+            
+
     def navigate(self):
 
         if self.planner.robot_pose is None or self.planner.map is None or self.waypoints is None:
             return
-
+        
         if not self.path:
             if self.waypoints_completed < len(self.waypoints.poses):
                 self.calc_path() 
             return        
         
+        if self.curr_RRT_path_collision():
+            self.path = self.recalc_path()
+
         self.path_pub.publish(self.path)
 
         if self.within_goal_tolerance(self.planner.robot_pose, self.waypoints.poses[self.waypoints_completed].pose):
