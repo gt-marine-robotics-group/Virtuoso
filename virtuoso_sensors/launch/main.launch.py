@@ -5,7 +5,8 @@ from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
+from launch.conditions import IfCondition
 import os
 
 def generate_launch_description():
@@ -15,8 +16,12 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
+    imu_arg = DeclareLaunchArgument('imu', default_value='gx3')
+    imu_config = LaunchConfiguration('imu', default='gx3')
+
     return LaunchDescription([
         usv_arg,
+        imu_arg,
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/lidar.launch.py')),
@@ -28,11 +33,12 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/imu.launch.py')),
-            launch_arguments={'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config}.items(),
+            condition=IfCondition(PythonExpression(["'", imu_config, "' == 'gx3'"]))
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/camera.launch.py')),
-            launch_arguments={'usv': usv_config}.items()
+            launch_arguments={'usv': usv_config, 'imu': imu_config}.items()
         ),
         Node(
             package='tf2_ros',

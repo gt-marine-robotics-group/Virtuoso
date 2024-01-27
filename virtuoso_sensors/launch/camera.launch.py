@@ -18,14 +18,21 @@ def generate_launch_description():
     usv_arg = DeclareLaunchArgument('usv')
     usv_config = LaunchConfiguration('usv')
 
+    imu_arg = DeclareLaunchArgument('imu', default_value='gx3')
+    imu_config = LaunchConfiguration('imu', default='gx3')
+
     usv_config_str = None
+    imu_config_str = 'gx3'
     for arg in sys.argv:
         if arg.startswith('usv:='):
             usv_config_str = arg.split(':=')[1]
+        elif arg.startswith('imu:='):
+            imu_config_str = arg.split(':=')[1]
 
     ld = list()
 
     ld.append(usv_arg)
+    ld.append(imu_arg)
 
     with open(f'{perception_share}/config/{usv_config_str}/camera_config.yaml', 'r') \
         as stream:
@@ -67,6 +74,14 @@ def generate_launch_description():
                     PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/rgbd_pcl.launch.py')),
                 )
             )
+            if imu_config_str == 'oak': # using oak-d imu
+                ld.append(Node(
+                    package='virtuoso_sensors',
+                    executable='gx3_republish',
+                    remappings=[
+                        ('/imu/data', '/oak/imu/data')
+                    ]
+                ))
     
     for i, frame in enumerate(camera_data['camera_config']['all_camera_frames']):
         ld.append(
