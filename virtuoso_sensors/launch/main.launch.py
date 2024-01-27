@@ -34,7 +34,7 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/imu.launch.py')),
             launch_arguments={'usv': usv_config}.items(),
-            condition=IfCondition(PythonExpression(["'", imu_config, "' == 'gx3"]))
+            condition=IfCondition(PythonExpression(["'", imu_config, "' == 'gx3'"]))
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(pkg_share, 'launch/camera.launch.py')),
