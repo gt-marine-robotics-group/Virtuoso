@@ -22,7 +22,7 @@ def generate_launch_description():
     imu_config = LaunchConfiguration('imu', default='gx3')
 
     usv_config_str = None
-    imu_config_str = None
+    imu_config_str = 'gx3'
     for arg in sys.argv:
         if arg.startswith('usv:='):
             usv_config_str = arg.split(':=')[1]
@@ -69,18 +69,12 @@ def generate_launch_description():
                 )
             )
         elif cam_type == 'oakd':
-            if imu_config_str == 'gx3':
-                ld.append(
-                    IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/rgbd_pcl.launch.py')),
-                    )
+            ld.append(
+                IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/rgbd_pcl.launch.py')),
                 )
-            else: # using the oak-d imu
-                ld.append(
-                    IncludeLaunchDescription(
-                        PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/camera.launch.py'))
-                    )
-                )
+            )
+            if imu_config_str == 'oak': # using oak-d imu
                 ld.append(Node(
                     package='virtuoso_sensors',
                     executable='gx3_republish',
