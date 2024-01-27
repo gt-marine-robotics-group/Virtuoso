@@ -29,6 +29,7 @@ class gx3Republish(Node):
         
     def imu_callback(self, msg):
         self.imu_data = msg
+        self.imu_data.header.frame_id = 'imu_frame'
         self.imuPublisher.publish(self.imu_data)
 
 
