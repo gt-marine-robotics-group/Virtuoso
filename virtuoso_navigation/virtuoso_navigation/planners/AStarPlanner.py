@@ -3,42 +3,33 @@ from collections import defaultdict
 import numpy as np
 from typing import Optional, Callable
 from Planner import Planner
-from geometry_msgs.msg import Pose
-from nav_msgs.msg import OccupancyGrid, Path
+from geometry_msgs.msg import Pose, PoseStamped
+from nav_msgs.msg import Path
 import heapq
 
 import math
-from enum import Enum
 
 MAX_INT32 = np.iinfo(np.int32).max
-
-
-class SquareTypes(Enum):
-    """
-    Holds the values that will be used while a_star calculates the optimal path
-    """
-
-    EMPTY_SQUARE = 0
-    OBSTACLE = -1
-    OPEN_SET = 1
-    CLOSED_SET = 2
-
 
 class AStarPlanner(Planner):
     def __init__(self, inflation_layer):
         super().__init__(inflation_layer)
 
     def create_path(self, goal: Pose) -> Path:
-        start_pos: tuple[int, int] = self.map_pos(
+        start_pos: tuple[int, int] = self.to_map_pos(
             self.robot_pose.position.x, self.robot_pose.position.y
         )
-        end_pos: tuple[int, int] = self.map_pos(goal.position.x, goal.position.y)
-        width = self.map.info.width
-        height = self.map.info.height
-        grid = np.reshape(np.array(self.map.data), (height, width))
+        end_pos: tuple[int, int] = self.to_map_pos(goal.position.x, goal.position.y)
+        grid = np.reshape(np.array(self.map.data), (self.map.info.height, self.map.info.width))
         grid_path: list[tuple[int, int]] = self.a_star(grid, start_pos, end_pos)
-
-        return self.construct_path(grid_path)
+        ros_path = Path()
+        for node in grid_path:
+            node = self.to_real_pos(node)
+            p = PoseStamped()
+            p.pose.position.x = node[0]
+            p.pose.position.y = node[1]
+            ros_path.poses.append(p)
+        return ros_path
 
     # Heutistic functions for a_star
     @staticmethod
@@ -54,8 +45,8 @@ class AStarPlanner(Planner):
 
         return np.sqrt(a * a + b * b)
 
-    # Util functions for other nodes to interface with
-    def map_pos(self, pos_x: Optional[float] = 0, pos_y: Optional[float] = 0):
+    # convert x, y in meters to map coords
+    def to_map_pos(self, pos_x: Optional[float] = 0, pos_y: Optional[float] = 0):
         grid_x, grid_y = 0, 0
         if self.map.info.resolution is float:
             grid_x = math.floor(pos_x / self.map.info.resolution)
@@ -70,6 +61,14 @@ class AStarPlanner(Planner):
             raise Exception("invalid grid_x or grid_y")
 
         return (grid_x, grid_y)
+    
+    # convert map coords to x, y in meters
+    def to_real_pos(self, grid_x, grid_y):
+        grid_x -= self.map.info.width // 2
+        grid_y = self.map.info.height // 2 - grid_y
+        grid_x *= self.map.info.resolution
+        grid_y *= self.map.info.resolution
+        return (grid_x, grid_y)
 
     def a_star(
         self,
@@ -78,90 +77,50 @@ class AStarPlanner(Planner):
         end_pos: tuple[int, int],
         h_func: Callable = euclidian_dist,
     ) -> list[tuple[int, int]]:
-        came_frm = dict()
-        g_scor = defaultdict(lambda: float("inf"))
-        g_scor[start_pos] = 0
-        f_scor = defaultdict(lambda: float("inf"))
-        f_scor[start_pos] = h_func(start_pos)
-        open_heap = [(f_scor, start_pos)]
+        def reconstruct_path(came_from, current):
+            total_path = {current}
+            while current in came_from:
+                current = came_from[current]
+                total_path.append(current)
+            return total_path[::-1]
+        def is_valid_neighbor(map_array: np.array, neighbor: tuple[int, int]):
+            for i in range(len(neighbor)):
+                if neighbor[i] < 0 or neighbor[i] >= map_array.shape[i]:
+                    return False
+            if map_array[neighbor] > 0:
+                return False
+            return True
+        dirs = ((-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1))
+        came_from = dict()
+        # g_score[pos] is the cost of the cheapest path from start_pos to currently known pos
+        g_score = defaultdict(lambda: float("inf"))
+        g_score[start_pos] = 0
+        # f_score[pos] = g_score[pos] + h_func(pos)
+        f_score = defaultdict(lambda: float("inf"))
+        f_score[start_pos] = h_func(start_pos)
+
+        # initially, only start node is known. Implemented via min heap and set (for O(log n) pop and O(n) heap)
+        open_heap = [(f_score, start_pos)]
+        open_set = {start_pos}
 
         while open_heap:
-            f, pos = heapq.heappop(open_heap)
-            if pos == end_pos:
-                return 0
-
-        open_close_set: np.ndarray = np.full(map_array.shape, np.NaN)
-        open_close_set[start_pos] = SquareTypes.OPEN_SET
-
-        came_from: np.ndarray = np.full(map_array.shape, np.NaN, dtype=np.int32)
-
-        g_score = np.full(map_array.shape, MAX_INT32, dtype=np.int32)
-        g_score[start_pos] = 0
-
-        f_score = np.full(map_array.shape, np.Inf)
-        f_score[start_pos] = h_func(start_pos, end_pos)
-
-        while np.any(open_close_set == SquareTypes.OPEN_SET):
-            f_mask = f_score.copy()
-            f_mask[open_close_set != 1] = np.Inf
-
-            current = np.unravel_index(np.argmin(f_mask), map_array)
-
-            if current == end_pos:
-                return self.reconstruct_gridpath(
-                    came_from, start_pos, end_pos, map_array.shape
-                )
-
-            open_close_set[current] = 2
-
-            for i in range(-1, 2):
-                for j in range(-1, 2):
-                    neighbor = (current[0] + i, current[1] + j)
-                    if (i == 0 and j == 0) or not self.is_valid_neighbor(
-                        map_array, neighbor
-                    ):
-                        continue
-
-                    grid_dist = 1 if (i == 0 or j == 0) else np.sqrt(2)
-
-                    temp_g = g_score[current] + grid_dist
-
-                    if temp_g < g_score[neighbor]:
-                        came_from[neighbor] = np.ravel_multi_index(
-                            current, map_array.shape
-                        )
-
-                        g_score[neighbor] = temp_g
-                        f_score[neighbor] = temp_g + h_func(neighbor, end_pos)
-
-                        open_close_set[neighbor] = 1
-
+            _, pos = heapq.heappop(open_heap)
+            open_set.remove(pos)
+            if pos == end_pos: # goal reached
+                return reconstruct_path(came_from, pos)
+            for i, j in dirs:
+                neighbor = (pos[0] + i, pos[1] + j)
+                if not is_valid_neighbor(map_array, neighbor):
+                    continue
+                grid_dist = 1 if (i == 0 or j == 0) else np.sqrt(2) # if dir is a side, then distance 1, if corner than distance sqrt 2
+                temp_gscore = g_score[pos] + grid_dist
+                if temp_gscore < g_score[neighbor]:
+                    # this path to neighbor is better than any previous one
+                    came_from[neighbor] = pos
+                    g_score[neighbor] = temp_gscore
+                    f_score[neighbor] = temp_gscore + h_func(neighbor)
+                    if neighbor not in open_set:
+                        open_heap.heappush((f_score[neighbor], neighbor))
+                        open_set.add(neighbor)
+        # open set empty but goal never reached
         return None
-
-    def is_valid_neighbor(map_array: np.array, neighbor: tuple[int, int]):
-        for i in range(len(neighbor)):
-            if neighbor[i] < 0 or neighbor[i] >= map_array.shape[i]:
-                return False
-
-        if map_array[neighbor] == SquareTypes.OBSTACLE:
-            return False
-
-        return True
-
-    def reconstruct_gridpath(
-        came_from: np.array,
-        start_pos: tuple[int, int],
-        end_pos: tuple[int, int],
-        grid_shape: tuple[int, int],
-    ) -> list[tuple[int, int]]:
-        current = end_pos
-        path = [current]
-
-        while path[-1] != start_pos:
-            current = np.unravel_index(came_from[current], grid_shape)
-            path.append(current)
-
-        return path
-
-    def construct_path(grid_path: list[tuple[int, int]]) -> Path:
-        pass
