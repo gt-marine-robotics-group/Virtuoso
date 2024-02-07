@@ -92,6 +92,9 @@ class MotorCmdGeneratorNode(Node):
             self.generator.navigate_to_point = False
             self.generator._not_ready = False
 
+            if self.generator.vel_force_x is None or self.generator.vel_force_y is None:
+                return
+
         commands = self.generator.run()
 
         if commands is None:

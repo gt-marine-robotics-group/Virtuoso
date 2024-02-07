@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float32
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 import tf_transformations
 import numpy
 from .basic_pid import BasicPID
@@ -60,7 +60,27 @@ class BasicPIDNode(Node):
             self.navigate_to_point_callback,
             10)       
 
+        self.control_mode = 'waypointing'
+
+        self.control_mode_sub =  self.create_subscription(String, '/controller_mode', 
+            self.control_mode_callback, 10)
+        
+        self.manual_torque = None
+
+        self.manual_cmd_torque_subscriber = self.create_subscription(
+            Float32,
+            '/controller/manual/cmd_torque',
+            self.manual_cmd_torque_callback,
+            10
+        )
+
         self.timer = self.create_timer(0.1, self.run_pid)
+
+    def control_mode_callback(self, msg: String):
+        self.control_mode = msg.data
+    
+    def manual_cmd_torque_callback(self, msg: Float32):
+        self.manual_torque = msg
 
     def navigate_to_point_callback(self, msg:Bool):
         self.pid.navigate_to_point = msg.data
@@ -73,6 +93,11 @@ class BasicPIDNode(Node):
         self.pid.received_waypoint = True
 
     def run_pid(self):
+
+        if self.control_mode == 'manual':
+            if self.manual_torque is not None:
+                self.target_torque_pub.publish(self.manual_torque)
+            return
 
         x, y, torque = self.pid.run()
 
