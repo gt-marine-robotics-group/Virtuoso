@@ -93,6 +93,7 @@ class MotorCmdGeneratorNode(Node):
             self.generator._not_ready = False
 
             if self.generator.vel_force_x is None or self.generator.vel_force_y is None:
+                self.get_logger().info('no vel force x or y in motor cmd generator')
                 return
 
         commands = self.generator.run()

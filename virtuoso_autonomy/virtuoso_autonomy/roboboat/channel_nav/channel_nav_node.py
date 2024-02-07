@@ -35,9 +35,9 @@ class ChannelNavNode(Node):
         self.yolo_results = msg 
     
     def timer_callback(self):
-        if not self.control_mode_is_set:
-            self.control_mode_pub.publish(String(data='manual'))
-            self.control_mode_is_set = True
+        # if not self.control_mode_is_set:
+        self.control_mode_pub.publish(String(data='manual'))
+            # self.control_mode_is_set = True
         
         if self.yolo_results is None:
             self.get_logger().info('No YOLO results')
@@ -47,7 +47,65 @@ class ChannelNavNode(Node):
             self.get_logger().info('No Camera Info')
             return
         
-        self.get_logger().info(f'results: {self.yolo_results}')
+        # self.get_logger().info(f'results: {self.yolo_results}')
+
+        largest_green = {
+            'size': 0,
+            'x': 0,
+            'y': 0
+        }
+        largest_red = {
+            'size': 0,
+            'x': 0,
+            'y': 0
+        }
+
+        for buoy in self.yolo_results.results:
+            if 'green' not in buoy.label and 'red' not in buoy.label: continue
+
+            x = (buoy.x1 + buoy.x2) / 2
+            y = (buoy.y1 + buoy.y2) / 2
+            size = abs(buoy.x1 - buoy.x2) * abs(buoy.y1 - buoy.y2)
+
+            if 'green' in buoy.label:
+                if size > largest_green['size']:
+                    largest_green = {'x': x, 'y': y, 'size': size}
+            
+            if 'red' in buoy.label:
+                if size > largest_red['size']:
+                    largest_red = {'x': x, 'y': y, 'size': size}
+        
+        if largest_red is None and largest_green is None:
+            self.get_logger().info('Could not find red or green buoy')
+            return
+
+        cam_size = self.cam_info.width * self.cam_info.height
+        
+        twist = Twist()
+        torque = Float32()
+
+        if largest_green is None:
+            torque.data = -1.0
+            twist.linear.y =  -1.0
+            twist.linear.x = largest_red['size'] / (cam_size / 4)
+        elif largest_red is None:
+            torque.data = 1.0
+            twist.linear.y = 1.0
+            twist.linear.x = largest_green['size'] / (cam_size / 4)
+        else:
+            horz_red = (self.cam_info.width / 2) - largest_red['x']
+            horz_green = largest_green['x'] - (self.cam_info.width / 2)
+
+
+            torque.data = (horz_red - horz_green) / (self.cam_info.width / 2)
+            if horz_red > horz_green:
+                twist.linear.y = 1 - (horz_green / horz_red)
+            else:
+                twist.linear.y = (1 - (horz_red / horz_green)) * -1
+            twist.linear.x = (largest_green['size'] + largest_red['size']) / (self.cam_info.width / 2)
+
+        self.torque_pub.publish(torque)
+        self.vel_pub.publish(twist)
 
 
 def main(args=None):
