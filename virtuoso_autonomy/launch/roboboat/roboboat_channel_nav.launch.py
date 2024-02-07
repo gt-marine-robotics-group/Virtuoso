@@ -36,7 +36,8 @@ def generate_launch_description():
             executable='roboboat_channel_nav',
             parameters=[channel_nav_config_file],
             remappings=[
-                ('yolo_results', f'{topic}/yolo_results')
+                ('yolo_results', f'{topic}/yolo_results'),
+                ('camera_info', f'{topic}/camera_info')
             ]
         )
     ])
