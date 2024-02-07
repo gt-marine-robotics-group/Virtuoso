@@ -14,10 +14,10 @@
 
 class GroundFilterNode : public rclcpp::Node {
 
-    void points_sub_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) const 
+    void points_sub_callback(const sensor_msgs::msg::PointCloud2& msg) const 
     {
         pcl::PCLPointCloud2 pcl_pc2;
-        pcl_conversions::toPCL(*msg, pcl_pc2);
+        pcl_conversions::toPCL(msg, pcl_pc2);
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::fromPCLPointCloud2(pcl_pc2, *cloud);
 
@@ -42,7 +42,7 @@ class GroundFilterNode : public rclcpp::Node {
 
         sensor_msgs::msg::PointCloud2 pub_msg;
         pcl::toROSMsg(*cloud.get(), pub_msg);
-        pub_msg.header.frame_id = msg->header.frame_id;
+        pub_msg.header.frame_id = msg.header.frame_id;
         m_nonground_pub->publish(pub_msg);
     }
 

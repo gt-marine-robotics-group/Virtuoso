@@ -28,10 +28,10 @@ struct ClusterBounds {
 
 class EuclideanClusteringNode : public rclcpp::Node {
 
-    void points_callback(const sensor_msgs::msg::PointCloud2::SharedPtr msg) const {
+    void points_callback(const sensor_msgs::msg::PointCloud2& msg) const {
 
         pcl::PCLPointCloud2 pcl_pc2; 
-        pcl_conversions::toPCL(*msg, pcl_pc2);
+        pcl_conversions::toPCL(msg, pcl_pc2);
         pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::fromPCLPointCloud2(pcl_pc2, *temp_cloud);
 
@@ -111,7 +111,7 @@ class EuclideanClusteringNode : public rclcpp::Node {
             boxes.boxes[j-1] = box;
 
             visualization_msgs::msg::Marker marker;
-            marker.header.frame_id = msg->header.frame_id;
+            marker.header.frame_id = msg.header.frame_id;
             marker.id = j;
             marker.ns = "perception_ec";
             marker.type = visualization_msgs::msg::Marker::CUBE;
