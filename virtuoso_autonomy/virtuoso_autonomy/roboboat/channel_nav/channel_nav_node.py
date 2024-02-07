@@ -84,11 +84,13 @@ class ChannelNavNode(Node):
         twist = Twist()
         torque = Float32()
 
-        if largest_green is None:
+        if largest_green['size'] == 0:
+            self.get_logger().info('largest green none')
             torque.data = -1.0
             twist.linear.y =  -1.0
             twist.linear.x = largest_red['size'] / (cam_size / 4)
-        elif largest_red is None:
+        elif largest_red['size'] == 0:
+            self.get_logger().info('largest red none')
             torque.data = 1.0
             twist.linear.y = 1.0
             twist.linear.x = largest_green['size'] / (cam_size / 4)
@@ -106,6 +108,9 @@ class ChannelNavNode(Node):
 
         self.torque_pub.publish(torque)
         self.vel_pub.publish(twist)
+
+        self.get_logger().info(f'torque: {torque}')
+        self.get_logger().info(f'twist: {twist}')
 
 
 def main(args=None):
