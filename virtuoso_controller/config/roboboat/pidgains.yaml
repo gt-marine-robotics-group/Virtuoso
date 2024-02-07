@@ -1,6 +1,6 @@
 controller_basic_PID:
   ros__parameters:
-    basic_kp_x: 0.8
+    basic_kp_x: 0.1
     basic_kd_x: 0.8
     basic_ki_x: 1.0
     basic_kp_y: 0.8
