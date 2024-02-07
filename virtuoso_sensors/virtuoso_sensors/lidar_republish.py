@@ -10,7 +10,8 @@ class LidarRepublish(Node):
 
         self.sub = self.create_subscription(PointCloud2, '/velodyne_points', self.republish, 10)
 
-        self.pub = self.create_publisher(PointCloud2, 'wamv/sensors/lidars/lidar_wamv/points', 10)
+        # self.pub = self.create_publisher(PointCloud2, 'wamv/sensors/lidars/lidar_wamv/points', 10)
+        self.pub = self.create_publisher(PointCloud2, '/lidars/front_lidar/points', 10)
     
     def republish(self, msg:PointCloud2):
         
@@ -23,7 +24,7 @@ class LidarRepublish(Node):
             points[i][1] = point[1]
             points[i][2] = point[2] 
         
-        newMsg.header.frame_id = 'wamv/lidar_wamv_link'
+        newMsg.header.frame_id = 'front_lidar_link'
 
         newMsg = create_cloud(newMsg.header, newMsg.fields[0:4], points)
             

@@ -45,6 +45,15 @@ def generate_launch_description():
                 package='virtuoso_sensors',
                 executable='lidar_republish'
             ))
+            ld.append(Node(
+                package='tf2_ros',
+                executable='static_transform_publisher',
+                name=f'base_link_to_{lidars["lidar_config"]["all_lidar_frames"][i]}',
+                arguments=[
+                    *(str(d) for d in lidars['lidar_config']['all_lidar_transforms'][i]),
+                    '0.0', '0', '0', 'base_link', lidars['lidar_config']['all_lidar_frames'][i]
+                ]
+            ))
         else:
             ld.append(Node(
                 package='urg_node',

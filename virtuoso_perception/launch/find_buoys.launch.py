@@ -76,17 +76,18 @@ def generate_launch_description():
             )
         )
 
-    ld.append(
-        Node(
-            package='virtuoso_perception',
-            executable='buoy_stereo_node.py',
-            parameters=[
-                {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
-                {'frames': camera_data['camera_config']['bow_camera_frames']}, 
-                stereo_param_file
-            ]
+    if len(camera_data['camera_config']['bow_camera_base_topics']) >= 2:
+        ld.append(
+            Node(
+                package='virtuoso_perception',
+                executable='buoy_stereo_node.py',
+                parameters=[
+                    {'base_topics': camera_data['camera_config']['bow_camera_base_topics']},
+                    {'frames': camera_data['camera_config']['bow_camera_frames']}, 
+                    stereo_param_file
+                ]
+            )
         )
-    )
 
     ld.append(
         Node(

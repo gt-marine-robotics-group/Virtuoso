@@ -118,14 +118,20 @@ class Waypoints(Node):
     
     def calc_path(self):
         self.get_logger().info('Creating path')
+        # self.get_logger().info(f'pose: {self.waypoints.poses[0]}')
         self.path = self.planner.create_path(
             Planner.pose_deep_copy(self.waypoints.poses[self.waypoints_completed].pose)
         )
+        # self.get_logger().info('finished creating path')
         self.path.header.frame_id = 'map'
 
     def navigate(self):
 
-        if self.planner.robot_pose is None or self.planner.map is None or self.waypoints is None:
+        if self.planner.map is None and self.get_parameter('planner').value != 'STRAIGHT':
+            self.get_logger().info('No map received. Map required.')
+            return
+
+        if self.planner.robot_pose is None or self.waypoints is None:
             return
 
         if not self.path:

@@ -91,17 +91,24 @@ class ChannelNode(Node):
             self.get_logger().info('waiting')
             time.sleep(0.5)
         
-        cam_trans = self.find_cam_to_map_transform()
-        if cam_trans is None:
-            self.get_logger().info('no cam transform')
-            return res
-        lidar_trans = self.find_lidar_to_map_transform()
-        if lidar_trans is None:
-            self.get_logger().info('no lidar transform')
-            return res
+        if req.use_camera:
+            cam_trans = self.find_cam_to_map_transform()
+            if cam_trans is None:
+                self.get_logger().info('no cam transform')
+                return res
+        else:
+            cam_trans = None
+        if req.use_lidar:
+            lidar_trans = self.find_lidar_to_map_transform()
+            if lidar_trans is None:
+                self.get_logger().info('no lidar transform')
+                return res
+        else:
+            lidar_trans = None
         self.channel.cam_to_map_trans = cam_trans
         self.channel.lidar_to_map_trans = lidar_trans
 
+        self.get_logger().info('executing')
         try:
             res = self.channel.execute(req, res)
         except Exception as e:

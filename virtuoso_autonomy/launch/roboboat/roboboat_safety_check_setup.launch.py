@@ -17,6 +17,7 @@ def generate_launch_description():
     perception = get_package_share_directory('virtuoso_perception')
     mapping = get_package_share_directory('virtuoso_mapping')
     controller = get_package_share_directory('virtuoso_controller')
+    mapping = get_package_share_directory('virtuoso_mapping')
 
     return LaunchDescription([
         usv_arg,
@@ -27,6 +28,10 @@ def generate_launch_description():
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(navigation, 'launch', 'main.launch.py')),
+            launch_arguments={'usv': usv_config}.items()
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(mapping, 'launch', 'main.launch.py')),
             launch_arguments={'usv': usv_config}.items()
         ),
         IncludeLaunchDescription(
