@@ -71,7 +71,7 @@ def generate_launch_description():
         elif cam_type == 'oakd':
             ld.append(
                 IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/rgbd_pcl.launch.py')),
+                    PythonLaunchDescriptionSource(os.path.join(oakd_share, 'launch/camera.launch.py')),
                 )
             )
             if imu_config_str == 'oak': # using oak-d imu

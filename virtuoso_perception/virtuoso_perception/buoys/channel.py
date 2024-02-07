@@ -48,7 +48,10 @@ class FindChannel:
         self.iteration_count = 0
     
     def execute(self, req:Channel.Request, res:Channel.Response):
-        if self.cam_to_map_trans is None or self.lidar_to_map_trans is None:
+        if req.use_lidar and self.lidar_to_map_trans is None:
+            return res
+
+        if req.use_camera and self.cam_to_map_trans is None:
             return res
         
         self.iteration_count += 1
