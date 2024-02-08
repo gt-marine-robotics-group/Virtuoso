@@ -5,7 +5,7 @@ auxiliary_ball_shooter:
     shooter_motor_topic: '/ball_shooter/throttle_a_cmd'
     loading_motor_topic: '/ball_shooter/throttle_b_cmd'
     num_shots: 1
-    between_load_time_gap: 1
+    between_load_time_gap: 1.0
     shooter_motor_speed: 1.2
     loading_motor_speed: -1.0
     shooter_motor_spinup_time: 3.0
