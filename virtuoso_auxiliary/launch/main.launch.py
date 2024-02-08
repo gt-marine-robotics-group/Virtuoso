@@ -37,13 +37,13 @@ def generate_launch_description():
         )
     ]
 
-    if not is_sim_time:
-        ld.append(
-            Node(
-                package='virtuoso_auxiliary',
-                executable='aux_serial',
-                parameters=[aux_serial_params]
-            )
-        )
+    # if not is_sim_time:
+    #     ld.append(
+    #         Node(
+    #             package='virtuoso_auxiliary',
+    #             executable='aux_serial',
+    #             parameters=[aux_serial_params]
+    #         )
+    #     )
 
     return LaunchDescription(ld)

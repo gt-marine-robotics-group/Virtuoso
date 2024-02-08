@@ -5,7 +5,7 @@ auxiliary_ball_shooter:
     shooter_motor_topic: '/wamv/shooters/ball_shooter/fire'
     loading_motor_topic: ''
     num_shots: 3
-    between_load_time_gap: 1
+    between_load_time_gap: 1.0
     shooter_motor_speed: 0.0
     loading_motor_speed: 0.0
     shooter_motor_spinup_time: 0.0
