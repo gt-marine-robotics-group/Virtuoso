@@ -8,7 +8,13 @@ from sensor_msgs.msg import CameraInfo
 class ChannelNavNode(Node):
 
     def __init__(self):
-        super().__init__('channel_nav')
+        super().__init__('autonomy_channel_nav')
+
+        self.declare_parameters(namespace='', parameters=[
+            ('linear_x_factor', 0.0),
+            ('linear_y_factor', 0.0),
+            ('torque_factor', 0.0)
+        ])
 
         self.control_mode_pub = self.create_publisher(String, 'controller_mode', 10)
 
@@ -74,15 +80,15 @@ class ChannelNavNode(Node):
             if 'red' in buoy.label:
                 if size > largest_red['size']:
                     largest_red = {'x': x, 'y': y, 'size': size}
-        
-        if largest_red is None and largest_green is None:
-            self.get_logger().info('Could not find red or green buoy')
-            return
 
         cam_size = self.cam_info.width * self.cam_info.height
         
         twist = Twist()
         torque = Float32()
+        
+        if largest_red['size'] == 0 and largest_green['size'] == 0:
+            self.get_logger().info('Could not find red or green buoy')
+            return
 
         if largest_green['size'] == 0:
             self.get_logger().info('largest green none')
@@ -104,9 +110,13 @@ class ChannelNavNode(Node):
                 twist.linear.y = 1 - (horz_green / horz_red)
             else:
                 twist.linear.y = (1 - (horz_red / horz_green)) * -1
-            twist.linear.x = (largest_green['size'] + largest_red['size']) / (self.cam_info.width / 2)
+            twist.linear.x = (largest_green['size'] + largest_red['size']) / (cam_size / 2)
         
         # torque.data *= -1
+
+        twist.linear.x *= self.get_parameter('linear_x_factor').value
+        twist.linear.y *= self.get_parameter('linear_y_factor').value
+        torque.data *= self.get_parameter('torque_factor').value
 
         self.torque_pub.publish(torque)
         self.vel_pub.publish(twist)
