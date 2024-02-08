@@ -106,7 +106,7 @@ class ChannelNavNode(Node):
                 twist.linear.y = (1 - (horz_red / horz_green)) * -1
             twist.linear.x = (largest_green['size'] + largest_red['size']) / (self.cam_info.width / 2)
         
-        # torque.data *= -1
+        torque.data *= -1
 
         self.torque_pub.publish(torque)
         self.vel_pub.publish(twist)
