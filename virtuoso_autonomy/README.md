@@ -159,6 +159,9 @@ Handles the finals run of RoboBoat. USV procedure:
 | /navigation/station_keep | [std_msgs/Empty](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Empty.html) | N/A | Enables station keeping. |
 | /navigation/set_waypoints | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Path USV should navigate along. |
 | /navigation/translate | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Point USV should translate to. |
+| /controller_mode | [std_msgs/String](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/String.html) | N/A | Sets the controller mode. Options are 'waypointing' or 'manual'. |
+| /controller/manual/cmd_vel | [geometry_msgs/Twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html) | N/A | The twist command for the manual controller. |
+| /controller/manual/cmd_torque | [std_msgs/Float32](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Float32.html) | N/A | The torque command for the manual controller. |
 
 ## External Service Requests
 
