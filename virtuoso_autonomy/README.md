@@ -206,10 +206,9 @@ Currently only for RoboBoat.
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| autonomy_channel_nav | num_channels | int | Number of channels to navigate through before stopping. |
-| autonomy_channel_nav | gate_buoy_max_dist | float | The number of meters a buoy for a next gate can be from the USV. |
-| autonomy_channel_nav | extra_forward_nav | float | The number of meters to navigate forward after reaching the midpoint of a gate. |
-| autonomy_channel_nav | rotation_theta | float | The amount of radians to turn by when searching for a gate. |
+| autonomy_channel_nav | linear_x_factor | float | Factor the x-component of velocity supplied to the controller multiplied by. |
+| autonomy_channel_nav | linear_y_factor | float | Factor the y-component of velocity supplied to the controller multiplied by. |
+| autonomy_channel_nav | torque_factor | float | Factor the torque supplied to the controller multiplied by. |
 
 ### safety_check.yaml
 
