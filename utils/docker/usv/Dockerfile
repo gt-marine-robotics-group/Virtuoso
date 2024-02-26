@@ -34,16 +34,20 @@ RUN /bin/bash -c "git clone https://github.com/LORD-MicroStrain/microstrain_iner
 WORKDIR /root/mrg/dev_ws/src/microstrain_inertial
 RUN /bin/bash -c "git checkout a519cd4"
 
+# Clone Depthai (OAK-D driver) in ~/mrg/dev_ws/src
+WORKDIR /root/mrg/dev_ws/src
+RUN /bin/bash -c "git clone -b foxy https://github.com/gt-marine-robotics-group/depthai-working.git"
+WORKDIR /root/mrg/dev_ws
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to depthai_ros_driver"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-select depthai_examples"
+
 # Rosdep install Virtuoso dependencies
 WORKDIR /root/mrg/dev_ws
-# RUN apt-get install ros-foxy-usb-cam -y --fix-missing
 RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && rosdep install --from-paths src --ignore-src -ry"
 
-# RUN /bin/bash -c "sudo apt-get install -y ros-foxy-sensor-msgs-py"
-# RUN /bin/bash -c "pip3 install ultralytics"
-
 # Some additional utility packages
-RUN /bin/bash -c "sudo apt install usbutils"
+RUN /bin/bash -c "sudo apt install -y usbutils vim"
+# RUN /bin/bash -c "sudo apt install -y vim"
 
 # Micro-Ros
 
