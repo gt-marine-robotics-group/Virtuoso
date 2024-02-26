@@ -77,13 +77,15 @@ Handles the Scan the Code task. USV procedure:
 2. Request code scan
 
 ### roboboat/channel_nav_node.py
-Handles the Channel Navigation task. USV procedure:
+Handles the Channel Navigation task. This is the first task which we have been attempting to migrate away from the the waypoint navigation paradigm. The previous USV procedure was the following:
 
 1. Enable station keeping
 2. Search for next gate
 3. Navigate to next gate
 4. Translate forward an arbitrary, customizable distance
 5. Repeat steps 2-4 until navigated through all gates (customizable)
+
+Note that this procedure is very similar to task 1, the safety check. Unfortunately, in practice (and even sometimes in simulation), it is difficult to accurately identify the next gate while planning a safe path given the large number of buoys and obstacles. For these reasons, instead of sending waypoint goals, we send command forces directly to the motor controller (a target force x and y for translation and a target torque for yaw). Motor commands are determined solely by analyzing predictions of the YOLO model made continuosly on the front facing camera. The lidar is currently not being used, but its addition would certaintly be an improvement. The algorithm currently only adjusts motor commands based on the locations of red and green buoys, so there is no obstacle avoidance yet; however, the YOLO model does detect the obstacle buoys, so it is only a matter of adding the necessary command force logic. Additionally, while the algorithm works relatively well so far in simulation, we have struggled tuning the command forces for the boat on the water; a thorough read-through the `virtuoso_controller` code will likely be necessary for understanding how to best tune this new system.
 
 ### roboboat/safety_check_node.py
 Handles the first task for RoboBoat. USV procedure:
