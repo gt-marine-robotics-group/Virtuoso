@@ -92,7 +92,7 @@ This node first identifies the buoys in each camera by calling the service found
 This node first identifies the codes of the dock by calling the service in the `find_dock_codes_node` which returns the contours of each code (this is not an external service listed below). Then, similar to buoy stereo, it matches midpoints and does trigonometry to determine to position of the two farthest codes. We can then use these two poses to orient the USV with the dock. Results have been mixed even in simulation, so we will be phasing this out in favor of an outdoor stereo camera.
 
 ### yolo/yolo_node.py
-This node uses a YOLOv8 model to detect objects around the USV from a camera. It has not been largely integrated to the rest of Virtuoso yet.
+This node uses a YOLOv8 model to detect objects around the USV from a camera. The model's detected objects can be useful for multiple different tasks (e.g. buoys, docks, ball shooting target).
 
 ## Other Algorithms of Note
 

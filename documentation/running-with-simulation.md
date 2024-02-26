@@ -20,12 +20,12 @@ Note: Starting with RoboBoat, we are now providing the already built URDF in `ut
 
 This is a ONE TIME step. 
 
-Inside of `Virtuoso/utils/wamv_X` there are yaml files containing the configuration of our motors and sensors on the WAM-V in simulation. For VRX to recognize this is the configuration we want our WAM-V to have, we need to create a custom urdf file from these configuration yaml files. To do that, run the following commands: 
+Inside of `Virtuoso/utils/urdf/...` there are yaml files containing the configuration of our motors and sensors on the WAM-V in simulation. For VRX to recognize this is the configuration we want our WAM-V to have, we need to create a custom urdf file from these configuration yaml files. To do that, run the following commands: 
 
 ```
 source /opt/ros/humble/setup.bash
 source ~/mrg/vrx_ws/install/setup.bash
-ros2 launch vrx_gazebo generate_wamv.launch thruster_yaml:=$HOME/mrg/dev_ws/src/Virtuoso/utils/wamv_X/thruster_config.yaml  component_yaml:=$HOME/mrg/dev_ws/src/Virtuoso/utils/wamv_X/component_config.yaml wamv_target:=$HOME/mrg/wamv.urdf
+ros2 launch vrx_gazebo generate_wamv.launch thruster_yaml:=$HOME/mrg/dev_ws/src/Virtuoso/utils/urdf/.../thruster_config.yaml  component_yaml:=$HOME/mrg/dev_ws/src/Virtuoso/utils/urdf/.../component_config.yaml wamv_target:=$HOME/mrg/wamv.urdf
 ```
 
 You should see a `wamv.urdf` file inside your `mrg` directory when the process finishes.
