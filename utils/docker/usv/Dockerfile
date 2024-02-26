@@ -37,17 +37,45 @@ RUN /bin/bash -c "git checkout a519cd4"
 # Clone Depthai (OAK-D driver) in ~/mrg/dev_ws/src
 WORKDIR /root/mrg/dev_ws/src
 RUN /bin/bash -c "git clone -b foxy https://github.com/gt-marine-robotics-group/depthai-working.git"
-WORKDIR /root/mrg/dev_ws
-RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to depthai_ros_driver"
-RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-select depthai_examples"
 
 # Rosdep install Virtuoso dependencies
 WORKDIR /root/mrg/dev_ws
 RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && rosdep install --from-paths src --ignore-src -ry"
 
+# Microros
+WORKDIR /root/mrg
+RUN mkdir microros_ws
+WORKDIR /root/mrg/microros_ws
+RUN /bin/bash -c "git clone -b foxy https://github.com/micro-ROS/micro_ros_setup.git src/micro_ros_setup"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && rosdep install --from-paths src --ignore-src -y"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && source install/local_setup.bash && ros2 run micro_ros_setup create_agent_ws.sh && ros2 run micro_ros_setup build_agent.sh"
+
+# BAG-of-tricks
+# set this arg to some value to rebuild the docker container starting here,
+# useful if changes have been made to bag-of-tricks on github
+ARG BAG_OF_TRICKS=unknown
+WORKDIR /root/mrg
+RUN /bin/bash -c "git clone -b docker https://github.com/gt-marine-robotics-group/bag-of-tricks.git"
+RUN /bin/bash -c "cp /root/mrg/bag-of-tricks/tmux/.tmux.conf ~/"
+
+# Virtuoso build
+# set this arg to some value to rebuild the docker container starting here,
+# useful if changes have been made to Virtuoso on github
+ARG VIRTUOSO=unknown
+WORKDIR /root/mrg/dev_ws/src/Virtuoso
+RUN /bin/bash -c "git pull origin foxy"
+WORKDIR /root/mrg/dev_ws
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to virtuoso_autonomy"
+
+WORKDIR /root/mrg/dev_ws
+
 # Some additional utility packages
-RUN /bin/bash -c "sudo apt install -y usbutils vim"
+RUN /bin/bash -c "sudo apt install -y usbutils vim tmux"
+RUN /bin/bash -c "pip3 install tmuxp --ignore-installed"
 # RUN /bin/bash -c "sudo apt install -y vim"
+
+
 
 # Micro-Ros
 
