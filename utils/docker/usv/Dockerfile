@@ -66,6 +66,12 @@ ARG VIRTUOSO=unknown
 WORKDIR /root/mrg/dev_ws/src/Virtuoso
 RUN /bin/bash -c "git pull origin foxy"
 WORKDIR /root/mrg/dev_ws
+# in theory just using --packages-up-to virtuoso_autonomy should work, but docker was crashing computer
+# during build (100% CPU and memory usage even when limiting memory during build)
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to microstrain_inertial_driver"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to ublox_dgnss_node"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to depthai_ros_driver"
+RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to urg_node"
 RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to virtuoso_autonomy"
 
 WORKDIR /root/mrg/dev_ws
@@ -73,70 +79,3 @@ WORKDIR /root/mrg/dev_ws
 # Some additional utility packages
 RUN /bin/bash -c "sudo apt install -y usbutils vim tmux"
 RUN /bin/bash -c "pip3 install tmuxp --ignore-installed"
-# RUN /bin/bash -c "sudo apt install -y vim"
-
-
-
-# Micro-Ros
-
-# RUN mkdir /microros_ws
-# WORKDIR /microros_ws
-# RUN /bin/bash -c "git clone -b foxy https://github.com/micro-ROS/micro_ros_setup.git src/micro_ros_setup"
-
-# RUN /bin/bash -c "sudo apt install -y python3-rosdep"
-# RUN /bin/bash -c "sudo apt update && rosdep update"
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && rosdep install --from-paths src --ignore-src -y"
-
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build"
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && source install/local_setup.bash && ros2 run micro_ros_setup create_agent_ws.sh && ros2 run micro_ros_setup build_agent.sh"
-
-# RUN /bin/bash -c "pip3 install tmuxp --ignore-installed"
-# RUN /bin/bash -c "sudo apt install tmux"
-
-# # Microstrain
-
-# WORKDIR /dev_ws/src
-# RUN /bin/bash -c "git clone https://github.com/LORD-MicroStrain/microstrain_inertial.git"
-# WORKDIR /dev_ws/src/microstrain_inertial
-# RUN /bin/bash -c "git checkout a519cd4"
-
-# WORKDIR /dev_ws
-
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to virtuoso_autonomy --packages-ignore microstrain_inertial microstrain_inertial_driver microstrain_inertial_msgs"
-
-# # DEPTHAI
-
-# ARG DEPTHAI=unknown
-# WORKDIR /dev_ws/src
-# RUN /bin/bash -c "git clone -b foxy https://github.com/gt-marine-robotics-group/depthai-working.git"
-# WORKDIR /dev_ws
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to depthai_ros_driver"
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-select depthai_examples"
-
-# # Misc
-
-# RUN /bin/bash -c "sudo apt install -y vim"
-
-# # Microstrain again
-
-# WORKDIR /dev_ws
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && rosdep install --from-paths src -ry"
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to microstrain_inertial_driver"
-
-# # Bag of Tricks stuff
-
-# ARG BAG_OF_TRICKS=unknown
-# WORKDIR /
-# RUN /bin/bash -c "git clone -b docker https://github.com/gt-marine-robotics-group/bag-of-tricks.git"
-
-# RUN /bin/bash -c "cp /bag-of-tricks/tmux/.tmux.conf ~/"
-
-# # LATEST VIRTUOSO VERSION
-
-# ARG VIRTUOSO=unknown
-# WORKDIR /dev_ws/src/Virtuoso
-# RUN /bin/bash -c "git pull origin foxy"
-# WORKDIR /dev_ws
-# RUN /bin/bash -c "source /opt/ros/foxy/setup.bash && colcon build --packages-up-to virtuoso_autonomy"
-
-# WORKDIR /dev_ws
