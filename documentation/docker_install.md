@@ -30,3 +30,5 @@ To remove the container when done using it (necessary to rerun later), run
 ```
 docker rm virtuoso_pare
 ```
+
+Once inside the container, you should be able to use all tools described in [running on the USV](/documentation/running-on-the-USV.md).
