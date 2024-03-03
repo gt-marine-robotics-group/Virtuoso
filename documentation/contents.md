@@ -5,6 +5,7 @@
 - [Running with Simulation](/documentation/running-with-simulation.md)
 - [Running on the USV](/documentation/running-on-the-USV.md)
 - [Launch Arguments](/documentation/launch-arguments.md)
+- [Mission Planning](/utils/mission_planner_processing/README.md)
 - [Practices](/documentation/practices.md)
 - Virtuoso Packages
   - [Autonomy](/virtuoso_autonomy/README.md)
