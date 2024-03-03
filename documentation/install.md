@@ -1,5 +1,7 @@
 # Installation
 
+Note: As of RoboBoat 2024, there is now a Docker install for Virtuoso. This Docker install is made for use on the on-board computer, not for normal development. We are working on developing an image that can serve as an alternative to the below installation. Relevant documentation can be found [here](/documentation/docker_install.md).
+
 ## Recommended File Structure (following installation)
 ```
 ~/mrg

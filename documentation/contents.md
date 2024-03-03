@@ -1,6 +1,7 @@
 # Documentation Contents
 
 - [Install Instructions](/documentation/install.md)
+- [Docker Install](/documentation/docker_install.md)
 - [Running with Simulation](/documentation/running-with-simulation.md)
 - [Launch Arguments](/documentation/launch-arguments.md)
 - [Practices](/documentation/practices.md)
