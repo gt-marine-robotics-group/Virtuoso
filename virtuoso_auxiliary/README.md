@@ -26,7 +26,7 @@ This node, when a request is sent, will turn on the ball shooter to perform an a
 This node, when a request is sent, will turn on the water shooter for a requested period of time.
 
 ### aux_serial_node.py
-Because we cannot have both our motor controller Teensy and our auxiliary controller Arduino Due both running micro-ros at the same time, we must send our commands to the auxiliary controller through serial directly. This node subscribes to the outputs of the water and ball shooter nodes and sends a bit string to the Arduino Due controlling the auxiliary system.
+Because we cannot have both our motor controller Teensy and our auxiliary controller Arduino Due both running micro-ros at the same time*, we must send our commands to the auxiliary controller through serial directly. This node subscribes to the outputs of the water and ball shooter nodes and sends a bit string to the Arduino Due controlling the auxiliary system.
 
 The bit string contains 20 characters (20 bytes) and is encoded in the following format:
 - Bytes 0-3: "AAAA"
@@ -34,6 +34,8 @@ The bit string contains 20 characters (20 bytes) and is encoded in the following
 - Bytes 8-11: Command for the ball sequencer motor times 1000
 - Bytes 12-15: Command for the water shooter motor times 1000
 - Bytes 16-19: "BBBB"
+
+\* This issue was resolved at RoboBoat 2024. The code for launching this node was therefore commented out in `main.launch.py`. However, the node is still here if we ever need to use it.
 
 ## External Services 
 

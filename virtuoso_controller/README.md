@@ -17,6 +17,7 @@
   - [Basic PID](#basic-pid)
   - [Velocity PID and Command Velocity Generator](#velocity-pid-and-command-velocity-generator)
   - [A Note on How the Vehicle Knows it's Passed a Point](#a-note-on-how-the-vehicle-knows-its-passed-a-point)
+  - [The Manual Control Mode](#the-manual-control-mode)
 
 ## Virtuoso Nodes
 
@@ -48,6 +49,9 @@ The control mixer is what sends individual thruster commands based on target X a
 | /localization/odometry | [sensor_msgs/Odometry](http://docs.ros.org/en/noetic/api/nav_msgs/html/msg/Odometry.html) | odom | Used by choose_pid_node, basic_pid_node, cmd_vel_generator_node, and velocity_pid_node. |
 | /navigation/plan | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Used by choose_pid_node. |
 | /controller/is_translation | [std_msgs/Bool](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Bool.html) | N/A | If true, vehicle holds its final orientation while moving instead of pointing in the direction of travel. Affects choose_pid and cmd_vel_generator|
+| /controller_mode | [std_msgs/String](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/String.html) | N/A | Sets the controller mode. Options are 'waypointing' or 'manual'. If set to manual mode, velocity controller will ignore waypoint path and instead publish manually sent commands and basic controller will publish manually sent twist commands. |
+| /controller/manual/cmd_vel | [geometry_msgs/Twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html) | N/A | The twist command for manual control. |
+| /controller/manual/cmd_torque | [std_msgs/Float32](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Float32.html) | N/A | The torque command for manual control. |
 
 
 ## External Published Topics
@@ -137,3 +141,6 @@ So how do you tell whether you're behind, in the middle of, or in front of the l
 
 ![front_middle_back](https://user-images.githubusercontent.com/33461797/232118217-0b64c20b-3169-4fd0-9c55-f7577a2be8fb.png)
 
+### The Manual Control Mode
+
+The preceding sections regarding Tuning the Controller have involved the waypoint following functionality. We are working towards having an alternative navigation mode to waypointing. Instead of sending a waypoint and having the controller follow the path, the manual control mode involves having velocity and torque commands being sent to the controller without having a complete path built. The different controller modes, "manual" and "waypointing", can be toggled through the `/controller_mode` topic. Currently, the manual commands are sent directly from `virtuoso_autonomy`, but this may not be the optimal long-term place for such logic.

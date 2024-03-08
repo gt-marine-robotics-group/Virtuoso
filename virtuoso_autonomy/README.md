@@ -77,13 +77,15 @@ Handles the Scan the Code task. USV procedure:
 2. Request code scan
 
 ### roboboat/channel_nav_node.py
-Handles the Channel Navigation task. USV procedure:
+Handles the Channel Navigation task. This is the first task which we have been attempting to migrate away from the the waypoint navigation paradigm. The previous USV procedure was the following:
 
 1. Enable station keeping
 2. Search for next gate
 3. Navigate to next gate
 4. Translate forward an arbitrary, customizable distance
 5. Repeat steps 2-4 until navigated through all gates (customizable)
+
+Note that this procedure is very similar to task 1, the safety check. Unfortunately, in practice (and even sometimes in simulation), it is difficult to accurately identify the next gate while planning a safe path given the large number of buoys and obstacles. For these reasons, instead of sending waypoint goals, we send command forces directly to the motor controller (a target force x and y for translation and a target torque for yaw). Motor commands are determined solely by analyzing predictions of the YOLO model made continuosly on the front facing camera. The lidar is currently not being used, but its addition would certaintly be an improvement. The algorithm currently only adjusts motor commands based on the locations of red and green buoys, so there is no obstacle avoidance yet; however, the YOLO model does detect the obstacle buoys, so it is only a matter of adding the necessary command force logic. Additionally, while the algorithm works relatively well so far in simulation, we have struggled tuning the command forces for the boat on the water; a thorough read-through the `virtuoso_controller` code will likely be necessary for understanding how to best tune this new system.
 
 ### roboboat/safety_check_node.py
 Handles the first task for RoboBoat. USV procedure:
@@ -159,6 +161,9 @@ Handles the finals run of RoboBoat. USV procedure:
 | /navigation/station_keep | [std_msgs/Empty](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/Empty.html) | N/A | Enables station keeping. |
 | /navigation/set_waypoints | [nav_msgs/Path](https://docs.ros2.org/foxy/api/nav_msgs/msg/Path.html) | map | Path USV should navigate along. |
 | /navigation/translate | [geometry_msgs/Point](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Point.html) | base_link | Point USV should translate to. |
+| /controller_mode | [std_msgs/String](http://docs.ros.org/en/melodic/api/std_msgs/html/msg/String.html) | N/A | Sets the controller mode. Options are 'waypointing' or 'manual'. |
+| /controller/manual/cmd_vel | [geometry_msgs/Twist](http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Twist.html) | N/A | The twist command for the manual controller. |
+| /controller/manual/cmd_torque | [std_msgs/Float32](http://docs.ros.org/en/noetic/api/std_msgs/html/msg/Float32.html) | N/A | The torque command for the manual controller. |
 
 ## External Service Requests
 
@@ -206,10 +211,9 @@ Currently only for RoboBoat.
 
 | Node | Parameter | Type | Description |
 |------|-----------|------|-------------|
-| autonomy_channel_nav | num_channels | int | Number of channels to navigate through before stopping. |
-| autonomy_channel_nav | gate_buoy_max_dist | float | The number of meters a buoy for a next gate can be from the USV. |
-| autonomy_channel_nav | extra_forward_nav | float | The number of meters to navigate forward after reaching the midpoint of a gate. |
-| autonomy_channel_nav | rotation_theta | float | The amount of radians to turn by when searching for a gate. |
+| autonomy_channel_nav | linear_x_factor | float | Factor the x-component of velocity supplied to the controller multiplied by. |
+| autonomy_channel_nav | linear_y_factor | float | Factor the y-component of velocity supplied to the controller multiplied by. |
+| autonomy_channel_nav | torque_factor | float | Factor the torque supplied to the controller multiplied by. |
 
 ### safety_check.yaml
 
