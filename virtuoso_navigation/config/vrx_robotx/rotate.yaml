@@ -1,0 +1,4 @@
+
+navigation_rotate:
+  ros__parameters:
+    goal_tolerance: 0.0349066

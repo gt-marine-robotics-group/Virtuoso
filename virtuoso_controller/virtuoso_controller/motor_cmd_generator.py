@@ -107,6 +107,18 @@ class MotorCmdGenerator:
             right_rear_cmd = (target_force_x + target_torque)
             left_middle_cmd = -target_force_y
             right_middle_cmd = target_force_y
+        
+        if self.motor_config == "DIFF":
+             
+            if(abs(target_force_y) > 1.0):
+                target_force_y = target_force_y/abs(target_force_y)
+
+            #the angles are for simulation purposes only, just based on the wamv urdf
+            left_rear_angle = -0.0
+            right_rear_angle = 0.0
+
+            left_rear_cmd = target_force_x - target_torque
+            right_rear_cmd = target_force_x + target_torque
             
         #We now want to normalize the commands so that the highest command has magnitude 1.0
         #This is for the firmware, which requests commands from -1 to 1
